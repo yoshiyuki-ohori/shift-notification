@@ -11,6 +11,7 @@ function onOpen() {
   ui.createMenu('シフト通知')
     .addItem('シフトデータ取込 (練馬)', 'importNerimaShifts')
     .addItem('シフトデータ取込 (世田谷)', 'importSetagayaShifts')
+    .addItem('シフトデータ取込 (マスタExcel)', 'importMasterExcelShifts')
     .addSeparator()
     .addItem('名寄せ実行', 'runNameMatching')
     .addItem('未マッチ確認', 'showUnmatchedReport')
@@ -19,6 +20,8 @@ function onOpen() {
     .addItem('一括送信 (本番)', 'sendAllNotifications')
     .addSeparator()
     .addItem('送信ログ確認', 'showSendLog')
+    .addSeparator()
+    .addItem('一斉メッセージ送信 (全友だち)', 'sendBroadcastMessage')
     .addToUi();
 }
 
@@ -82,6 +85,26 @@ function importSetagayaShifts() {
     ui.alert('エラー', '世田谷シフト取込でエラーが発生しました:\n' + e.message, ui.ButtonSet.OK);
     Logger.log('importSetagayaShifts error: ' + e.toString());
   }
+}
+
+/**
+ * マスタExcelからのシフトデータ取込
+ * Node.jsツール (parse-master-shift.js --write-ss) でデータ投入済みの場合に使用
+ */
+function importMasterExcelShifts() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAMES.SHIFT_DATA);
+  const rowCount = sheet ? Math.max(sheet.getLastRow() - 1, 0) : 0;
+
+  ui.alert('マスタExcel取込',
+    'マスタExcelからのシフトデータ取込は、Node.jsツールで実行します。\n\n' +
+    '手順:\n' +
+    '1. ターミナルで以下を実行:\n' +
+    '   node tools/parse-master-shift.js --write-ss\n\n' +
+    '2. 実行後、「名寄せ実行」で未マッチを解決してください。\n\n' +
+    '現在のシフトデータ: ' + rowCount + '件',
+    ui.ButtonSet.OK);
 }
 
 /**
@@ -228,24 +251,29 @@ function writeShiftData(records) {
 
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAMES.SHIFT_DATA);
-    sheet.getRange(1, 1, 1, 8).setValues([[
-      '年月', '日付', 'エリア', '施設名', '時間帯', '担当者名(原文)', '社員No', '氏名(正式)'
+    sheet.getRange(1, 1, 1, 9).setValues([[
+      '年月', '日付', 'エリア', '施設名(正式)', '施設コード', '時間帯', '担当者名(原文)', '社員No', '氏名(正式)'
     ]]);
   }
 
-  const rows = records.map(r => [
-    r.yearMonth,
-    r.date,
-    r.area,
-    r.facility,
-    r.timeSlot,
-    r.originalName,
-    r.employeeNo || '',
-    r.formalName || ''
-  ]);
+  const rows = records.map(r => {
+    const officialName = getOfficialFacilityName(r.facility);
+    const facilityId = getFacilityId(r.facility) || '';
+    return [
+      r.yearMonth,
+      r.date,
+      r.area,
+      officialName,
+      facilityId,
+      r.timeSlot,
+      r.originalName,
+      r.employeeNo || '',
+      r.formalName || ''
+    ];
+  });
 
   const lastRow = sheet.getLastRow();
-  sheet.getRange(lastRow + 1, 1, rows.length, 8).setValues(rows);
+  sheet.getRange(lastRow + 1, 1, rows.length, 9).setValues(rows);
 }
 
 /**
@@ -315,6 +343,72 @@ function loadEmployeeMaster() {
 }
 
 /**
+ * 一斉メッセージ送信（全友だちにブロードキャスト）
+ */
+function sendBroadcastMessage() {
+  const ui = SpreadsheetApp.getUi();
+
+  // メッセージ入力ダイアログ
+  const result = ui.prompt('一斉メッセージ送信',
+    '全友だちに送信するメッセージを入力してください。\n\n' +
+    '例: 社員番号登録のお願いメッセージ',
+    ui.ButtonSet.OK_CANCEL);
+
+  if (result.getSelectedButton() !== ui.Button.OK) return;
+
+  const messageText = result.getResponseText().trim();
+  if (!messageText) {
+    ui.alert('エラー', 'メッセージが入力されていません。', ui.ButtonSet.OK);
+    return;
+  }
+
+  // 確認ダイアログ
+  const confirm = ui.alert('送信確認',
+    '以下のメッセージを全友だちに送信します。\n\n' +
+    '---\n' + messageText + '\n---\n\n' +
+    '本当に送信しますか？',
+    ui.ButtonSet.YES_NO);
+
+  if (confirm !== ui.Button.YES) return;
+
+  const sendResult = broadcastMessage([createTextMessage(messageText)]);
+
+  if (sendResult.success) {
+    ui.alert('送信完了', '一斉メッセージを送信しました。', ui.ButtonSet.OK);
+  } else {
+    ui.alert('送信エラー', 'エラー: ' + sendResult.error, ui.ButtonSet.OK);
+  }
+}
+
+/**
+ * 社員番号登録お願いメッセージを一斉送信
+ */
+function sendRegistrationBroadcast() {
+  const ui = SpreadsheetApp.getUi();
+
+  const message = 'シフト通知システムのご案内です。\n\n' +
+    '今後、毎月のシフト予定をこのLINEでお届けします。\n\n' +
+    '【登録方法】\n' +
+    'このトーク画面に「社員番号」を数字で送信してください。\n' +
+    '（例: 072）\n\n' +
+    '※社員番号が分からない場合は管理者にお問い合わせください。';
+
+  const confirm = ui.alert('社員番号登録お願い送信',
+    '以下のメッセージを全友だちに送信します。\n\n---\n' + message + '\n---\n\n送信しますか？',
+    ui.ButtonSet.YES_NO);
+
+  if (confirm !== ui.Button.YES) return;
+
+  const result = broadcastMessage([createTextMessage(message)]);
+
+  if (result.success) {
+    ui.alert('送信完了', '登録お願いメッセージを全友だちに送信しました。', ui.ButtonSet.OK);
+  } else {
+    ui.alert('送信エラー', 'エラー: ' + result.error, ui.ButtonSet.OK);
+  }
+}
+
+/**
  * 初期セットアップ: 必要なシートを作成
  */
 function setupSheets() {
@@ -332,8 +426,8 @@ function setupSheets() {
   // シフトデータ
   if (!ss.getSheetByName(SHEET_NAMES.SHIFT_DATA)) {
     const sheet = ss.insertSheet(SHEET_NAMES.SHIFT_DATA);
-    sheet.getRange(1, 1, 1, 8).setValues([[
-      '年月', '日付', 'エリア', '施設名', '時間帯', '担当者名(原文)', '社員No', '氏名(正式)'
+    sheet.getRange(1, 1, 1, 9).setValues([[
+      '年月', '日付', 'エリア', '施設名(正式)', '施設コード', '時間帯', '担当者名(原文)', '社員No', '氏名(正式)'
     ]]);
     sheet.setFrozenRows(1);
   }

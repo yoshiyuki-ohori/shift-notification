@@ -30,11 +30,12 @@ const SHIFT_COLS = {
   YEAR_MONTH: 1,  // A: 年月
   DATE: 2,        // B: 日付
   AREA: 3,        // C: エリア
-  FACILITY: 4,    // D: 施設名
-  TIME_SLOT: 5,   // E: 時間帯
-  ORIGINAL_NAME: 6,// F: 担当者名(原文)
-  EMPLOYEE_NO: 7, // G: 社員No
-  FORMAL_NAME: 8  // H: 氏名(正式)
+  FACILITY: 4,    // D: 施設名(正式)
+  FACILITY_ID: 5, // E: 施設コード
+  TIME_SLOT: 6,   // F: 時間帯
+  ORIGINAL_NAME: 7,// G: 担当者名(原文)
+  EMPLOYEE_NO: 8, // H: 社員No
+  FORMAL_NAME: 9  // I: 氏名(正式)
 };
 
 // ===== 送信ログ列定数 =====
@@ -68,6 +69,7 @@ const SETTING_KEYS = {
 const LINE_API = {
   PUSH_URL: 'https://api.line.me/v2/bot/message/push',
   REPLY_URL: 'https://api.line.me/v2/bot/message/reply',
+  BROADCAST_URL: 'https://api.line.me/v2/bot/message/broadcast',
   RATE_LIMIT_DELAY_MS: 100
 };
 
@@ -89,6 +91,51 @@ const SEND_STATUS = {
 
 // ===== 練馬エリア 時間帯定数 =====
 const NERIMA_TIME_SLOTS = ['6時～9時', '17時～22時', '22時～'];
+
+// ===== 施設マッピング (CSV施設名 → Firestore施設ID/正式名) =====
+// safe-rise-prod Firestore facilities コレクションと同期
+const FACILITY_MAP = {
+  'グリーンビレッジB': { id: 'GH3', name: 'グリーンビレッジＢ' },
+  'グリーンビレッジE': { id: 'GH7', name: 'グリーンビレッジＥ' },
+  'ビレッジE102': { id: 'GH29', name: 'グリーンビレッジE102' },
+  '中町': { id: 'GH6', name: '中町' },
+  '南大泉': { id: 'GH8', name: '南大泉' },
+  '南大泉３丁目': { id: 'GH28', name: '南大泉３丁目' },
+  '大泉町': { id: 'GH1', name: '大泉町' },
+  '春日町同一①': { id: 'GH9', name: '春日町 (B103)' },
+  '春日町２同一①': { id: 'GH12', name: '春日町2 (B203)' },
+  '東大泉': { id: 'GH10', name: '東大泉' },
+  '松原': { id: 'GH37', name: '松原' },
+  '石神井公園': { id: 'GH41', name: '石神井公園' },
+  '砧①107': { id: 'GH25', name: '砧 (107)' },
+  '砧②207': { id: 'GH36', name: '砧2 (207)' },
+  '西長久保': { id: 'GH11', name: '西長久保' },
+  '都民農園': { id: 'GH24', name: '都民農園' },
+  '長久保': { id: 'GH4', name: '長久保' },
+  '関町南2F同一②': { id: 'GH14', name: '関町南2' },
+  '関町南3F同一②': { id: 'GH15', name: '関町南3' },
+  '関町南4F同一②': { id: 'GH15', name: '関町南3' }
+};
+
+/**
+ * CSV施設名をFirestoreの正式施設名に変換
+ * @param {string} csvFacilityName - CSV上の施設名
+ * @return {string} 正式施設名 (マッピングがない場合はそのまま返す)
+ */
+function getOfficialFacilityName(csvFacilityName) {
+  const entry = FACILITY_MAP[csvFacilityName];
+  return entry ? entry.name : csvFacilityName;
+}
+
+/**
+ * CSV施設名からFirestore施設IDを取得
+ * @param {string} csvFacilityName - CSV上の施設名
+ * @return {string|null} 施設ID (マッピングがない場合はnull)
+ */
+function getFacilityId(csvFacilityName) {
+  const entry = FACILITY_MAP[csvFacilityName];
+  return entry ? entry.id : null;
+}
 
 /**
  * 設定シートから値を取得
