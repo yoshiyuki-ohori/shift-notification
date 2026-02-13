@@ -18,6 +18,15 @@ function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
 
+    // Admin API (POST書き込み) - actionフィールドで判別
+    if (body.action) {
+      var expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
+      if (!expectedKey || body.key !== expectedKey) {
+        return jsonResponse_({ error: 'Unauthorized' }, 401);
+      }
+      return handlePostAction_(body);
+    }
+
     // LINE署名検証
     if (!verifySignature(e)) {
       return ContentService.createTextOutput('Unauthorized')
@@ -42,11 +51,298 @@ function doPost(e) {
 }
 
 /**
- * GETリクエスト処理（Webhook URL検証用）
+ * GETリクエスト処理 - 管理API + Webhook URL検証
+ * クエリパラメータ action で操作を分岐
+ *
+ * ?action=info           → シート一覧
+ * ?action=read&sheet=XX  → シートデータ読み取り
+ * ?action=read&sheet=XX&range=A1:Z10 → 範囲指定読み取り
+ * ?action=status         → システムステータス
+ * (パラメータなし)        → Webhook URL検証
  */
 function doGet(e) {
-  return ContentService.createTextOutput('Shift Notification Webhook Active')
-    .setMimeType(ContentService.MimeType.TEXT);
+  const params = e ? (e.parameter || {}) : {};
+  const action = params.action || '';
+  const adminKey = params.key || '';
+
+  // 管理APIキー検証（Script Propertiesに ADMIN_API_KEY を設定）
+  // ADMIN_API_KEYが未設定の場合はアクション実行を拒否（デフォルト拒否）
+  if (action) {
+    const expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
+    if (!expectedKey || adminKey !== expectedKey) {
+      return jsonResponse_({ error: 'Unauthorized' }, 401);
+    }
+  }
+
+  try {
+    switch (action) {
+      case 'info':
+        return handleGetInfo_();
+      case 'read':
+        return handleGetRead_(params);
+      case 'status':
+        return handleGetStatus_();
+      case 'write':
+        return handleGetWrite_(params);
+      case 'formatText':
+        return handleFormatText_(params);
+      case 'runFunction':
+        return handleRunFunction_(params);
+      case 'readExternal':
+        return handleReadExternal_(params);
+      default:
+        return ContentService.createTextOutput('Shift Notification Webhook Active')
+          .setMimeType(ContentService.MimeType.TEXT);
+    }
+  } catch (error) {
+    return jsonResponse_({ error: error.toString() }, 500);
+  }
+}
+
+/**
+ * シート一覧を返す
+ */
+function handleGetInfo_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheets = ss.getSheets().map(function(s) {
+    return {
+      name: s.getName(),
+      rows: s.getLastRow(),
+      cols: s.getLastColumn()
+    };
+  });
+  return jsonResponse_({ spreadsheetId: ss.getId(), sheets: sheets });
+}
+
+/**
+ * シートデータを読み取る
+ */
+function handleGetRead_(params) {
+  const sheetName = params.sheet;
+  if (!sheetName) return jsonResponse_({ error: 'sheet parameter required' });
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return jsonResponse_({ error: 'Sheet not found: ' + sheetName });
+
+  let data;
+  if (params.range) {
+    data = sheet.getRange(params.range).getValues();
+  } else {
+    if (sheet.getLastRow() === 0) {
+      data = [];
+    } else {
+      data = sheet.getDataRange().getValues();
+    }
+  }
+
+  return jsonResponse_({ sheet: sheetName, rows: data.length, data: data });
+}
+
+/**
+ * システムステータスを返す
+ */
+function handleGetStatus_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const props = PropertiesService.getScriptProperties();
+
+  const masterSheet = ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
+  const shiftSheet = ss.getSheetByName(SHEET_NAMES.SHIFT_DATA);
+  const logSheet = ss.getSheetByName(SHEET_NAMES.SEND_LOG);
+
+  return jsonResponse_({
+    spreadsheetName: ss.getName(),
+    sheets: ss.getSheets().map(function(s) { return s.getName(); }),
+    employeeMasterRows: masterSheet ? masterSheet.getLastRow() - 1 : 0,
+    shiftDataRows: shiftSheet ? shiftSheet.getLastRow() - 1 : 0,
+    sendLogRows: logSheet ? logSheet.getLastRow() - 1 : 0,
+    lineTokenSet: !!props.getProperty('LINE_CHANNEL_ACCESS_TOKEN'),
+    batchInProgress: props.getProperty('SHIFT_BATCH_IN_PROGRESS') === 'true'
+  });
+}
+
+/**
+ * シートにデータを書き込む（GETパラメータ経由）
+ * ?action=write&sheet=XX&range=A2&data=[[...]]
+ */
+function handleGetWrite_(params) {
+  const sheetName = params.sheet;
+  const range = params.range;
+  const dataJson = params.data;
+
+  if (!sheetName || !range || !dataJson) {
+    return jsonResponse_({ error: 'sheet, range, data parameters required' });
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return jsonResponse_({ error: 'Sheet not found: ' + sheetName });
+
+  const data = JSON.parse(dataJson);
+  sheet.getRange(range).setValues(data);
+
+  return jsonResponse_({ success: true, sheet: sheetName, range: range, rowsWritten: data.length });
+}
+
+/**
+ * 列を書式なしテキストに設定してデータを再書き込み
+ * ?action=formatText&sheet=XX&col=A
+ */
+function handleFormatText_(params) {
+  const sheetName = params.sheet;
+  const col = params.col || 'A';
+
+  if (!sheetName) return jsonResponse_({ error: 'sheet parameter required' });
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return jsonResponse_({ error: 'Sheet not found: ' + sheetName });
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return jsonResponse_({ error: 'No data rows' });
+
+  // 列のフォーマットを書式なしテキストに設定
+  const colIndex = col.charCodeAt(0) - 64; // A=1, B=2...
+  const range = sheet.getRange(2, colIndex, lastRow - 1, 1);
+  range.setNumberFormat('@'); // テキスト形式
+
+  // 現在の値を3桁ゼロパディングで再設定
+  const values = range.getValues();
+  const paddedValues = values.map(function(row) {
+    const val = String(row[0]).trim();
+    if (val && !isNaN(val)) {
+      return [val.padStart(3, '0')];
+    }
+    return [val];
+  });
+  range.setValues(paddedValues);
+
+  return jsonResponse_({ success: true, sheet: sheetName, column: col, rowsFixed: paddedValues.length });
+}
+
+/**
+ * GAS関数をリモート実行
+ * ?action=runFunction&name=setupSheets
+ */
+function handleRunFunction_(params) {
+  const funcName = params.name;
+  if (!funcName) return jsonResponse_({ error: 'name parameter required' });
+
+  // 許可された関数のみ実行
+  const allowedFunctions = {
+    'setupSheets': setupSheets,
+    'clearShiftDataForMonth': clearShiftDataForMonth,
+    'runAllTests': typeof runAllTests === 'function' ? runAllTests : null
+  };
+
+  const func = allowedFunctions[funcName];
+  if (!func) return jsonResponse_({ error: 'Function not allowed: ' + funcName });
+
+  try {
+    var arg = params.arg || null;
+    var result = arg ? func(arg) : func();
+    return jsonResponse_({ success: true, function: funcName, result: result || null });
+  } catch (e) {
+    return jsonResponse_({ error: e.toString(), function: funcName });
+  }
+}
+
+/**
+ * 外部スプレッドシート読み取り
+ * ?action=readExternal&ssId=XXXXX&sheet=シート名
+ * ?action=readExternal&ssId=XXXXX (シート一覧)
+ */
+function handleReadExternal_(params) {
+  const ssId = params.ssId;
+  if (!ssId) return jsonResponse_({ error: 'ssId parameter required' });
+
+  try {
+    const ss = SpreadsheetApp.openById(ssId);
+
+    // シート名指定なし → シート一覧
+    if (!params.sheet) {
+      const sheets = ss.getSheets().map(function(s) {
+        return { name: s.getName(), rows: s.getLastRow(), cols: s.getLastColumn() };
+      });
+      return jsonResponse_({ ssId: ssId, title: ss.getName(), sheets: sheets });
+    }
+
+    // シート名指定あり → データ読み取り
+    const sheet = ss.getSheetByName(params.sheet);
+    if (!sheet) {
+      // シート名が見つからない場合、gidで探す
+      if (params.gid) {
+        const allSheets = ss.getSheets();
+        for (var i = 0; i < allSheets.length; i++) {
+          if (String(allSheets[i].getSheetId()) === params.gid) {
+            var gidSheet = allSheets[i];
+            var data = params.range ? gidSheet.getRange(params.range).getValues() : gidSheet.getDataRange().getValues();
+            return jsonResponse_({ ssId: ssId, sheet: gidSheet.getName(), gid: params.gid, rows: data.length, cols: data[0] ? data[0].length : 0, data: data });
+          }
+        }
+      }
+      return jsonResponse_({ error: 'Sheet not found: ' + params.sheet });
+    }
+
+    var data;
+    if (params.range) {
+      data = sheet.getRange(params.range).getValues();
+    } else {
+      if (sheet.getLastRow() === 0) {
+        data = [];
+      } else {
+        data = sheet.getDataRange().getValues();
+      }
+    }
+
+    return jsonResponse_({ ssId: ssId, sheet: params.sheet, rows: data.length, cols: data[0] ? data[0].length : 0, data: data });
+  } catch (e) {
+    return jsonResponse_({ error: 'Cannot open spreadsheet: ' + e.toString() });
+  }
+}
+
+/**
+ * JSON レスポンスヘルパー
+ */
+function jsonResponse_(obj, statusCode) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * POST Admin API ルーティング
+ * @param {Object} body - リクエストボディ
+ * @return {ContentService} レスポンス
+ */
+function handlePostAction_(body) {
+  switch (body.action) {
+    case 'write':
+      return handlePostWrite_(body);
+    default:
+      return jsonResponse_({ error: 'Unknown action: ' + body.action });
+  }
+}
+
+/**
+ * POST経由のシート書き込み（大量データ対応）
+ * @param {Object} body - {sheet, range, data}
+ * @return {ContentService} レスポンス
+ */
+function handlePostWrite_(body) {
+  var sheetName = body.sheet;
+  var range = body.range;
+  var data = body.data;
+
+  if (!sheetName || !range || !data) {
+    return jsonResponse_({ error: 'sheet, range, data parameters required' });
+  }
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return jsonResponse_({ error: 'Sheet not found: ' + sheetName });
+
+  sheet.getRange(range).setValues(data);
+  return jsonResponse_({ success: true, sheet: sheetName, range: range, rowsWritten: data.length });
 }
 
 /**
@@ -59,10 +355,16 @@ function verifySignature(e) {
     const channelSecret = getLineChannelSecret();
     const signature = e.parameter ? e.parameter['x-line-signature'] : null;
 
-    // 署名が無い場合（開発環境等）
+    // 署名が無い場合
     if (!signature) {
-      Logger.log('Warning: No signature provided');
-      return true; // 開発中は通す。本番では false にすること
+      // Script Properties の SKIP_SIGNATURE_VERIFY が 'true' の場合のみ通す（開発用）
+      const skipVerify = PropertiesService.getScriptProperties().getProperty('SKIP_SIGNATURE_VERIFY');
+      if (skipVerify === 'true') {
+        Logger.log('Warning: Signature verification skipped (dev mode)');
+        return true;
+      }
+      Logger.log('Rejected: No signature provided');
+      return false;
     }
 
     const body = e.postData.contents;

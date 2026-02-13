@@ -4,3 +4,9 @@ node_modules/
 *.log
 .env
 .DS_Store
+
+# 機密データ
+data/employee-master.tsv
+data/shift-master.xlsm
+data/shift-*.txt
+credentials/
