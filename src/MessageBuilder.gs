@@ -115,6 +115,30 @@ function buildTableHeader() {
 }
 
 /**
+ * 時間帯に応じた色を返す
+ * @param {string} timeSlot - 時間帯文字列
+ * @return {string} HEXカラーコード
+ */
+function getTimeSlotColor(timeSlot) {
+  if (!timeSlot) return '#555555';
+  if (timeSlot.match(/^6時/)) return '#E67E22';   // 早朝: オレンジ
+  if (timeSlot.match(/^17時/)) return '#8E44AD';   // 夕方: パープル
+  if (timeSlot.match(/^22時/)) return '#2C3E80';   // 夜間: ダークブルー
+  return '#555555';
+}
+
+/**
+ * 曜日に応じた行背景色を返す
+ * @param {string} dayOfWeek - 曜日
+ * @return {string|undefined} HEXカラーコード (平日はundefined)
+ */
+function getRowBackground(dayOfWeek) {
+  if (dayOfWeek === '日') return '#FFF0F0';
+  if (dayOfWeek === '土') return '#F0F0FF';
+  return undefined;
+}
+
+/**
  * シフト行を生成
  * @param {Array<Object>} shifts - シフト配列
  * @return {Array<Object>} Flex Messageコンポーネント配列
@@ -135,8 +159,10 @@ function buildShiftRows(shifts) {
 
     const dateText = showDate ? dayDisplay + '(' + dayOfWeek + ')' : '';
     const dateColor = showDate ? (dayOfWeek === '日' ? '#FF0000' : dayOfWeek === '土' ? '#0000FF' : '#333333') : '#333333';
+    const bgColor = getRowBackground(dayOfWeek);
+    const timeSlotColor = getTimeSlotColor(shift.timeSlot);
 
-    rows.push({
+    const row = {
       type: 'box',
       layout: 'horizontal',
       contents: [
@@ -152,7 +178,8 @@ function buildShiftRows(shifts) {
           type: 'text',
           text: shift.timeSlot,
           size: 'xs',
-          color: '#555555',
+          color: timeSlotColor,
+          weight: 'bold',
           flex: 3
         },
         {
@@ -164,7 +191,16 @@ function buildShiftRows(shifts) {
         }
       ],
       margin: showDate ? 'md' : 'sm'
-    });
+    };
+
+    // 土日は背景色を追加
+    if (bgColor) {
+      row.backgroundColor = bgColor;
+      row.cornerRadius = '4px';
+      row.paddingAll = '4px';
+    }
+
+    rows.push(row);
   }
 
   return rows;
