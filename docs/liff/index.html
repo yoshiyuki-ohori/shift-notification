@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>マイシフト</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+  background: #F5F5F5;
+  color: #333;
+  max-width: 480px;
+  margin: 0 auto;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ===== ヘッダー ===== */
+.header {
+  background: #1DB446;
+  color: #FFF;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header h1 { font-size: 16px; font-weight: 700; }
+.header .emp-name { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  justify-content: center;
+}
+.month-nav button {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #FFF;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.month-nav button:active { background: rgba(255,255,255,0.4); }
+.month-label {
+  font-size: 18px;
+  font-weight: 700;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ===== ローディング・エラー ===== */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E0E0E0;
+  border-top-color: #1DB446;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: #888; font-size: 14px; }
+.error-msg {
+  background: #FFF;
+  margin: 20px 16px;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  color: #E74C3C;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+/* ===== 統計カード ===== */
+.stats { display: flex; gap: 10px; padding: 12px 16px; }
+.stat-card {
+  flex: 1;
+  background: #FFF;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.stat-value { font-size: 24px; font-weight: 700; color: #1DB446; }
+.stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+
+/* ===== 希望ステータスバー ===== */
+.pref-status {
+  margin: 0 16px 8px;
+  background: #FFF;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.pref-info { font-size: 13px; color: #555; }
+.pref-info strong { color: #1DB446; }
+.pref-btn {
+  background: #1DB446;
+  color: #FFF;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.pref-btn:active { background: #189a3c; }
+
+/* ===== カレンダー ===== */
+.calendar-section {
+  margin: 0 16px 12px;
+  background: #FFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.cal-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #F8F8F8;
+  border-bottom: 1px solid #EEE;
+}
+.cal-header span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 0;
+  color: #666;
+}
+.cal-header span:first-child { color: #E74C3C; }
+.cal-header span:last-child { color: #2980B9; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #F0F0F0;
+}
+.cal-cell {
+  background: #FFF;
+  min-height: 52px;
+  padding: 2px;
+  position: relative;
+}
+.cal-cell.empty { background: #FAFAFA; }
+.cal-cell.today { background: #F0FFF4; }
+.cal-day {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 1px 0;
+  color: #333;
+}
+.cal-cell.sunday .cal-day { color: #E74C3C; }
+.cal-cell.saturday .cal-day { color: #2980B9; }
+.cal-pill {
+  font-size: 8px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  color: #FFF;
+  margin-top: 1px;
+  text-align: center;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cal-pref-icon {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 8px;
+  line-height: 1;
+}
+
+/* ===== シフト一覧 ===== */
+.shift-list { margin: 0 16px 16px; }
+.shift-list h2 { font-size: 14px; color: #555; margin-bottom: 8px; padding-left: 4px; }
+.shift-item {
+  background: #FFF;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.shift-date-box { min-width: 44px; text-align: center; }
+.shift-date-num { font-size: 20px; font-weight: 700; color: #333; line-height: 1; }
+.shift-date-day { font-size: 11px; color: #888; margin-top: 2px; }
+.shift-date-box.sunday .shift-date-num,
+.shift-date-box.sunday .shift-date-day { color: #E74C3C; }
+.shift-date-box.saturday .shift-date-num,
+.shift-date-box.saturday .shift-date-day { color: #2980B9; }
+.shift-divider { width: 3px; height: 32px; border-radius: 2px; }
+.shift-detail { flex: 1; }
+.shift-facility { font-size: 14px; font-weight: 600; color: #333; }
+.shift-time { font-size: 12px; color: #666; margin-top: 2px; }
+
+/* ===== 空状態 ===== */
+.empty-state { text-align: center; padding: 40px 20px; color: #AAA; }
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ===== フッター ===== */
+.footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header" id="header">
+  <div class="header-top">
+    <div>
+      <h1>マイシフト</h1>
+      <div class="emp-name" id="empName"></div>
+    </div>
+  </div>
+  <div class="month-nav">
+    <button id="prevMonth" onclick="changeMonth(-1)">&#9664;</button>
+    <span class="month-label" id="monthLabel"></span>
+    <button id="nextMonth" onclick="changeMonth(1)">&#9654;</button>
+  </div>
+</div>
+
+<!-- ローディング -->
+<div class="loading" id="loadingView">
+  <div class="spinner"></div>
+  <div class="loading-text">シフトデータを読み込み中...</div>
+</div>
+
+<!-- エラー -->
+<div class="error-msg" id="errorView" style="display:none;"></div>
+
+<!-- メインコンテンツ -->
+<div id="mainContent" style="display:none;">
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value" id="statShifts">0</div>
+      <div class="stat-label">勤務回数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statFacilities">0</div>
+      <div class="stat-label">施設数</div>
+    </div>
+  </div>
+
+  <div class="pref-status" id="prefStatus" style="display:none;">
+    <div class="pref-info" id="prefInfo"></div>
+    <button class="pref-btn" onclick="openPreference()">希望を入力</button>
+  </div>
+
+  <div class="calendar-section">
+    <div class="cal-header">
+      <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <div class="shift-list" id="shiftList">
+    <h2>シフト一覧</h2>
+    <div id="shiftItems"></div>
+  </div>
+</div>
+
+<div class="footer">Powered by LIFF</div>
+
+<script>
+// ===== 設定 =====
+var LIFF_ID = '2009167227-3ZbS3Ztu';
+var GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzkWS3wkfhC5pwEzal6g35RJkaOcRQ2314eHUXlaAGkHIp5UE0FertvzDBzDzPhRPoO/exec';
+
+var accessToken = null;
+var currentData = null;
+var currentMonth = null;
+
+var TIME_COLORS = {
+  morning: '#4ECDC4', daytime: '#FFD93D', evening: '#FF6B6B', night: '#845EC2'
+};
+
+function getTimeColor(timeSlot) {
+  if (!timeSlot) return '#CCC';
+  if (timeSlot.indexOf('6') === 0 || timeSlot.indexOf('6時') >= 0) return TIME_COLORS.morning;
+  if (timeSlot.indexOf('9') === 0 || timeSlot.indexOf('9時') >= 0) return TIME_COLORS.daytime;
+  if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('17時') >= 0) return TIME_COLORS.evening;
+  if (timeSlot.indexOf('22') === 0 || timeSlot.indexOf('22時') >= 0) return TIME_COLORS.night;
+  return '#AAA';
+}
+
+// ===== 初期化 =====
+window.onload = function() {
+  initLiff();
+};
+
+function initLiff() {
+  liff.init({ liffId: LIFF_ID })
+    .then(function() {
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      accessToken = liff.getAccessToken();
+      if (!accessToken) {
+        showError('アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。');
+        return;
+      }
+      var now = new Date();
+      currentMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+      loadShiftData();
+    })
+    .catch(function(err) {
+      showError('LIFF初期化に失敗しました。\n' + (err.message || JSON.stringify(err)));
+    });
+}
+
+// ===== データ読み込み (fetch で GAS API 呼び出し) =====
+function loadShiftData() {
+  showLoading();
+  updateMonthLabel();
+
+  var url = GAS_API_URL + '?action=myshift&token=' + encodeURIComponent(accessToken) + '&month=' + encodeURIComponent(currentMonth);
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) { onDataLoaded(data); })
+    .catch(function(err) {
+      showError('データの取得に失敗しました。\n' + (err.message || err));
+    });
+}
+
+function onDataLoaded(data) {
+  if (!data) { showError('データが取得できませんでした。'); return; }
+  if (data.error) { showError(data.error); return; }
+
+  currentData = data;
+  document.getElementById('empName').textContent = data.employee.name + ' さん';
+  document.getElementById('statShifts').textContent = data.stats.totalShifts;
+  document.getElementById('statFacilities').textContent = data.stats.facilityCount;
+  renderPrefStatus(data);
+  renderCalendar(data);
+  renderShiftList(data);
+
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('errorView').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+// ===== 月切替 =====
+function changeMonth(delta) {
+  var parts = currentMonth.split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10) + delta;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  currentMonth = y + '-' + ('0' + m).slice(-2);
+  loadShiftData();
+}
+
+function updateMonthLabel() {
+  var parts = currentMonth.split('-');
+  document.getElementById('monthLabel').textContent = parseInt(parts[0], 10) + '年' + parseInt(parts[1], 10) + '月';
+}
+
+// ===== 希望ステータス =====
+function renderPrefStatus(data) {
+  var el = document.getElementById('prefStatus');
+  if (!data.collectionOpen) { el.style.display = 'none'; return; }
+  var prefCount = data.preferences ? data.preferences.length : 0;
+  document.getElementById('prefInfo').innerHTML = '希望提出: <strong>' + prefCount + '件</strong>';
+  el.style.display = 'flex';
+}
+
+function openPreference() {
+  if (currentData && currentData.collectionPeriod) {
+    liff.sendMessages([{ type: 'text', text: 'シフト希望' }]).catch(function() {});
+  }
+}
+
+// ===== カレンダー描画 =====
+function renderCalendar(data) {
+  var parts = currentMonth.split('-');
+  var year = parseInt(parts[0], 10);
+  var month = parseInt(parts[1], 10);
+  var firstDay = new Date(year, month - 1, 1);
+  var lastDay = new Date(year, month, 0);
+  var startDow = firstDay.getDay();
+  var daysInMonth = lastDay.getDate();
+
+  var shiftMap = {};
+  if (data.shifts) {
+    data.shifts.forEach(function(s) {
+      var d = parseDateToDay(s.date);
+      if (!shiftMap[d]) shiftMap[d] = [];
+      shiftMap[d].push(s);
+    });
+  }
+
+  var prefMap = {};
+  if (data.preferences) {
+    data.preferences.forEach(function(p) {
+      var d = parseDateToDay(p.date);
+      prefMap[d] = p.type;
+    });
+  }
+
+  var today = new Date();
+  var todayDay = (today.getFullYear() === year && today.getMonth() + 1 === month) ? today.getDate() : -1;
+  var html = '';
+
+  for (var i = 0; i < startDow; i++) { html += '<div class="cal-cell empty"></div>'; }
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var dow = (startDow + day - 1) % 7;
+    var classes = 'cal-cell';
+    if (dow === 0) classes += ' sunday';
+    if (dow === 6) classes += ' saturday';
+    if (day === todayDay) classes += ' today';
+
+    html += '<div class="' + classes + '">';
+    html += '<div class="cal-day">' + day + '</div>';
+
+    var dayShifts = shiftMap[day];
+    if (dayShifts) {
+      dayShifts.forEach(function(s) {
+        var color = getTimeColor(s.timeSlot);
+        var label = shortenName(s.facility);
+        html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(s.facility + ' ' + s.timeSlot) + '">' + escapeHtml(label) + '</div>';
+      });
+    }
+
+    if (prefMap[day]) {
+      var icon = prefMap[day] === 'NG' ? '&#10005;' : '&#9679;';
+      var iconColor = prefMap[day] === 'NG' ? '#E74C3C' : '#1DB446';
+      html += '<span class="cal-pref-icon" style="color:' + iconColor + ';">' + icon + '</span>';
+    }
+    html += '</div>';
+  }
+
+  var totalCells = startDow + daysInMonth;
+  var remainder = totalCells % 7;
+  if (remainder > 0) { for (var k = 0; k < 7 - remainder; k++) { html += '<div class="cal-cell empty"></div>'; } }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+// ===== シフト一覧描画 =====
+function renderShiftList(data) {
+  var container = document.getElementById('shiftItems');
+  if (!data.shifts || data.shifts.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">&#128197;</div><p>この月のシフトはありません</p></div>';
+    return;
+  }
+
+  var html = '';
+  data.shifts.forEach(function(s) {
+    var dateInfo = parseShiftDate(s.date);
+    var color = getTimeColor(s.timeSlot);
+    var dowClass = dateInfo.dow === 0 ? ' sunday' : (dateInfo.dow === 6 ? ' saturday' : '');
+
+    html += '<div class="shift-item">';
+    html += '<div class="shift-date-box' + dowClass + '">';
+    html += '<div class="shift-date-num">' + dateInfo.day + '</div>';
+    html += '<div class="shift-date-day">' + dateInfo.dayLabel + '</div>';
+    html += '</div>';
+    html += '<div class="shift-divider" style="background:' + color + ';"></div>';
+    html += '<div class="shift-detail">';
+    html += '<div class="shift-facility">' + escapeHtml(s.facility) + '</div>';
+    html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+// ===== ユーティリティ =====
+function parseDateToDay(dateStr) {
+  if (!dateStr) return 0;
+  var parts = String(dateStr).split(/[\/\-]/);
+  return parseInt(parts[parts.length - 1], 10);
+}
+
+function parseShiftDate(dateStr) {
+  var parts = String(dateStr).split(/[\/\-]/);
+  var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, d = parseInt(parts[2], 10);
+  var dt = new Date(y, m, d);
+  var days = ['日', '月', '火', '水', '木', '金', '土'];
+  return { day: d, dow: dt.getDay(), dayLabel: days[dt.getDay()] };
+}
+
+function shortenName(name) { return !name ? '' : (name.length > 5 ? name.substring(0, 5) : name); }
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showLoading() {
+  document.getElementById('loadingView').style.display = 'flex';
+  document.getElementById('errorView').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'none';
+}
+
+function showError(msg) {
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('errorView').style.display = 'block';
+  document.getElementById('errorView').textContent = msg;
+  document.getElementById('mainContent').style.display = 'none';
+}
+</script>
+</body>
+</html>
