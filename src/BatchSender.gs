@@ -144,7 +144,7 @@ function sendShiftToEmployee(emp, targetMonth, sendMode) {
   }
 
   // Flex Message生成
-  const message = buildShiftFlexMessage(targetMonth, emp.name, emp.shifts);
+  const message = buildShiftFlexMessage(targetMonth, emp.name, emp.shifts, emp.employeeNo);
 
   // 送信
   const result = pushMessage(targetUserId, [message]);

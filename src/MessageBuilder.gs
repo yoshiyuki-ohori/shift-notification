@@ -8,18 +8,22 @@
  * @param {string} targetMonth - 対象年月 (例: "2026-03")
  * @param {string} employeeName - 従業員名
  * @param {Array<Object>} shifts - シフト配列 [{date, timeSlot, facility}]
+ * @param {string} [employeeNo] - 社員番号 (カレンダーURL用、省略可)
  * @return {Object} LINE Flex Messageオブジェクト
  */
-function buildShiftFlexMessage(targetMonth, employeeName, shifts) {
+function buildShiftFlexMessage(targetMonth, employeeName, shifts, employeeNo) {
   const [year, month] = targetMonth.split('-').map(Number);
   const displayMonth = year + '年' + month + '月';
+
+  // iCal URL構築 (HMAC署名付き)
+  var icalUrl = employeeNo ? buildICalUrl(employeeNo, targetMonth) : null;
 
   // シフトを日付でグループ化して表示行を作成
   const bodyContents = buildShiftRows(shifts);
 
   // Flex Messageが大きすぎる場合は分割
   if (shifts.length > 60) {
-    return buildMultiBubbleMessage(displayMonth, employeeName, shifts);
+    return buildMultiBubbleMessage(displayMonth, employeeName, shifts, employeeNo);
   }
 
   return {
@@ -40,7 +44,7 @@ function buildShiftFlexMessage(targetMonth, employeeName, shifts) {
         paddingAll: '12px',
         spacing: 'none'
       },
-      footer: buildFooter(shifts.length)
+      footer: buildFooter(shifts.length, icalUrl)
     }
   };
 }
@@ -209,31 +213,49 @@ function buildShiftRows(shifts) {
 /**
  * フッター部分を生成
  * @param {number} shiftCount - シフト件数
+ * @param {string} [icalUrl] - iCalダウンロードURL (省略可)
  * @return {Object} フッターコンポーネント
  */
-function buildFooter(shiftCount) {
+function buildFooter(shiftCount, icalUrl) {
+  var contents = [
+    { type: 'separator' },
+    {
+      type: 'text',
+      text: '合計: ' + shiftCount + '件のシフト',
+      size: 'sm',
+      color: '#666666',
+      margin: 'md',
+      weight: 'bold'
+    },
+    {
+      type: 'text',
+      text: '変更がある場合は管理者にご連絡ください',
+      size: 'xs',
+      color: '#999999',
+      margin: 'sm',
+      wrap: true
+    }
+  ];
+
+  if (icalUrl) {
+    contents.push({
+      type: 'button',
+      action: {
+        type: 'uri',
+        label: 'カレンダーに追加',
+        uri: icalUrl
+      },
+      style: 'primary',
+      color: '#1DB446',
+      margin: 'md',
+      height: 'sm'
+    });
+  }
+
   return {
     type: 'box',
     layout: 'vertical',
-    contents: [
-      { type: 'separator' },
-      {
-        type: 'text',
-        text: '合計: ' + shiftCount + '件のシフト',
-        size: 'sm',
-        color: '#666666',
-        margin: 'md',
-        weight: 'bold'
-      },
-      {
-        type: 'text',
-        text: '変更がある場合は管理者にご連絡ください',
-        size: 'xs',
-        color: '#999999',
-        margin: 'sm',
-        wrap: true
-      }
-    ],
+    contents: contents,
     paddingAll: '15px'
   };
 }
@@ -244,11 +266,23 @@ function buildFooter(shiftCount) {
  * @param {string} displayMonth - 表示用年月
  * @param {string} employeeName - 従業員名
  * @param {Array<Object>} shifts - シフト配列
+ * @param {string} [employeeNo] - 社員番号 (カレンダーURL用、省略可)
  * @return {Object} LINE Flex Message (carousel)
  */
-function buildMultiBubbleMessage(displayMonth, employeeName, shifts) {
+function buildMultiBubbleMessage(displayMonth, employeeName, shifts, employeeNo) {
   const SHIFTS_PER_BUBBLE = 30;
   const bubbles = [];
+
+  // iCal URL構築 (HMAC署名付き、最後のバブルのフッターに表示)
+  var icalUrl = null;
+  if (employeeNo) {
+    // displayMonthから targetMonth を復元 (例: "2026年3月" → "2026-03")
+    var monthMatch = displayMonth.match(/(\d{4})年(\d{1,2})月/);
+    if (monthMatch) {
+      var targetMonth = monthMatch[1] + '-' + String(monthMatch[2]).padStart(2, '0');
+      icalUrl = buildICalUrl(employeeNo, targetMonth);
+    }
+  }
 
   for (let i = 0; i < shifts.length; i += SHIFTS_PER_BUBBLE) {
     const chunk = shifts.slice(i, i + SHIFTS_PER_BUBBLE);
@@ -275,7 +309,7 @@ function buildMultiBubbleMessage(displayMonth, employeeName, shifts) {
         paddingAll: '12px',
         spacing: 'none'
       },
-      footer: pageNum === totalPages ? buildFooter(shifts.length) : undefined
+      footer: pageNum === totalPages ? buildFooter(shifts.length, icalUrl) : undefined
     });
   }
 

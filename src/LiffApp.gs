@@ -42,7 +42,7 @@ function getMyShiftData(accessToken, targetMonth, overrideEmpNo) {
     // 2. userId から社員番号を取得
     var employee = findEmployeeByLineUserId_(userId);
     if (!employee) {
-      return { error: 'LINE アカウントが社員登録されていません。\n公式アカウントに社員番号を送信して登録してください。' };
+      return { needsRegistration: true };
     }
 
     // 2b. 管理者テスト: empNo 指定があれば該当者のデータを表示
@@ -113,6 +113,84 @@ function getMyShiftData(accessToken, targetMonth, overrideEmpNo) {
   } catch (e) {
     Logger.log('getMyShiftData error: ' + e.toString());
     return { error: 'データの取得中にエラーが発生しました。' };
+  }
+}
+
+/**
+ * 社員番号で従業員を検索 (登録前の確認用)
+ * @param {Object} params - { token, empNo }
+ * @return {ContentService.TextOutput} JSON
+ */
+function handleEmpLookup_(params) {
+  var token = params.token || '';
+  var empNo = params.empNo || '';
+
+  var userId = verifyLineAccessToken_(token);
+  if (!userId) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (!empNo) {
+    return ContentService.createTextOutput(JSON.stringify({ error: '社員番号を入力してください。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var targetEmpNo = empNo.padStart(3, '0');
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
+  if (!sheet) {
+    return ContentService.createTextOutput(JSON.stringify({ error: '従業員マスタが見つかりません。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    var no = String(data[i][MASTER_COLS.NO - 1]).trim().padStart(3, '0');
+    if (no === targetEmpNo) {
+      var existingLineId = String(data[i][MASTER_COLS.LINE_USER_ID - 1] || '').trim();
+      if (existingLineId && existingLineId !== userId) {
+        return ContentService.createTextOutput(JSON.stringify({
+          error: 'この社員番号は既に別のLINEアカウントで登録されています。'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        found: true,
+        empNo: targetEmpNo,
+        name: String(data[i][MASTER_COLS.NAME - 1]).trim()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    error: '社員番号「' + empNo + '」は見つかりませんでした。\n正しい番号を入力してください。'
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * LINE userId を従業員マスタに登録
+ * @param {Object} params - { token, empNo }
+ * @return {ContentService.TextOutput} JSON
+ */
+function handleEmpRegister_(params) {
+  var token = params.token || '';
+  var empNo = params.empNo || '';
+
+  var userId = verifyLineAccessToken_(token);
+  if (!userId) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var targetEmpNo = empNo.padStart(3, '0');
+  var success = registerLineUserId(targetEmpNo, userId);
+
+  if (success) {
+    return ContentService.createTextOutput(JSON.stringify({ success: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } else {
+    return ContentService.createTextOutput(JSON.stringify({ error: '登録に失敗しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
 }
 

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480">
+
+  <!-- 背景 (角丸) -->
+  <rect width="480" height="480" rx="96" ry="96" fill="#1DB446"/>
+
+  <!-- カレンダー本体 -->
+  <rect x="80" y="110" width="320" height="290" rx="24" ry="24" fill="#FAFAFA"/>
+
+  <!-- カレンダー上部バー -->
+  <rect x="80" y="110" width="320" height="64" rx="24" ry="24" fill="#FFFFFF"/>
+  <rect x="80" y="150" width="320" height="24" fill="#FFFFFF"/>
+
+  <!-- カレンダーリング左 -->
+  <rect x="152" y="88" width="16" height="48" rx="8" ry="8" fill="#FFFFFF"/>
+  <!-- カレンダーリング右 -->
+  <rect x="312" y="88" width="16" height="48" rx="8" ry="8" fill="#FFFFFF"/>
+
+  <!-- 曜日ヘッダー線 -->
+  <line x1="100" y1="174" x2="380" y2="174" stroke="#E0E0E0" stroke-width="1.5"/>
+
+  <!-- グリッド: 7列 x 4行のシフトセル -->
+  <!-- Row 1 -->
+  <rect x="102" y="184" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="144" y="184" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="186" y="184" width="36" height="28" rx="6" fill="#4ECDC4"/>
+  <rect x="228" y="184" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="270" y="184" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="312" y="184" width="36" height="28" rx="6" fill="#FF6B6B"/>
+  <rect x="354" y="184" width="36" height="28" rx="6" fill="#F0F0F0"/>
+
+  <!-- Row 2 -->
+  <rect x="102" y="220" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="144" y="220" width="36" height="28" rx="6" fill="#FF6B6B"/>
+  <rect x="186" y="220" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="228" y="220" width="36" height="28" rx="6" fill="#FFD93D"/>
+  <rect x="270" y="220" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="312" y="220" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="354" y="220" width="36" height="28" rx="6" fill="#4ECDC4"/>
+
+  <!-- Row 3 -->
+  <rect x="102" y="256" width="36" height="28" rx="6" fill="#845EC2"/>
+  <rect x="144" y="256" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="186" y="256" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="228" y="256" width="36" height="28" rx="6" fill="#FF6B6B"/>
+  <rect x="270" y="256" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="312" y="256" width="36" height="28" rx="6" fill="#4ECDC4"/>
+  <rect x="354" y="256" width="36" height="28" rx="6" fill="#F0F0F0"/>
+
+  <!-- Row 4 -->
+  <rect x="102" y="292" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="144" y="292" width="36" height="28" rx="6" fill="#FFD93D"/>
+  <rect x="186" y="292" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="228" y="292" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="270" y="292" width="36" height="28" rx="6" fill="#845EC2"/>
+  <rect x="312" y="292" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="354" y="292" width="36" height="28" rx="6" fill="#FFD93D"/>
+
+  <!-- Row 5 (partial) -->
+  <rect x="102" y="328" width="36" height="28" rx="6" fill="#4ECDC4"/>
+  <rect x="144" y="328" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="186" y="328" width="36" height="28" rx="6" fill="#FF6B6B"/>
+  <rect x="228" y="328" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="270" y="328" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="312" y="328" width="36" height="28" rx="6" fill="#F0F0F0"/>
+  <rect x="354" y="328" width="36" height="28" rx="6" fill="#F0F0F0"/>
+
+  <!-- 人物アイコン（右下） -->
+  <circle cx="380" cy="390" r="56" fill="#FFFFFF" opacity="0.95"/>
+  <circle cx="380" cy="370" r="18" fill="#1DB446"/>
+  <path d="M352,410 Q352,390 380,390 Q408,390 408,410" fill="#1DB446"/>
+
+  <!-- テキスト「マイシフト」 -->
+  <text x="240" y="448" text-anchor="middle" font-family="'Hiragino Sans','Hiragino Kaku Gothic ProN',sans-serif" font-size="28" font-weight="700" fill="#FFFFFF" letter-spacing="2">マイシフト</text>
+</svg>

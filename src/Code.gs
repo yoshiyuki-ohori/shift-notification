@@ -21,7 +21,19 @@ function onOpen() {
     .addSeparator()
     .addItem('送信ログ確認', 'showSendLog')
     .addSeparator()
+    .addItem('Googleカレンダー一括登録', 'syncAllToGoogleCalendar')
+    .addSeparator()
     .addItem('一斉メッセージ送信 (全友だち)', 'sendBroadcastMessage')
+    .addToUi();
+
+  ui.createMenu('シフト希望')
+    .addItem('希望収集を開始', 'startPreferenceCollection')
+    .addItem('希望収集を締切', 'closePreferenceCollection')
+    .addSeparator()
+    .addItem('提出状況確認', 'showSubmissionStatus')
+    .addItem('未提出者にリマインド送信', 'sendPreferenceReminders')
+    .addSeparator()
+    .addItem('希望一覧シート表示', 'showPreferenceSheet')
     .addToUi();
 }
 
@@ -331,8 +343,6 @@ function loadEmployeeMaster() {
       name: name,
       furigana: String(data[i][MASTER_COLS.FURIGANA - 1] || '').trim(),
       lineUserId: String(data[i][MASTER_COLS.LINE_USER_ID - 1] || '').trim(),
-      area: String(data[i][MASTER_COLS.AREA - 1] || '').trim(),
-      facility: String(data[i][MASTER_COLS.FACILITY - 1] || '').trim(),
       status: String(data[i][MASTER_COLS.STATUS - 1] || '在職').trim(),
       notifyEnabled: data[i][MASTER_COLS.NOTIFY - 1] !== false && data[i][MASTER_COLS.NOTIFY - 1] !== 'FALSE',
       aliases: String(data[i][MASTER_COLS.ALIASES - 1] || '').split(',').map(a => a.trim()).filter(a => a)
@@ -340,6 +350,34 @@ function loadEmployeeMaster() {
   }
 
   return employees;
+}
+
+/**
+ * Googleカレンダーにシフトを一括登録
+ */
+function syncAllToGoogleCalendar() {
+  const ui = SpreadsheetApp.getUi();
+  const targetMonth = getSettingValue(SETTING_KEYS.TARGET_MONTH);
+
+  const response = ui.alert('Googleカレンダー登録',
+    '対象年月: ' + targetMonth + '\n\n' +
+    '全員分のシフトをGoogleカレンダーに登録します。\n' +
+    '「シフト予定」カレンダーが自動作成されます。\n\n' +
+    '実行しますか？',
+    ui.ButtonSet.YES_NO);
+
+  if (response !== ui.Button.YES) return;
+
+  try {
+    const eventCount = syncToGoogleCalendar(targetMonth);
+    ui.alert('登録完了',
+      'Googleカレンダーに ' + eventCount + ' 件のシフトイベントを登録しました。\n\n' +
+      'Googleカレンダーの「シフト予定」カレンダーを確認してください。',
+      ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('エラー', 'Googleカレンダー登録でエラーが発生しました:\n' + e.message, ui.ButtonSet.OK);
+    Logger.log('syncAllToGoogleCalendar error: ' + e.toString());
+  }
 }
 
 /**
@@ -409,6 +447,53 @@ function sendRegistrationBroadcast() {
 }
 
 /**
+ * LINE連携確認メッセージを一斉送信 (トリガーから呼び出し用)
+ */
+function sendLineVerificationBroadcast() {
+  var message = 'シフト通知システムのLINE連携確認です。\n\n' +
+    'お手数ですが、社員番号を数字で送信してください。\n' +
+    '（例: 072）\n\n' +
+    '送信いただくとLINE連携状況を確認できます。\n' +
+    '既に登録済みの方には「連携済み」と表示されます。\n\n' +
+    '※社員番号が分からない場合は管理者にお問い合わせください。';
+
+  var result = broadcastMessage([createTextMessage(message)]);
+
+  if (result.success) {
+    Logger.log('LINE連携確認メッセージを送信しました');
+  } else {
+    Logger.log('LINE連携確認メッセージ送信エラー: ' + result.error);
+  }
+
+  // 使い捨てトリガーを削除
+  deleteScheduledBroadcastTriggers_();
+}
+
+/**
+ * 指定時刻にブロードキャストを予約
+ * @param {Date} scheduledTime - 送信予定時刻
+ */
+function scheduleBroadcast_(scheduledTime) {
+  deleteScheduledBroadcastTriggers_();
+  ScriptApp.newTrigger('sendLineVerificationBroadcast')
+    .timeBased()
+    .at(scheduledTime)
+    .create();
+}
+
+/**
+ * 予約ブロードキャストのトリガーを削除
+ */
+function deleteScheduledBroadcastTriggers_() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'sendLineVerificationBroadcast') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+}
+
+/**
  * 初期セットアップ: 必要なシートを作成
  */
 function setupSheets() {
@@ -417,8 +502,8 @@ function setupSheets() {
   // 従業員マスタ
   if (!ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER)) {
     const sheet = ss.insertSheet(SHEET_NAMES.EMPLOYEE_MASTER);
-    sheet.getRange(1, 1, 1, 9).setValues([[
-      'No', '氏名', 'フリガナ', 'LINE_UserId', 'エリア', '主担当施設', 'ステータス', '通知有効', '別名リスト'
+    sheet.getRange(1, 1, 1, 7).setValues([[
+      'No', '氏名', 'フリガナ', 'LINE_UserId', 'ステータス', '通知有効', '別名リスト'
     ]]);
     sheet.setFrozenRows(1);
   }
@@ -464,5 +549,316 @@ function setupSheets() {
     sheet.setFrozenRows(1);
   }
 
+  // シフト希望
+  if (!ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE)) {
+    const sheet = ss.insertSheet(SHEET_NAMES.SHIFT_PREFERENCE);
+    sheet.getRange(1, 1, 1, 8).setValues([[
+      '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時'
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+
+  // 必要配置
+  if (!ss.getSheetByName(SHEET_NAMES.STAFFING_REQUIREMENT)) {
+    const sheet = ss.insertSheet(SHEET_NAMES.STAFFING_REQUIREMENT);
+    sheet.getRange(1, 1, 1, 5).setValues([[
+      '施設ID', '時間帯', '曜日種別', '最低人数', '推奨人数'
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+
   SpreadsheetApp.getUi().alert('セットアップ完了', '全シートの初期設定が完了しました。', SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+// ===== シフト希望管理 =====
+
+/**
+ * 希望収集を開始
+ */
+function startPreferenceCollection() {
+  const ui = SpreadsheetApp.getUi();
+
+  // 対象年月を入力
+  const monthResult = ui.prompt('希望収集開始',
+    '対象年月を入力してください (例: 2026-04)',
+    ui.ButtonSet.OK_CANCEL);
+  if (monthResult.getSelectedButton() !== ui.Button.OK) return;
+  const targetMonth = monthResult.getResponseText().trim();
+
+  if (!targetMonth.match(/^\d{4}-\d{2}$/)) {
+    ui.alert('エラー', '年月の形式が正しくありません。例: 2026-04', ui.ButtonSet.OK);
+    return;
+  }
+
+  // 締切日を入力
+  const deadlineResult = ui.prompt('締切日設定',
+    '希望提出の締切日を入力してください (例: 2026-03-20)',
+    ui.ButtonSet.OK_CANCEL);
+  if (deadlineResult.getSelectedButton() !== ui.Button.OK) return;
+  const deadline = deadlineResult.getResponseText().trim();
+
+  if (!deadline.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    ui.alert('エラー', '日付の形式が正しくありません。例: 2026-03-20', ui.ButtonSet.OK);
+    return;
+  }
+
+  var today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+
+  // 収集期間を設定
+  setCollectionPeriod(targetMonth, today, deadline);
+
+  // リマインドトリガー設定（締切2日前に自動リマインド）
+  setupPreferenceReminderTrigger_(deadline);
+
+  // 全職員に希望入力開始通知を送信
+  var confirm = ui.alert('通知送信',
+    targetMonth + 'のシフト希望収集を開始します。\n' +
+    '締切: ' + deadline + '\n\n' +
+    '全職員にLINE通知を送信しますか？',
+    ui.ButtonSet.YES_NO);
+
+  if (confirm === ui.Button.YES) {
+    sendPreferenceStartNotification_(targetMonth, deadline);
+  }
+
+  ui.alert('開始完了',
+    'シフト希望収集を開始しました。\n\n' +
+    '対象月: ' + targetMonth + '\n' +
+    '締切: ' + deadline + '\n' +
+    'リマインド: 締切2日前に自動送信',
+    ui.ButtonSet.OK);
+}
+
+/**
+ * 希望収集を締切
+ */
+function closePreferenceCollection() {
+  const ui = SpreadsheetApp.getUi();
+  var period = getCollectionPeriod();
+
+  if (!period) {
+    ui.alert('情報', '収集期間が設定されていません。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var status = getSubmissionStatus(period.targetMonth);
+  var confirm = ui.alert('収集締切',
+    '対象月: ' + period.targetMonth + '\n' +
+    '提出済み: ' + status.submitted.length + '人\n' +
+    '未提出: ' + status.notSubmitted.length + '人\n\n' +
+    '希望収集を締め切りますか？',
+    ui.ButtonSet.YES_NO);
+
+  if (confirm !== ui.Button.YES) return;
+
+  // 締切日を今日に設定（実質クローズ）
+  var today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
+  setSettingValue(SETTING_KEYS.PREF_COLLECTION_END, today);
+
+  // リマインドトリガー削除
+  deletePreferenceReminderTriggers_();
+
+  ui.alert('締切完了', 'シフト希望収集を締め切りました。', ui.ButtonSet.OK);
+}
+
+/**
+ * 提出状況確認
+ */
+function showSubmissionStatus() {
+  const ui = SpreadsheetApp.getUi();
+  var period = getCollectionPeriod();
+
+  if (!period) {
+    ui.alert('情報', '収集期間が設定されていません。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var status = getSubmissionStatus(period.targetMonth);
+  var submittedNames = status.submitted.map(function(s) {
+    return s.name + ' (' + s.count + '件)';
+  }).join('\n');
+
+  var notSubmittedNames = status.notSubmitted.map(function(s) {
+    return s.name + (s.lineUserId ? '' : ' [LINE未登録]');
+  }).join('\n');
+
+  ui.alert('提出状況 - ' + period.targetMonth,
+    '【提出済み: ' + status.submitted.length + '人】\n' +
+    (submittedNames || '(なし)') + '\n\n' +
+    '【未提出: ' + status.notSubmitted.length + '人】\n' +
+    (notSubmittedNames || '(なし)'),
+    ui.ButtonSet.OK);
+}
+
+/**
+ * 未提出者にリマインド送信
+ */
+function sendPreferenceReminders() {
+  const ui = SpreadsheetApp.getUi();
+  var period = getCollectionPeriod();
+
+  if (!period) {
+    ui.alert('情報', '収集期間が設定されていません。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var status = getSubmissionStatus(period.targetMonth);
+
+  if (status.notSubmitted.length === 0) {
+    ui.alert('情報', '全員提出済みです。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var confirm = ui.alert('リマインド送信',
+    '未提出者 ' + status.notSubmitted.length + '人にリマインドを送信しますか？',
+    ui.ButtonSet.YES_NO);
+
+  if (confirm !== ui.Button.YES) return;
+
+  var result = sendPreferenceReminder(period.targetMonth);
+
+  ui.alert('送信完了',
+    '送信成功: ' + result.sent + '人\n' +
+    '送信失敗: ' + result.failed + '人',
+    ui.ButtonSet.OK);
+}
+
+/**
+ * 希望一覧シート表示
+ */
+function showPreferenceSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE);
+  if (sheet) {
+    ss.setActiveSheet(sheet);
+  } else {
+    SpreadsheetApp.getUi().alert('情報', 'シフト希望データはまだありません。', SpreadsheetApp.getUi().ButtonSet.OK);
+  }
+}
+
+/**
+ * 希望入力開始通知を全職員に送信
+ */
+function sendPreferenceStartNotification_(targetMonth, deadline) {
+  var employees = loadEmployeeMaster();
+  var parts = targetMonth.split('-');
+  var displayMonth = parts[0] + '年' + parseInt(parts[1], 10) + '月';
+
+  employees.forEach(function(emp) {
+    if (emp.status !== '在職' || !emp.lineUserId) return;
+
+    var message = {
+      type: 'flex',
+      altText: displayMonth + ' シフト希望入力のお知らせ',
+      contents: {
+        type: 'bubble',
+        size: 'kilo',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [{
+            type: 'text',
+            text: 'シフト希望入力のお知らせ',
+            weight: 'bold',
+            size: 'md',
+            color: '#FFFFFF'
+          }],
+          backgroundColor: '#1DB446',
+          paddingAll: '12px'
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [
+            {
+              type: 'text',
+              text: emp.name + 'さん',
+              weight: 'bold',
+              size: 'md'
+            },
+            {
+              type: 'text',
+              text: displayMonth + 'のシフト希望入力を受付中です。',
+              wrap: true,
+              size: 'sm',
+              margin: 'md',
+              color: '#555555'
+            },
+            {
+              type: 'text',
+              text: '締切: ' + deadline,
+              weight: 'bold',
+              size: 'sm',
+              margin: 'md',
+              color: '#E74C3C'
+            }
+          ],
+          paddingAll: '15px'
+        },
+        footer: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [{
+            type: 'button',
+            action: {
+              type: 'postback',
+              label: 'シフト希望を入力する',
+              data: 'action=pref_start&month=' + targetMonth,
+              displayText: 'シフト希望入力'
+            },
+            style: 'primary',
+            color: '#1DB446',
+            height: 'sm'
+          }],
+          paddingAll: '12px'
+        }
+      }
+    };
+
+    pushMessage(emp.lineUserId, [message]);
+    Utilities.sleep(LINE_API.RATE_LIMIT_DELAY_MS);
+  });
+}
+
+/**
+ * リマインドトリガーを設定（締切2日前）
+ */
+function setupPreferenceReminderTrigger_(deadline) {
+  deletePreferenceReminderTriggers_();
+
+  var deadlineDate = new Date(deadline + 'T10:00:00+09:00');
+  var reminderDate = new Date(deadlineDate.getTime() - 2 * 24 * 60 * 60 * 1000);
+
+  // 過去でなければトリガー設定
+  if (reminderDate > new Date()) {
+    ScriptApp.newTrigger('autoSendPreferenceReminder')
+      .timeBased()
+      .at(reminderDate)
+      .create();
+  }
+}
+
+/**
+ * リマインドトリガー削除
+ */
+function deletePreferenceReminderTriggers_() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'autoSendPreferenceReminder') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+}
+
+/**
+ * 自動リマインド実行（トリガーから呼び出し）
+ */
+function autoSendPreferenceReminder() {
+  var period = getCollectionPeriod();
+  if (!period) return;
+
+  var result = sendPreferenceReminder(period.targetMonth);
+  Logger.log('Auto reminder sent: ' + result.sent + ' success, ' + result.failed + ' failed');
+
+  deletePreferenceReminderTriggers_();
 }

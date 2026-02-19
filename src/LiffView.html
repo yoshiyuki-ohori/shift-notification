@@ -30,8 +30,15 @@ body {
   align-items: center;
   justify-content: space-between;
 }
-.header h1 { font-size: 16px; font-weight: 700; }
-.header .emp-name { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+.header h1 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.header .emp-name {
+  font-size: 13px;
+  opacity: 0.9;
+  margin-top: 2px;
+}
 .month-nav {
   display: flex;
   align-items: center;
@@ -92,7 +99,11 @@ body {
 }
 
 /* ===== 統計カード ===== */
-.stats { display: flex; gap: 10px; padding: 12px 16px; }
+.stats {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+}
 .stat-card {
   flex: 1;
   background: #FFF;
@@ -101,8 +112,16 @@ body {
   text-align: center;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-.stat-value { font-size: 24px; font-weight: 700; color: #1DB446; }
-.stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1DB446;
+}
+.stat-label {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
 
 /* ===== 希望ステータスバー ===== */
 .pref-status {
@@ -115,7 +134,10 @@ body {
   justify-content: space-between;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-.pref-info { font-size: 13px; color: #555; }
+.pref-info {
+  font-size: 13px;
+  color: #555;
+}
 .pref-info strong { color: #1DB446; }
 .pref-btn {
   background: #1DB446;
@@ -197,8 +219,15 @@ body {
 }
 
 /* ===== シフト一覧 ===== */
-.shift-list { margin: 0 16px 16px; }
-.shift-list h2 { font-size: 14px; color: #555; margin-bottom: 8px; padding-left: 4px; }
+.shift-list {
+  margin: 0 16px 16px;
+}
+.shift-list h2 {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
 .shift-item {
   background: #FFF;
   border-radius: 10px;
@@ -209,25 +238,58 @@ body {
   gap: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-.shift-date-box { min-width: 44px; text-align: center; }
-.shift-date-num { font-size: 20px; font-weight: 700; color: #333; line-height: 1; }
-.shift-date-day { font-size: 11px; color: #888; margin-top: 2px; }
+.shift-date-box {
+  min-width: 44px;
+  text-align: center;
+}
+.shift-date-num {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+.shift-date-day {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+}
 .shift-date-box.sunday .shift-date-num,
 .shift-date-box.sunday .shift-date-day { color: #E74C3C; }
 .shift-date-box.saturday .shift-date-num,
 .shift-date-box.saturday .shift-date-day { color: #2980B9; }
-.shift-divider { width: 3px; height: 32px; border-radius: 2px; }
+.shift-divider {
+  width: 3px;
+  height: 32px;
+  border-radius: 2px;
+}
 .shift-detail { flex: 1; }
-.shift-facility { font-size: 14px; font-weight: 600; color: #333; }
-.shift-time { font-size: 12px; color: #666; margin-top: 2px; }
+.shift-facility {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+.shift-time {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
 
 /* ===== 空状態 ===== */
-.empty-state { text-align: center; padding: 40px 20px; color: #AAA; }
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #AAA;
+}
 .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
 .empty-state p { font-size: 14px; }
 
 /* ===== フッター ===== */
-.footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
+.footer {
+  text-align: center;
+  padding: 16px;
+  color: #CCC;
+  font-size: 11px;
+}
 </style>
 </head>
 <body>
@@ -256,48 +318,9 @@ body {
 <!-- エラー -->
 <div class="error-msg" id="errorView" style="display:none;"></div>
 
-<!-- 社員登録フォーム -->
-<div id="registerView" style="display:none;">
-  <div style="background:#FFF;margin:20px 16px;padding:24px;border-radius:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
-    <div style="font-size:40px;margin-bottom:12px;">&#128100;</div>
-    <h2 style="font-size:16px;color:#333;margin-bottom:8px;">社員登録</h2>
-    <p style="font-size:13px;color:#888;margin-bottom:20px;line-height:1.5;">
-      はじめにご自身の社員番号を<br>入力してください
-    </p>
-    <div id="regStep1">
-      <input type="text" id="regEmpNo" inputmode="numeric" pattern="[0-9]*" placeholder="社員番号（例: 072）"
-        style="width:80%;padding:12px 16px;border:2px solid #DDD;border-radius:8px;font-size:16px;text-align:center;outline:none;"
-        onfocus="this.style.borderColor='#1DB446'" onblur="this.style.borderColor='#DDD'">
-      <div id="regError" style="color:#E74C3C;font-size:13px;margin-top:8px;min-height:20px;white-space:pre-line;"></div>
-      <button onclick="lookupEmployee()" style="margin-top:12px;background:#1DB446;color:#FFF;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:600;cursor:pointer;width:80%;">
-        確認
-      </button>
-    </div>
-    <div id="regStep2" style="display:none;">
-      <div style="background:#F0FFF4;border-radius:10px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:13px;color:#888;">社員番号: <span id="confirmEmpNo"></span></div>
-        <div style="font-size:22px;font-weight:700;color:#333;margin-top:4px;"><span id="confirmName"></span> さん</div>
-      </div>
-      <p style="font-size:14px;color:#555;margin-bottom:16px;">この方で間違いないですか？</p>
-      <div style="display:flex;gap:10px;justify-content:center;">
-        <button onclick="cancelRegister()" style="background:#EEE;color:#555;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
-          戻る
-        </button>
-        <button onclick="confirmRegister()" style="background:#1DB446;color:#FFF;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
-          登録する
-        </button>
-      </div>
-    </div>
-    <div id="regStep3" style="display:none;">
-      <div style="font-size:40px;margin-bottom:8px;">&#9989;</div>
-      <p style="font-size:15px;color:#1DB446;font-weight:600;">登録が完了しました</p>
-      <p style="font-size:13px;color:#888;margin-top:8px;">シフトデータを読み込みます...</p>
-    </div>
-  </div>
-</div>
-
 <!-- メインコンテンツ -->
 <div id="mainContent" style="display:none;">
+  <!-- 統計 -->
   <div class="stats">
     <div class="stat-card">
       <div class="stat-value" id="statShifts">0</div>
@@ -309,11 +332,13 @@ body {
     </div>
   </div>
 
+  <!-- 希望ステータス -->
   <div class="pref-status" id="prefStatus" style="display:none;">
     <div class="pref-info" id="prefInfo"></div>
     <button class="pref-btn" onclick="openPreference()">希望を入力</button>
   </div>
 
+  <!-- カレンダー -->
   <div class="calendar-section">
     <div class="cal-header">
       <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
@@ -321,6 +346,7 @@ body {
     <div class="cal-grid" id="calGrid"></div>
   </div>
 
+  <!-- シフト一覧 -->
   <div class="shift-list" id="shiftList">
     <h2>シフト一覧</h2>
     <div id="shiftItems"></div>
@@ -330,18 +356,18 @@ body {
 <div class="footer">Powered by LIFF</div>
 
 <script>
-// ===== 設定 =====
-var LIFF_ID = '2009168695-9wuS2j5W';
-var GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzkWS3wkfhC5pwEzal6g35RJkaOcRQ2314eHUXlaAGkHIp5UE0FertvzDBzDzPhRPoO/exec';
-
+// ===== グローバル状態 =====
+var LIFF_ID = '{{LIFF_ID}}';
 var accessToken = null;
 var currentData = null;
-var currentMonth = null;
-var overrideEmpNo = '';
-var CACHE_TTL = 10 * 60 * 1000; // キャッシュ有効期限: 10分
+var currentMonth = null; // YYYY-MM
 
+// 時間帯カラー
 var TIME_COLORS = {
-  morning: '#4ECDC4', daytime: '#FFD93D', evening: '#FF6B6B', night: '#845EC2'
+  morning:  '#4ECDC4',  // 6時〜9時
+  daytime:  '#FFD93D',  // 9時〜17時
+  evening:  '#FF6B6B',  // 17時〜22時
+  night:    '#845EC2'   // 22時〜
 };
 
 function getTimeColor(timeSlot) {
@@ -359,6 +385,11 @@ window.onload = function() {
 };
 
 function initLiff() {
+  if (!LIFF_ID) {
+    showError('LIFF IDが設定されていません。\n管理者に設定を依頼してください。');
+    return;
+  }
+
   liff.init({ liffId: LIFF_ID })
     .then(function() {
       if (!liff.isLoggedIn()) {
@@ -370,82 +401,58 @@ function initLiff() {
         showError('アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。');
         return;
       }
-      // URL パラメータで社員番号指定（管理者テスト用）
-      var params = new URLSearchParams(window.location.search);
-      overrideEmpNo = params.get('empNo') || '';
+      // 現在月で初期読み込み
       var now = new Date();
       currentMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
       loadShiftData();
     })
     .catch(function(err) {
-      showError('LIFF初期化に失敗しました。\n' + (err.message || JSON.stringify(err)));
+      showError('LIFF初期化に失敗しました。\n' + (err.message || err));
     });
 }
 
-// ===== キャッシュ =====
-function getCacheKey() {
-  return 'myshift_' + currentMonth + '_' + overrideEmpNo;
-}
-
-function getCache() {
-  try {
-    var raw = sessionStorage.getItem(getCacheKey());
-    if (!raw) return null;
-    var cached = JSON.parse(raw);
-    if (Date.now() - cached.ts > CACHE_TTL) {
-      sessionStorage.removeItem(getCacheKey());
-      return null;
-    }
-    return cached.data;
-  } catch (e) { return null; }
-}
-
-function setCache(data) {
-  try {
-    sessionStorage.setItem(getCacheKey(), JSON.stringify({ ts: Date.now(), data: data }));
-  } catch (e) {}
-}
-
-// ===== データ読み込み (fetch で GAS API 呼び出し) =====
+// ===== データ読み込み =====
 function loadShiftData() {
+  showLoading();
   updateMonthLabel();
 
-  // キャッシュ確認
-  var cached = getCache();
-  if (cached) {
-    onDataLoaded(cached);
-    return;
-  }
-
-  showLoading();
-
-  var url = GAS_API_URL + '?action=myshift&token=' + encodeURIComponent(accessToken) + '&month=' + encodeURIComponent(currentMonth);
-  if (overrideEmpNo) url += '&empNo=' + encodeURIComponent(overrideEmpNo);
-
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data && !data.error) setCache(data);
-      onDataLoaded(data);
-    })
-    .catch(function(err) {
+  google.script.run
+    .withSuccessHandler(onDataLoaded)
+    .withFailureHandler(function(err) {
       showError('データの取得に失敗しました。\n' + (err.message || err));
-    });
+    })
+    .getMyShiftData(accessToken, currentMonth);
 }
 
 function onDataLoaded(data) {
-  if (!data) { showError('データが取得できませんでした。'); return; }
-  if (data.needsRegistration) { showRegisterView(); return; }
-  if (data.error) { showError(data.error); return; }
+  if (!data) {
+    showError('データが取得できませんでした。');
+    return;
+  }
+  if (data.error) {
+    showError(data.error);
+    return;
+  }
 
   currentData = data;
+
+  // ヘッダー更新
   document.getElementById('empName').textContent = data.employee.name + ' さん';
+
+  // 統計
   document.getElementById('statShifts').textContent = data.stats.totalShifts;
   document.getElementById('statFacilities').textContent = data.stats.facilityCount;
+
+  // 希望ステータス
   renderPrefStatus(data);
+
+  // カレンダー
   renderCalendar(data);
+
+  // シフト一覧
   renderShiftList(data);
 
+  // 表示切替
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('errorView').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
@@ -464,21 +471,30 @@ function changeMonth(delta) {
 
 function updateMonthLabel() {
   var parts = currentMonth.split('-');
-  document.getElementById('monthLabel').textContent = parseInt(parts[0], 10) + '年' + parseInt(parts[1], 10) + '月';
+  var label = parseInt(parts[0], 10) + '年' + parseInt(parts[1], 10) + '月';
+  document.getElementById('monthLabel').textContent = label;
 }
 
 // ===== 希望ステータス =====
 function renderPrefStatus(data) {
   var el = document.getElementById('prefStatus');
-  if (!data.collectionOpen) { el.style.display = 'none'; return; }
+  if (!data.collectionOpen) {
+    el.style.display = 'none';
+    return;
+  }
+
   var prefCount = data.preferences ? data.preferences.length : 0;
-  document.getElementById('prefInfo').innerHTML = '希望提出: <strong>' + prefCount + '件</strong>';
+  document.getElementById('prefInfo').innerHTML =
+    '希望提出: <strong>' + prefCount + '件</strong>';
   el.style.display = 'flex';
 }
 
 function openPreference() {
   if (currentData && currentData.collectionPeriod) {
-    liff.sendMessages([{ type: 'text', text: 'シフト希望' }]).catch(function() {});
+    liff.sendMessages([{
+      type: 'text',
+      text: 'シフト希望'
+    }]).catch(function() {});
   }
 }
 
@@ -487,11 +503,13 @@ function renderCalendar(data) {
   var parts = currentMonth.split('-');
   var year = parseInt(parts[0], 10);
   var month = parseInt(parts[1], 10);
+
   var firstDay = new Date(year, month - 1, 1);
   var lastDay = new Date(year, month, 0);
-  var startDow = firstDay.getDay();
+  var startDow = firstDay.getDay(); // 0=日
   var daysInMonth = lastDay.getDate();
 
+  // シフトを日付でインデックス
   var shiftMap = {};
   if (data.shifts) {
     data.shifts.forEach(function(s) {
@@ -501,6 +519,7 @@ function renderCalendar(data) {
     });
   }
 
+  // 希望を日付でインデックス
   var prefMap = {};
   if (data.preferences) {
     data.preferences.forEach(function(p) {
@@ -511,10 +530,15 @@ function renderCalendar(data) {
 
   var today = new Date();
   var todayDay = (today.getFullYear() === year && today.getMonth() + 1 === month) ? today.getDate() : -1;
+
   var html = '';
 
-  for (var i = 0; i < startDow; i++) { html += '<div class="cal-cell empty"></div>'; }
+  // 先頭の空セル
+  for (var i = 0; i < startDow; i++) {
+    html += '<div class="cal-cell empty"></div>';
+  }
 
+  // 日付セル
   for (var day = 1; day <= daysInMonth; day++) {
     var dow = (startDow + day - 1) % 7;
     var classes = 'cal-cell';
@@ -525,6 +549,7 @@ function renderCalendar(data) {
     html += '<div class="' + classes + '">';
     html += '<div class="cal-day">' + day + '</div>';
 
+    // シフトピル
     var dayShifts = shiftMap[day];
     if (dayShifts) {
       dayShifts.forEach(function(s) {
@@ -534,17 +559,24 @@ function renderCalendar(data) {
       });
     }
 
+    // 希望アイコン
     if (prefMap[day]) {
       var icon = prefMap[day] === 'NG' ? '&#10005;' : '&#9679;';
       var iconColor = prefMap[day] === 'NG' ? '#E74C3C' : '#1DB446';
       html += '<span class="cal-pref-icon" style="color:' + iconColor + ';">' + icon + '</span>';
     }
+
     html += '</div>';
   }
 
+  // 末尾の空セル
   var totalCells = startDow + daysInMonth;
   var remainder = totalCells % 7;
-  if (remainder > 0) { for (var k = 0; k < 7 - remainder; k++) { html += '<div class="cal-cell empty"></div>'; } }
+  if (remainder > 0) {
+    for (var k = 0; k < 7 - remainder; k++) {
+      html += '<div class="cal-cell empty"></div>';
+    }
+  }
 
   document.getElementById('calGrid').innerHTML = html;
 }
@@ -552,8 +584,13 @@ function renderCalendar(data) {
 // ===== シフト一覧描画 =====
 function renderShiftList(data) {
   var container = document.getElementById('shiftItems');
+
   if (!data.shifts || data.shifts.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">&#128197;</div><p>この月のシフトはありません</p></div>';
+    container.innerHTML =
+      '<div class="empty-state">' +
+      '<div class="icon">&#128197;</div>' +
+      '<p>この月のシフトはありません</p>' +
+      '</div>';
     return;
   }
 
@@ -572,124 +609,62 @@ function renderShiftList(data) {
     html += '<div class="shift-detail">';
     html += '<div class="shift-facility">' + escapeHtml(s.facility) + '</div>';
     html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
-    html += '</div></div>';
+    html += '</div>';
+    html += '</div>';
   });
+
   container.innerHTML = html;
 }
 
 // ===== ユーティリティ =====
 function parseDateToDay(dateStr) {
   if (!dateStr) return 0;
-  var parts = String(dateStr).split(/[\/\-]/);
+  var s = String(dateStr);
+  // "2026/03/15" or "2026-03-15" → 15
+  var parts = s.split(/[\/\-]/);
   return parseInt(parts[parts.length - 1], 10);
 }
 
 function parseShiftDate(dateStr) {
-  var parts = String(dateStr).split(/[\/\-]/);
-  var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, d = parseInt(parts[2], 10);
+  var s = String(dateStr);
+  var parts = s.split(/[\/\-]/);
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10) - 1;
+  var d = parseInt(parts[2], 10);
   var dt = new Date(y, m, d);
   var days = ['日', '月', '火', '水', '木', '金', '土'];
-  return { day: d, dow: dt.getDay(), dayLabel: days[dt.getDay()] };
+  return {
+    day: d,
+    dow: dt.getDay(),
+    dayLabel: days[dt.getDay()]
+  };
 }
 
-function shortenName(name) { return !name ? '' : (name.length > 5 ? name.substring(0, 5) : name); }
+function shortenName(name) {
+  if (!name) return '';
+  return name.length > 5 ? name.substring(0, 5) : name;
+}
 
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function hideAll() {
-  document.getElementById('loadingView').style.display = 'none';
-  document.getElementById('errorView').style.display = 'none';
-  document.getElementById('mainContent').style.display = 'none';
-  document.getElementById('registerView').style.display = 'none';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function showLoading() {
-  hideAll();
   document.getElementById('loadingView').style.display = 'flex';
+  document.getElementById('errorView').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'none';
 }
 
 function showError(msg) {
-  hideAll();
+  document.getElementById('loadingView').style.display = 'none';
   document.getElementById('errorView').style.display = 'block';
   document.getElementById('errorView').textContent = msg;
-}
-
-// ===== 社員登録フロー =====
-var pendingEmpNo = '';
-var pendingEmpName = '';
-
-function showRegisterView() {
-  hideAll();
-  document.getElementById('registerView').style.display = 'block';
-  document.getElementById('regStep1').style.display = 'block';
-  document.getElementById('regStep2').style.display = 'none';
-  document.getElementById('regStep3').style.display = 'none';
-  document.getElementById('regEmpNo').value = '';
-  document.getElementById('regError').textContent = '';
-}
-
-function lookupEmployee() {
-  var empNo = document.getElementById('regEmpNo').value.trim();
-  if (!empNo) {
-    document.getElementById('regError').textContent = '社員番号を入力してください。';
-    return;
-  }
-  document.getElementById('regError').textContent = '';
-
-  var url = GAS_API_URL + '?action=empLookup&token=' + encodeURIComponent(accessToken) + '&empNo=' + encodeURIComponent(empNo);
-
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.error) {
-        document.getElementById('regError').textContent = data.error;
-        return;
-      }
-      if (data.found) {
-        pendingEmpNo = data.empNo;
-        pendingEmpName = data.name;
-        document.getElementById('confirmEmpNo').textContent = data.empNo;
-        document.getElementById('confirmName').textContent = data.name;
-        document.getElementById('regStep1').style.display = 'none';
-        document.getElementById('regStep2').style.display = 'block';
-      }
-    })
-    .catch(function(err) {
-      document.getElementById('regError').textContent = '通信エラーが発生しました。';
-    });
-}
-
-function cancelRegister() {
-  document.getElementById('regStep2').style.display = 'none';
-  document.getElementById('regStep1').style.display = 'block';
-}
-
-function confirmRegister() {
-  var url = GAS_API_URL + '?action=empRegister&token=' + encodeURIComponent(accessToken) + '&empNo=' + encodeURIComponent(pendingEmpNo);
-
-  fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(data) {
-      if (data.error) {
-        document.getElementById('regError').textContent = data.error;
-        document.getElementById('regStep2').style.display = 'none';
-        document.getElementById('regStep1').style.display = 'block';
-        return;
-      }
-      if (data.success) {
-        document.getElementById('regStep2').style.display = 'none';
-        document.getElementById('regStep3').style.display = 'block';
-        setTimeout(function() { loadShiftData(); }, 1500);
-      }
-    })
-    .catch(function(err) {
-      document.getElementById('regError').textContent = '通信エラーが発生しました。';
-      document.getElementById('regStep2').style.display = 'none';
-      document.getElementById('regStep1').style.display = 'block';
-    });
+  document.getElementById('mainContent').style.display = 'none';
 }
 </script>
 </body>

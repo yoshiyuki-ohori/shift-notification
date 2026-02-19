@@ -9,7 +9,9 @@ const SHEET_NAMES = {
   SHIFT_DATA: 'シフトデータ',
   SEND_LOG: '送信ログ',
   SETTINGS: '設定',
-  UNMATCHED: '名寄せ未マッチ'
+  UNMATCHED: '名寄せ未マッチ',
+  SHIFT_PREFERENCE: 'シフト希望',
+  STAFFING_REQUIREMENT: '必要配置'
 };
 
 // ===== 従業員マスタ列定数 (1-indexed) =====
@@ -18,11 +20,9 @@ const MASTER_COLS = {
   NAME: 2,        // B: 氏名
   FURIGANA: 3,    // C: フリガナ
   LINE_USER_ID: 4,// D: LINE_UserId
-  AREA: 5,        // E: エリア
-  FACILITY: 6,    // F: 主担当施設
-  STATUS: 7,      // G: ステータス (在職/退職)
-  NOTIFY: 8,      // H: 通知有効 (TRUE/FALSE)
-  ALIASES: 9      // I: 別名リスト (カンマ区切り)
+  STATUS: 5,      // E: ステータス (在職/退職)
+  NOTIFY: 6,      // F: 通知有効 (TRUE/FALSE)
+  ALIASES: 7      // G: 別名リスト (カンマ区切り)
 };
 
 // ===== シフトデータ列定数 =====
@@ -56,13 +56,45 @@ const UNMATCHED_COLS = {
   RESOLVED: 4     // D: 解決済
 };
 
+// ===== シフト希望列定数 =====
+const PREF_COLS = {
+  YEAR_MONTH: 1,    // A: 対象年月
+  EMPLOYEE_NO: 2,   // B: 社員番号
+  NAME: 3,          // C: 氏名
+  DATE: 4,          // D: 日付
+  TYPE: 5,          // E: 希望/NG/どちらでも
+  TIME_SLOT: 6,     // F: 希望時間帯
+  REASON: 7,        // G: 理由
+  SUBMITTED_AT: 8   // H: 提出日時
+};
+
+// ===== 必要配置列定数 =====
+const STAFFING_COLS = {
+  FACILITY_ID: 1,      // A: 施設ID
+  TIME_SLOT: 2,        // B: 時間帯
+  DAY_TYPE: 3,         // C: 平日/土曜/日祝
+  MIN_STAFF: 4,        // D: 最低人数
+  PREFERRED_STAFF: 5   // E: 推奨人数
+};
+
+// ===== 希望種別 =====
+const PREF_TYPE = {
+  WANT: '希望',
+  NG: 'NG',
+  EITHER: 'どちらでも'
+};
+
 // ===== 設定キー =====
 const SETTING_KEYS = {
   TARGET_MONTH: '対象年月',
   NERIMA_SS_ID: '練馬シフトSS_ID',
   SETAGAYA_SS_ID: '世田谷シフトSS_ID',
   SEND_MODE: '送信モード',
-  TEST_USER_ID: 'テスト送信先UserId'
+  TEST_USER_ID: 'テスト送信先UserId',
+  PREF_COLLECTION_START: '希望収集開始日',
+  PREF_COLLECTION_END: '希望収集締切日',
+  PREF_TARGET_MONTH: '希望対象年月',
+  LIFF_ID: 'LIFF_ID'
 };
 
 // ===== LINE API定数 =====
@@ -178,22 +210,56 @@ function setSettingValue(key, value) {
   sheet.getRange(lastRow + 1, 1, 1, 2).setValues([[key, value]]);
 }
 
+// ===== LINEチャネル種別 =====
+const LINE_CHANNEL = {
+  SHIFT: 'shift',
+  UNIFIED: 'unified'
+};
+
 /**
  * Script PropertiesからLINEトークンを取得
+ * @param {string} [channel] - チャネル種別 ('shift' or 'unified')。省略時はshift
  * @return {string} LINE Channel Access Token
  */
-function getLineToken() {
-  const token = PropertiesService.getScriptProperties().getProperty('LINE_CHANNEL_ACCESS_TOKEN');
-  if (!token) throw new Error('LINE_CHANNEL_ACCESS_TOKENが設定されていません。Script Propertiesを確認してください。');
+function getLineToken(channel) {
+  const props = PropertiesService.getScriptProperties();
+  if (channel === LINE_CHANNEL.UNIFIED) {
+    const token = props.getProperty('LINE_UNIFIED_CHANNEL_ACCESS_TOKEN');
+    if (!token) throw new Error('LINE_UNIFIED_CHANNEL_ACCESS_TOKENが設定されていません。');
+    return token;
+  }
+  const token = props.getProperty('LINE_CHANNEL_ACCESS_TOKEN');
+  if (!token) throw new Error('LINE_CHANNEL_ACCESS_TOKENが設定されていません。');
   return token;
 }
 
 /**
  * Script PropertiesからLINEチャネルシークレットを取得
+ * @param {string} [channel] - チャネル種別 ('shift' or 'unified')。省略時はshift
  * @return {string} LINE Channel Secret
  */
-function getLineChannelSecret() {
-  const secret = PropertiesService.getScriptProperties().getProperty('LINE_CHANNEL_SECRET');
-  if (!secret) throw new Error('LINE_CHANNEL_SECRETが設定されていません。Script Propertiesを確認してください。');
+function getLineChannelSecret(channel) {
+  const props = PropertiesService.getScriptProperties();
+  if (channel === LINE_CHANNEL.UNIFIED) {
+    const secret = props.getProperty('LINE_UNIFIED_CHANNEL_SECRET');
+    if (!secret) throw new Error('LINE_UNIFIED_CHANNEL_SECRETが設定されていません。');
+    return secret;
+  }
+  const secret = props.getProperty('LINE_CHANNEL_SECRET');
+  if (!secret) throw new Error('LINE_CHANNEL_SECRETが設定されていません。');
   return secret;
+}
+
+/**
+ * Webhook受信時にdestinationからチャネル種別を判定
+ * @param {string} destination - Bot User ID
+ * @return {string} チャネル種別
+ */
+function detectChannel(destination) {
+  const props = PropertiesService.getScriptProperties();
+  const unifiedBotId = props.getProperty('LINE_UNIFIED_BOT_USER_ID');
+  if (unifiedBotId && destination === unifiedBotId) {
+    return LINE_CHANNEL.UNIFIED;
+  }
+  return LINE_CHANNEL.SHIFT;
 }

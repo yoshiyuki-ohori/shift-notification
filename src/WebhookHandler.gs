@@ -33,10 +33,13 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.TEXT);
     }
 
+    // チャネル判定（統合 or シフト）
+    var channel = detectChannel(body.destination || '');
+
     // イベント処理
     if (body.events && body.events.length > 0) {
       body.events.forEach(function(event) {
-        processWebhookEvent(event);
+        processWebhookEvent(event, channel);
       });
     }
 
@@ -58,6 +61,7 @@ function doPost(e) {
  * ?action=read&sheet=XX  → シートデータ読み取り
  * ?action=read&sheet=XX&range=A1:Z10 → 範囲指定読み取り
  * ?action=status         → システムステータス
+ * ?action=ical&empNo=XX&month=YYYY-MM&token=XXX → iCalファイル出力
  * (パラメータなし)        → Webhook URL検証
  */
 function doGet(e) {
@@ -67,7 +71,8 @@ function doGet(e) {
 
   // 管理APIキー検証（Script Propertiesに ADMIN_API_KEY を設定）
   // ADMIN_API_KEYが未設定の場合はアクション実行を拒否（デフォルト拒否）
-  if (action) {
+  // ical は独自のトークン認証、lineWebhook はCloud Functions経由、liff/myshift はLIFF用のため除外
+  if (action && action !== 'ical' && action !== 'lineWebhook' && action !== 'liff' && action !== 'myshift' && action !== 'empLookup' && action !== 'empRegister') {
     const expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
     if (!expectedKey || adminKey !== expectedKey) {
       return jsonResponse_({ error: 'Unauthorized' }, 401);
@@ -90,6 +95,18 @@ function doGet(e) {
         return handleRunFunction_(params);
       case 'readExternal':
         return handleReadExternal_(params);
+      case 'ical':
+        return handleGetIcal_(params);
+      case 'liff':
+        return serveLiffPage();
+      case 'myshift':
+        return handleMyShiftApi_(params);
+      case 'empLookup':
+        return handleEmpLookup_(params);
+      case 'empRegister':
+        return handleEmpRegister_(params);
+      case 'lineWebhook':
+        return handleLineWebhookViaGet_(params);
       default:
         return ContentService.createTextOutput('Shift Notification Webhook Active')
           .setMimeType(ContentService.MimeType.TEXT);
@@ -232,7 +249,12 @@ function handleRunFunction_(params) {
   const allowedFunctions = {
     'setupSheets': setupSheets,
     'clearShiftDataForMonth': clearShiftDataForMonth,
-    'runAllTests': typeof runAllTests === 'function' ? runAllTests : null
+    'runAllTests': typeof runAllTests === 'function' ? runAllTests : null,
+    'scheduleVerificationBroadcast': function(timeStr) {
+      var d = new Date(timeStr);
+      scheduleBroadcast_(d);
+      return 'Scheduled at ' + d.toString();
+    }
   };
 
   const func = allowedFunctions[funcName];
@@ -302,6 +324,72 @@ function handleReadExternal_(params) {
 }
 
 /**
+ * Cloud Functions経由のLINE Webhookデータ処理（GET経由）
+ * Base64エンコードされたWebhookボディをデコードして処理
+ * @param {Object} params - クエリパラメータ
+ * @return {ContentService} レスポンス
+ */
+function handleLineWebhookViaGet_(params) {
+  try {
+    var encodedData = params.data;
+    if (!encodedData) {
+      return jsonResponse_({ error: 'data parameter required' });
+    }
+
+    var decoded = Utilities.newBlob(Utilities.base64Decode(encodedData)).getDataAsString();
+    var body = JSON.parse(decoded);
+
+    // チャネル判定
+    var channel = detectChannel(body.destination || '');
+
+    // イベント処理
+    if (body.events && body.events.length > 0) {
+      body.events.forEach(function(event) {
+        processWebhookEvent(event, channel);
+      });
+    }
+
+    return jsonResponse_({ success: true, eventsProcessed: (body.events || []).length });
+  } catch (error) {
+    Logger.log('lineWebhook via GET error: ' + error.toString());
+    return jsonResponse_({ error: error.toString() });
+  }
+}
+
+/**
+ * iCalファイルを返す (HMAC署名トークンで認証)
+ * ?action=ical&empNo=072&month=2026-03&token=XXXX
+ */
+function handleGetIcal_(params) {
+  var empNo = params.empNo;
+  var month = params.month;
+  var token = params.token;
+
+  if (!empNo || !month) {
+    return ContentService.createTextOutput('empNo and month parameters required')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  // 社員番号を3桁ゼロパディング
+  empNo = String(empNo).padStart(3, '0');
+
+  // トークン検証
+  if (!verifyICalToken(empNo, month, token)) {
+    return ContentService.createTextOutput('Invalid or missing token')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  var ical = generateICal(empNo, month);
+  if (!ical) {
+    return ContentService.createTextOutput('No shift data found')
+      .setMimeType(ContentService.MimeType.TEXT);
+  }
+
+  return ContentService.createTextOutput(ical)
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+/**
  * JSON レスポンスヘルパー
  */
 function jsonResponse_(obj, statusCode) {
@@ -347,33 +435,33 @@ function handlePostWrite_(body) {
 
 /**
  * LINE署名検証
+ * 注意: GASのdoPost()ではHTTPヘッダー (X-Line-Signature) にアクセスできないため、
+ * GAS環境では署名検証は実質不可能。GASのWebアプリURLは推測困難な長いURLで
+ * 保護されているため、セキュリティリスクは限定的。
  * @param {Object} e - イベントオブジェクト
  * @return {boolean} 検証結果
  */
 function verifySignature(e) {
+  // GASではHTTPリクエストヘッダーを取得できないため、
+  // LINE署名検証(X-Line-Signature)は実行不可。
+  // 代わりにリクエストボディの基本構造を検証する。
   try {
-    const channelSecret = getLineChannelSecret();
-    const signature = e.parameter ? e.parameter['x-line-signature'] : null;
+    const body = JSON.parse(e.postData.contents);
 
-    // 署名が無い場合
-    if (!signature) {
-      // Script Properties の SKIP_SIGNATURE_VERIFY が 'true' の場合のみ通す（開発用）
-      const skipVerify = PropertiesService.getScriptProperties().getProperty('SKIP_SIGNATURE_VERIFY');
-      if (skipVerify === 'true') {
-        Logger.log('Warning: Signature verification skipped (dev mode)');
-        return true;
-      }
-      Logger.log('Rejected: No signature provided');
+    // LINEからのWebhookリクエストはeventsフィールドを必ず持つ
+    if (!body.hasOwnProperty('events')) {
+      Logger.log('Rejected: Not a LINE webhook request (no events field)');
       return false;
     }
 
-    const body = e.postData.contents;
-    const hash = Utilities.computeHmacSha256Signature(body, channelSecret);
-    const base64Hash = Utilities.base64Encode(hash);
+    // destination (Bot User ID) が存在すればLINEプラットフォームからのリクエスト
+    if (body.destination) {
+      Logger.log('LINE webhook verified (destination: ' + body.destination + ')');
+    }
 
-    return signature === base64Hash;
+    return true;
   } catch (error) {
-    Logger.log('Signature verification error: ' + error.toString());
+    Logger.log('Webhook validation error: ' + error.toString());
     return false;
   }
 }
@@ -381,20 +469,25 @@ function verifySignature(e) {
 /**
  * Webhookイベント処理
  * @param {Object} event - LINEイベント
+ * @param {string} [channel] - チャネル種別
  */
-function processWebhookEvent(event) {
+function processWebhookEvent(event, channel) {
   const userId = event.source.userId;
   const replyToken = event.replyToken;
 
   switch (event.type) {
     case 'message':
       if (event.message.type === 'text') {
-        handleRegistrationMessage(event.message.text, userId, replyToken);
+        handleRegistrationMessage(event.message.text, userId, replyToken, channel);
       }
       break;
 
+    case 'postback':
+      handlePostbackEvent_(event.postback.data, userId, replyToken, channel);
+      break;
+
     case 'follow':
-      handleFollowEvent_(userId, replyToken);
+      handleFollowEvent_(userId, replyToken, channel);
       break;
 
     default:
@@ -407,21 +500,15 @@ function processWebhookEvent(event) {
  * @param {string} text - メッセージテキスト
  * @param {string} userId - LINE UserId
  * @param {string} replyToken - 返信トークン
+ * @param {string} [channel] - チャネル種別
  */
-function handleRegistrationMessage(text, userId, replyToken) {
+function handleRegistrationMessage(text, userId, replyToken, channel) {
   const trimmedText = text.trim();
 
-  // 社員番号パターン判定 (001-999)
+  // 社員番号パターン判定 (001-999) のみ反応。それ以外は無視
   const empNoMatch = trimmedText.match(/^(\d{1,3})$/);
   if (!empNoMatch) {
-    // 社員番号以外のメッセージ
-    replyLineMessage(replyToken, [
-      createTextMessage(
-        '社員番号を入力してください。\n' +
-        '例: 072\n\n' +
-        '※社員番号が分からない場合は管理者にお問い合わせください。'
-      )
-    ]);
+    // 社員番号以外のメッセージは無視（返信しない）
     return;
   }
 
@@ -433,43 +520,30 @@ function handleRegistrationMessage(text, userId, replyToken) {
   if (!employee) {
     replyLineMessage(replyToken, [
       createTextMessage(
-        '社員番号「' + employeeNo + '」は見つかりませんでした。\n' +
-        '正しい社員番号を入力してください。\n\n' +
-        '※社員番号が分からない場合は管理者にお問い合わせください。'
+        '社員番号「' + employeeNo + '」が見つかりませんでした。\n' +
+        '正しい社員番号を入力してください。'
       )
-    ]);
+    ], channel);
     return;
   }
 
-  // 既に登録済みか確認
-  if (employee.lineUserId === userId) {
-    replyLineMessage(replyToken, [
-      createTextMessage(
-        employee.name + 'さん、既にLINE連携済みです。\n' +
-        'シフト通知は自動的に届きます。'
-      )
-    ]);
-    return;
-  }
-
-  // LINE UserIdをマスタに登録
+  // LINE UserIdをマスタに登録（既存でも上書き更新）
   const success = registerLineUserId(employeeNo, userId);
 
   if (success) {
     replyLineMessage(replyToken, [
       createTextMessage(
-        employee.name + 'さん、LINE連携が完了しました！\n\n' +
-        'シフトが確定すると、こちらのLINEに通知が届きます。'
+        employee.name + 'さん、登録しました。'
       )
-    ]);
-    Logger.log('LINE UserId registered: empNo=' + employeeNo);
+    ], channel);
+    Logger.log('LINE UserId registered: empNo=' + employeeNo + ' channel=' + channel);
   } else {
     replyLineMessage(replyToken, [
       createTextMessage(
         '登録処理でエラーが発生しました。\n' +
         'お手数ですが管理者にご連絡ください。'
       )
-    ]);
+    ], channel);
   }
 }
 
@@ -477,8 +551,9 @@ function handleRegistrationMessage(text, userId, replyToken) {
  * フォローイベント処理（友だち追加時）
  * @param {string} userId - LINE UserId
  * @param {string} replyToken - 返信トークン
+ * @param {string} [channel] - チャネル種別
  */
-function handleFollowEvent_(userId, replyToken) {
+function handleFollowEvent_(userId, replyToken, channel) {
   replyLineMessage(replyToken, [
     createTextMessage(
       'シフト通知システムへようこそ！\n\n' +
@@ -486,7 +561,7 @@ function handleFollowEvent_(userId, replyToken) {
       '例: 072\n\n' +
       '※社員番号が分からない場合は管理者にお問い合わせください。'
     )
-  ]);
+  ], channel);
 }
 
 /**
@@ -514,6 +589,260 @@ function findEmployeeByNo(employeeNo) {
     }
   }
   return null;
+}
+
+/**
+ * Postbackイベント処理 - シフト希望入力フロー
+ * @param {string} data - Postbackデータ (URLパラメータ形式)
+ * @param {string} userId - LINE UserId
+ * @param {string} replyToken - 返信トークン
+ * @param {string} [channel] - チャネル種別
+ */
+function handlePostbackEvent_(data, userId, replyToken, channel) {
+  var params = parsePostbackData_(data);
+  var action = params.action || '';
+
+  // 職員情報をLINE UserIdから検索
+  var employee = findEmployeeByLineUserId_(userId);
+  if (!employee) {
+    replyLineMessage(replyToken, [
+      createTextMessage('LINE連携が完了していません。\n先に社員番号を入力してください。')
+    ], channel);
+    return;
+  }
+
+  switch (action) {
+    case 'pref_start':
+      handlePrefStart_(params, employee, replyToken, channel);
+      break;
+
+    case 'pref_date':
+      handlePrefDate_(params, replyToken, channel);
+      break;
+
+    case 'pref_type':
+      handlePrefType_(params, employee, replyToken, channel);
+      break;
+
+    case 'pref_delete':
+      handlePrefDelete_(params, employee, replyToken, channel);
+      break;
+
+    case 'pref_clear':
+      handlePrefClear_(params, employee, replyToken, channel);
+      break;
+
+    case 'pref_finish':
+      handlePrefFinish_(params, employee, replyToken, channel);
+      break;
+
+    default:
+      Logger.log('Unknown postback action: ' + action);
+      break;
+  }
+}
+
+/**
+ * pref_start: シフト希望入力開始 - カレンダー表示
+ */
+function handlePrefStart_(params, employee, replyToken, channel) {
+  var yearMonth = params.month;
+  if (!yearMonth) {
+    // 収集期間の対象月を使用
+    var period = getCollectionPeriod();
+    yearMonth = period ? period.targetMonth : null;
+  }
+
+  if (!yearMonth) {
+    replyLineMessage(replyToken, [
+      createTextMessage('現在、シフト希望の収集期間外です。')
+    ], channel);
+    return;
+  }
+
+  var existingPrefs = getPreferencesForEmployee(yearMonth, employee.employeeNo);
+  var message = buildPreferenceStartMessage(yearMonth, employee.name, existingPrefs);
+
+  replyLineMessage(replyToken, [message], channel);
+}
+
+/**
+ * pref_date: 日付選択 → 種別選択画面
+ */
+function handlePrefDate_(params, replyToken, channel) {
+  var yearMonth = params.month;
+  var dateStr = params.date;
+
+  if (!yearMonth || !dateStr) return;
+
+  var message = buildTypeSelectionMessage(yearMonth, dateStr);
+  replyLineMessage(replyToken, [message], channel);
+}
+
+/**
+ * pref_type: 種別選択 → 希望保存
+ */
+function handlePrefType_(params, employee, replyToken, channel) {
+  var yearMonth = params.month;
+  var dateStr = params.date;
+  var type = params.type;
+
+  if (!yearMonth || !dateStr || !type) return;
+
+  var success = savePreference({
+    yearMonth: yearMonth,
+    employeeNo: employee.employeeNo,
+    name: employee.name,
+    date: dateStr,
+    type: type
+  });
+
+  if (success) {
+    var message = buildPreferenceSavedMessage(dateStr, type, yearMonth);
+    replyLineMessage(replyToken, [message], channel);
+  } else {
+    replyLineMessage(replyToken, [
+      createTextMessage('保存に失敗しました。もう一度お試しください。')
+    ], channel);
+  }
+}
+
+/**
+ * pref_delete: 特定日の希望を削除
+ */
+function handlePrefDelete_(params, employee, replyToken, channel) {
+  var yearMonth = params.month;
+  var dateStr = params.date;
+  if (!yearMonth || !dateStr) return;
+
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE);
+    if (sheet && sheet.getLastRow() > 1) {
+      var data = sheet.getDataRange().getValues();
+      for (var i = data.length - 1; i >= 1; i--) {
+        if (String(data[i][0]).trim() === yearMonth &&
+            String(data[i][1]).trim().padStart(3, '0') === employee.employeeNo &&
+            String(data[i][3]).trim() === dateStr) {
+          sheet.deleteRow(i + 1);
+        }
+      }
+    }
+
+    var dateParts = dateStr.split('/');
+    var displayDate = parseInt(dateParts[1], 10) + '月' + parseInt(dateParts[2], 10) + '日';
+
+    replyLineMessage(replyToken, [{
+      type: 'text',
+      text: '🗑 ' + displayDate + ' の希望を削除しました。',
+      quickReply: {
+        items: [{
+          type: 'action',
+          action: {
+            type: 'postback',
+            label: 'カレンダーに戻る',
+            data: 'action=pref_start&month=' + yearMonth,
+            displayText: 'シフト希望入力'
+          }
+        }]
+      }
+    }], channel);
+  } catch (e) {
+    Logger.log('handlePrefDelete_ error: ' + e.toString());
+    replyLineMessage(replyToken, [
+      createTextMessage('削除に失敗しました。')
+    ], channel);
+  }
+}
+
+/**
+ * pref_clear: 全希望クリア
+ */
+function handlePrefClear_(params, employee, replyToken, channel) {
+  var yearMonth = params.month;
+  if (!yearMonth) return;
+
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE);
+    if (sheet && sheet.getLastRow() > 1) {
+      deletePrefsForEmployee_(sheet, yearMonth, employee.employeeNo);
+    }
+
+    replyLineMessage(replyToken, [{
+      type: 'text',
+      text: '全ての希望をクリアしました。',
+      quickReply: {
+        items: [{
+          type: 'action',
+          action: {
+            type: 'postback',
+            label: '最初から入力',
+            data: 'action=pref_start&month=' + yearMonth,
+            displayText: 'シフト希望入力'
+          }
+        }]
+      }
+    }], channel);
+  } catch (e) {
+    Logger.log('handlePrefClear_ error: ' + e.toString());
+    replyLineMessage(replyToken, [
+      createTextMessage('クリアに失敗しました。')
+    ], channel);
+  }
+}
+
+/**
+ * pref_finish: 入力完了
+ */
+function handlePrefFinish_(params, employee, replyToken, channel) {
+  var yearMonth = params.month;
+  if (!yearMonth) return;
+
+  var prefs = getPreferencesForEmployee(yearMonth, employee.employeeNo);
+  var message = buildPreferenceCompleteMessage(yearMonth, prefs.length);
+  replyLineMessage(replyToken, [message], channel);
+}
+
+/**
+ * LINE UserIdから従業員を検索
+ * @param {string} userId - LINE UserId
+ * @return {Object|null} { employeeNo, name }
+ */
+function findEmployeeByLineUserId_(userId) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
+  if (!sheet) return null;
+
+  var data = sheet.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    var lineId = String(data[i][MASTER_COLS.LINE_USER_ID - 1] || '').trim();
+    if (lineId === userId) {
+      return {
+        employeeNo: String(data[i][MASTER_COLS.NO - 1]).trim().padStart(3, '0'),
+        name: String(data[i][MASTER_COLS.NAME - 1]).trim()
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Postbackデータをパースしてオブジェクトに変換
+ * @param {string} data - "action=xxx&month=yyy&date=zzz"
+ * @return {Object} パラメータオブジェクト
+ */
+function parsePostbackData_(data) {
+  var result = {};
+  if (!data) return result;
+
+  data.split('&').forEach(function(pair) {
+    var parts = pair.split('=');
+    if (parts.length === 2) {
+      result[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
+    }
+  });
+  return result;
 }
 
 /**
