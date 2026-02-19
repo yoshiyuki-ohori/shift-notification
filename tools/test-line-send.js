@@ -15,7 +15,7 @@ const XLSX = require('xlsx');
 
 // ===== 設定 =====
 const LINE_TOKEN = process.env.LINE_TOKEN || process.argv[3] || '';
-const TEST_USER_ID = process.argv[2] || 'Uba564e6a9fdc8616b146f03f1c4f22f9';
+const TEST_USER_ID = process.argv[2] || process.env.TEST_USER_ID || '';
 const TARGET_SHEET = process.argv[4] || '2026.3';
 
 // 施設マッピング (Excel施設名 → 施設ID/正式名)
