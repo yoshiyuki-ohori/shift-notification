@@ -297,6 +297,8 @@ var GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzkWS3wkfhC5pwEzal6g3
 var accessToken = null;
 var currentData = null;
 var currentMonth = null;
+var overrideEmpNo = '';
+var CACHE_TTL = 10 * 60 * 1000; // キャッシュ有効期限: 10分
 
 var TIME_COLORS = {
   morning: '#4ECDC4', daytime: '#FFD93D', evening: '#FF6B6B', night: '#845EC2'
@@ -328,6 +330,9 @@ function initLiff() {
         showError('アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。');
         return;
       }
+      // URL パラメータで社員番号指定（管理者テスト用）
+      var params = new URLSearchParams(window.location.search);
+      overrideEmpNo = params.get('empNo') || '';
       var now = new Date();
       currentMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
       loadShiftData();
@@ -337,16 +342,52 @@ function initLiff() {
     });
 }
 
+// ===== キャッシュ =====
+function getCacheKey() {
+  return 'myshift_' + currentMonth + '_' + overrideEmpNo;
+}
+
+function getCache() {
+  try {
+    var raw = sessionStorage.getItem(getCacheKey());
+    if (!raw) return null;
+    var cached = JSON.parse(raw);
+    if (Date.now() - cached.ts > CACHE_TTL) {
+      sessionStorage.removeItem(getCacheKey());
+      return null;
+    }
+    return cached.data;
+  } catch (e) { return null; }
+}
+
+function setCache(data) {
+  try {
+    sessionStorage.setItem(getCacheKey(), JSON.stringify({ ts: Date.now(), data: data }));
+  } catch (e) {}
+}
+
 // ===== データ読み込み (fetch で GAS API 呼び出し) =====
 function loadShiftData() {
-  showLoading();
   updateMonthLabel();
 
+  // キャッシュ確認
+  var cached = getCache();
+  if (cached) {
+    onDataLoaded(cached);
+    return;
+  }
+
+  showLoading();
+
   var url = GAS_API_URL + '?action=myshift&token=' + encodeURIComponent(accessToken) + '&month=' + encodeURIComponent(currentMonth);
+  if (overrideEmpNo) url += '&empNo=' + encodeURIComponent(overrideEmpNo);
 
   fetch(url)
     .then(function(res) { return res.json(); })
-    .then(function(data) { onDataLoaded(data); })
+    .then(function(data) {
+      if (data && !data.error) setCache(data);
+      onDataLoaded(data);
+    })
     .catch(function(err) {
       showError('データの取得に失敗しました。\n' + (err.message || err));
     });
