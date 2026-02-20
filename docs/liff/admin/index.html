@@ -65,11 +65,51 @@
   .date-cell.empty { background: #f8f8f8; }
 
   /* Shift chips */
-  .shift-chip { display: inline-block; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin: 1px 0; white-space: nowrap; }
-  .shift-chip.morning { background: #e0f7f5; color: #2a9d8f; }
-  .shift-chip.daytime { background: #fff8e1; color: #b8860b; }
-  .shift-chip.evening { background: #ffe0e0; color: #c0392b; }
-  .shift-chip.night   { background: #ede0f5; color: #6a3d9a; }
+  .shift-chip { display: inline-block; font-size: 11px; padding: 2px 6px; border-radius: 4px; margin: 1px 0; white-space: nowrap; border-left: 3px solid transparent; }
+  .shift-chip.morning { color: #2a9d8f; }
+  .shift-chip.daytime { color: #b8860b; }
+  .shift-chip.evening { color: #c0392b; }
+  .shift-chip.night   { color: #6a3d9a; }
+
+  /* Alert cells (empty with data in month) - !important で日曜/土曜より優先 */
+  .date-cell.alert { background: #fff0f0 !important; border-left: 3px solid #FF6B6B; }
+  .date-cell.alert .empty-label { font-size: 11px; color: #FF6B6B; font-weight: 600; }
+  .facility-stats .unplaced-count { color: #FF6B6B; font-weight: 700; }
+
+  /* Add shift button */
+  .add-shift-btn { display: none; background: #4ECDC4; color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; line-height: 22px; text-align: center; cursor: pointer; margin-top: 4px; }
+  .date-cell:hover .add-shift-btn { display: inline-block; }
+  .date-cell.alert .add-shift-btn, .date-cell.empty .add-shift-btn { display: inline-block; }
+
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 200; }
+  .modal-overlay.active { display: flex; }
+  .modal-box { background: #fff; border-radius: 16px; padding: 24px; max-width: 440px; width: 92%; max-height: 90vh; overflow-y: auto; }
+  .modal-box h3 { font-size: 17px; margin-bottom: 16px; }
+  .modal-box label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; margin-top: 12px; }
+  .modal-box select, .modal-box input[type="text"] { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; }
+  .modal-box select:focus, .modal-box input[type="text"]:focus { border-color: #4ECDC4; outline: none; }
+  .modal-info { font-size: 13px; color: #888; background: #f8f8f8; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .modal-actions button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-save { background: #4ECDC4; color: #fff; }
+  .btn-save:hover { background: #3dbdb5; }
+  .btn-save:disabled { background: #ccc; cursor: not-allowed; }
+  .btn-cancel { background: #f0f0f0; color: #333; }
+  .btn-cancel:hover { background: #e0e0e0; }
+
+  /* Staff search dropdown */
+  .staff-search-wrap { position: relative; }
+  .staff-search-wrap input { margin-bottom: 0; }
+  .staff-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 2px solid #4ECDC4; border-top: none; border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; z-index: 10; display: none; }
+  .staff-dropdown.open { display: block; }
+  .staff-dropdown .staff-item { padding: 8px 12px; cursor: pointer; font-size: 13px; }
+  .staff-dropdown .staff-item:hover { background: #e0f7f5; }
+  .staff-dropdown .staff-item .emp-no { color: #888; margin-left: 8px; font-size: 12px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; z-index: 300; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
 
   /* Loading / Error */
   .loading { text-align: center; padding: 60px; color: #888; }
@@ -135,12 +175,46 @@
   </div>
 </div>
 
+<!-- Shift Input Modal -->
+<div class="modal-overlay" id="shiftModal">
+  <div class="modal-box">
+    <h3>シフト追加</h3>
+    <div class="modal-info" id="modalInfo"></div>
+    <label>時間帯</label>
+    <select id="modalTimeSlot">
+      <option value="">選択してください</option>
+      <option value="6時～9時">6時～9時</option>
+      <option value="9時～17時">9時～17時</option>
+      <option value="17時～22時">17時～22時</option>
+      <option value="22時～">22時～</option>
+      <option value="夜勤(17-9時)">夜勤(17-9時)</option>
+    </select>
+    <label>職員</label>
+    <div class="staff-search-wrap">
+      <input type="text" id="staffSearchInput" placeholder="名前・社員番号で検索..." autocomplete="off">
+      <div class="staff-dropdown" id="staffDropdown"></div>
+    </div>
+    <input type="hidden" id="selectedEmpNo">
+    <input type="hidden" id="selectedEmpName">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeShiftModal()">キャンセル</button>
+      <button class="btn-save" id="btnSaveShift" onclick="saveShift()" disabled>保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
 (function() {
   // --- Config ---
   var GAS_URL = '';  // Set at runtime from URL params or stored value
   var API_KEY = '';
   var currentYear, currentMonth;
+  var staffList = [];       // 従業員マスタキャッシュ
+  var staffListLoaded = false;
+  var modalFacility = null; // モーダルで選択中の施設情報
+  var modalDate = null;     // モーダルで選択中の日付
 
   // --- Init ---
   function init() {
@@ -167,6 +241,7 @@
     } else {
       hideAuth();
       loadData();
+      loadStaffList();
     }
   }
 
@@ -215,6 +290,7 @@
     localStorage.setItem('admin_gas_url', GAS_URL);
     hideAuth();
     loadData();
+    loadStaffList();
   };
 
   // --- Month Navigation ---
@@ -346,6 +422,17 @@
     var card = document.createElement('div');
     card.className = 'facility-card';
 
+    // Count unplaced days (days with 0 shifts in a facility that has data)
+    var hasAnyShift = facility.stats.totalShifts > 0;
+    var unplacedDays = 0;
+    if (hasAnyShift) {
+      for (var dd = 1; dd <= daysInMonth; dd++) {
+        if (!(facility.dates[String(dd)] && facility.dates[String(dd)].length > 0)) {
+          unplacedDays++;
+        }
+      }
+    }
+
     // Header
     var header = document.createElement('div');
     header.className = 'facility-header';
@@ -356,6 +443,7 @@
       '<div class="facility-stats">' +
         '<span>シフト: <b>' + facility.stats.totalShifts + '</b></span>' +
         '<span>スタッフ: <b>' + facility.stats.uniqueStaff + '</b></span>' +
+        (unplacedDays > 0 ? '<span class="unplaced-count">未配置: ' + unplacedDays + '日</span>' : '') +
       '</div>';
 
     header.addEventListener('click', function() {
@@ -390,14 +478,35 @@
       var shifts = facility.dates[dayStr] || [];
       if (shifts.length === 0) {
         cell.classList.add('empty');
+        if (hasAnyShift) {
+          cell.classList.add('alert');
+          var emptyLabel = document.createElement('div');
+          emptyLabel.className = 'empty-label';
+          emptyLabel.textContent = '未配置';
+          cell.appendChild(emptyLabel);
+        }
       }
       for (var s = 0; s < shifts.length; s++) {
         var chip = document.createElement('div');
         chip.className = 'shift-chip ' + getTimeSlotClass(shifts[s].timeSlot);
+        chip.style.backgroundColor = getStaffColor(shifts[s].empNo);
         chip.textContent = shifts[s].timeSlot + ' ' + shifts[s].name;
         chip.title = shifts[s].empNo + ' ' + shifts[s].name;
         cell.appendChild(chip);
       }
+
+      // Add shift button
+      var addBtn = document.createElement('button');
+      addBtn.className = 'add-shift-btn';
+      addBtn.textContent = '+';
+      addBtn.title = 'シフトを追加';
+      (function(fac, yr, mo, day) {
+        addBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          openShiftModal(fac, yr, mo, day);
+        });
+      })(facility, year, month, d);
+      cell.appendChild(addBtn);
 
       grid.appendChild(cell);
     }
@@ -412,9 +521,18 @@
     if (/^\d{1,2}-\d{1,2}時$/.test(timeSlot)) return 'night';  // 17-9時 (夜勤統合)
     if (timeSlot.indexOf('6') === 0) return 'morning';
     if (timeSlot.indexOf('9') === 0) return 'daytime';
-    if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('16') === 0) return 'evening';
     if (timeSlot.indexOf('22') === 0) return 'night';
+    if (/^\d{1,2}時～翌/.test(timeSlot)) return 'night';       // 17時～翌 (朝データ欠損時)
+    if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('16') === 0) return 'evening';
     return 'daytime';
+  }
+
+  // 社員番号から黄金角で最大分離の色を生成
+  // 連番 (001,002,003...) でも隣接色にならない
+  function getStaffColor(empNo) {
+    var num = parseInt(empNo, 10) || 0;
+    var hue = (num * 137.508) % 360;  // 黄金角
+    return 'hsl(' + Math.round(hue) + ', 60%, 82%)';
   }
 
   // --- 夜勤マージ ---
@@ -448,12 +566,12 @@
         if (lateNight || morning) {
           var startMatch = ev.timeSlot.match(/^(\d{1,2})時/);
           var startH = startMatch ? startMatch[1] : '17';
-          var endH = '翌';
+          var endH = '9';  // デフォルト: 翌9時
           if (morning) {
             var endMatch = morning.timeSlot.match(/～(\d{1,2})時/);
             endH = endMatch ? endMatch[1] : '9';
           }
-          ev.timeSlot = morning ? (startH + '-' + endH + '時') : (startH + '時～翌');
+          ev.timeSlot = startH + '-' + endH + '時';
           if (lateNight) toRemove[day + '_' + emp + '_' + lateNight.timeSlot] = true;
           if (morning)   toRemove[nextDay + '_' + emp + '_' + morning.timeSlot] = true;
         }
@@ -477,6 +595,200 @@
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
+  }
+
+  // --- Staff List ---
+  function loadStaffList() {
+    if (staffListLoaded) return;
+    var url = GAS_URL + '?action=read&sheet=' + encodeURIComponent('従業員マスタ') + '&key=' + encodeURIComponent(API_KEY);
+    fetch(url, { redirect: 'follow' })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.data || data.data.length < 2) return;
+        var headers = data.data[0];
+        staffList = [];
+        for (var i = 1; i < data.data.length; i++) {
+          var row = data.data[i];
+          var empNo = String(row[0] || '').trim();
+          var name = String(row[1] || '').trim();
+          var kana = String(row[2] || '').trim();
+          var status = String(row[3] || '').trim();
+          // 在職者のみ（「退職」等を除外）
+          if (!empNo || !name) continue;
+          if (status && (status.indexOf('退職') >= 0 || status.indexOf('退社') >= 0)) continue;
+          staffList.push({
+            empNo: empNo.padStart(3, '0'),
+            name: name,
+            kana: kana
+          });
+        }
+        staffListLoaded = true;
+        console.log('[Admin] Staff list loaded:', staffList.length, 'members');
+      })
+      .catch(function(err) {
+        console.error('[Admin] Staff list load error:', err);
+      });
+  }
+
+  // --- Shift Modal ---
+  function openShiftModal(facility, year, month, day) {
+    modalFacility = facility;
+    var mm = ('0' + month).slice(-2);
+    var dd = ('0' + day).slice(-2);
+    modalDate = { year: year, month: month, day: day, yearMonth: year + '-' + mm, dateStr: year + '/' + mm + '/' + dd };
+
+    document.getElementById('modalInfo').textContent = facility.name + ' / ' + year + '年' + month + '月' + day + '日';
+    document.getElementById('modalTimeSlot').value = '';
+    document.getElementById('staffSearchInput').value = '';
+    document.getElementById('selectedEmpNo').value = '';
+    document.getElementById('selectedEmpName').value = '';
+    document.getElementById('staffDropdown').classList.remove('open');
+    document.getElementById('btnSaveShift').disabled = true;
+    document.getElementById('shiftModal').classList.add('active');
+  }
+  window.openShiftModal = openShiftModal;
+
+  window.closeShiftModal = function() {
+    document.getElementById('shiftModal').classList.remove('active');
+    modalFacility = null;
+    modalDate = null;
+  };
+
+  // Close modal on overlay click
+  document.getElementById('shiftModal').addEventListener('click', function(e) {
+    if (e.target === this) closeShiftModal();
+  });
+
+  // Staff search
+  var staffSearchInput = document.getElementById('staffSearchInput');
+  var staffDropdown = document.getElementById('staffDropdown');
+
+  staffSearchInput.addEventListener('input', function() {
+    var query = this.value.trim().toLowerCase();
+    if (!query) { staffDropdown.classList.remove('open'); return; }
+    var filtered = staffList.filter(function(s) {
+      return s.name.toLowerCase().indexOf(query) >= 0 ||
+             s.empNo.indexOf(query) >= 0 ||
+             s.kana.toLowerCase().indexOf(query) >= 0;
+    }).slice(0, 20);
+
+    if (filtered.length === 0) {
+      staffDropdown.classList.remove('open');
+      return;
+    }
+
+    staffDropdown.innerHTML = '';
+    for (var i = 0; i < filtered.length; i++) {
+      var item = document.createElement('div');
+      item.className = 'staff-item';
+      item.innerHTML = escapeHtml(filtered[i].name) + '<span class="emp-no">' + escapeHtml(filtered[i].empNo) + '</span>';
+      (function(staff) {
+        item.addEventListener('click', function() {
+          staffSearchInput.value = staff.name;
+          document.getElementById('selectedEmpNo').value = staff.empNo;
+          document.getElementById('selectedEmpName').value = staff.name;
+          staffDropdown.classList.remove('open');
+          updateSaveButton();
+        });
+      })(filtered[i]);
+      staffDropdown.appendChild(item);
+    }
+    staffDropdown.classList.add('open');
+  });
+
+  staffSearchInput.addEventListener('focus', function() {
+    if (this.value.trim()) this.dispatchEvent(new Event('input'));
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.staff-search-wrap')) {
+      staffDropdown.classList.remove('open');
+    }
+  });
+
+  document.getElementById('modalTimeSlot').addEventListener('change', updateSaveButton);
+
+  function updateSaveButton() {
+    var ts = document.getElementById('modalTimeSlot').value;
+    var emp = document.getElementById('selectedEmpNo').value;
+    document.getElementById('btnSaveShift').disabled = !(ts && emp);
+  }
+
+  // --- Save Shift ---
+  window.saveShift = function() {
+    var timeSlot = document.getElementById('modalTimeSlot').value;
+    var empNo = document.getElementById('selectedEmpNo').value;
+    var empName = document.getElementById('selectedEmpName').value;
+    if (!timeSlot || !empNo || !modalFacility || !modalDate) return;
+
+    var btn = document.getElementById('btnSaveShift');
+    btn.disabled = true;
+    btn.textContent = '保存中...';
+
+    var fac = modalFacility;
+    var dt = modalDate;
+    var rows = buildShiftRows(fac, dt, timeSlot, empNo, empName);
+
+    var payload = {
+      action: 'append',
+      key: API_KEY,
+      sheet: 'シフトデータ',
+      data: rows
+    };
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) throw new Error(data.error);
+      closeShiftModal();
+      showToast('シフトを追加しました');
+      loadData();
+    })
+    .catch(function(err) {
+      console.error('[Admin] Save shift error:', err);
+      showToast('保存エラー: ' + (err.message || String(err)));
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = '保存';
+    });
+  };
+
+  function buildShiftRows(fac, dt, timeSlot, empNo, empName) {
+    var area = fac.area || '';
+    var facName = fac.name || '';
+    var facId = fac.facilityId || fac.facId || '';
+
+    if (timeSlot === '夜勤(17-9時)') {
+      // 3行書き込み: 17時～22時, 22時～, 翌日6時～9時
+      var nextDate = new Date(dt.year, dt.month - 1, dt.day + 1);
+      var nextYM = nextDate.getFullYear() + '-' + ('0' + (nextDate.getMonth() + 1)).slice(-2);
+      var nextDateStr = nextDate.getFullYear() + '/' + ('0' + (nextDate.getMonth() + 1)).slice(-2) + '/' + ('0' + nextDate.getDate()).slice(-2);
+
+      return [
+        [dt.yearMonth, dt.dateStr, area, facName, facId, '17時～22時', empName, empNo, empName],
+        [dt.yearMonth, dt.dateStr, area, facName, facId, '22時～',     empName, empNo, empName],
+        [nextYM,       nextDateStr, area, facName, facId, '6時～9時',  empName, empNo, empName]
+      ];
+    }
+
+    return [
+      [dt.yearMonth, dt.dateStr, area, facName, facId, timeSlot, empName, empNo, empName]
+    ];
+  }
+
+  // --- Toast ---
+  function showToast(msg) {
+    var toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 3000);
   }
 
   // --- Start ---

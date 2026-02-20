@@ -105,6 +105,8 @@ function doGet(e) {
         return handleEmpLookup_(params);
       case 'empRegister':
         return handleEmpRegister_(params);
+      case 'facilityOverview':
+        return handleFacilityOverview_(params);
       case 'lineWebhook':
         return handleLineWebhookViaGet_(params);
       default:
@@ -406,9 +408,33 @@ function handlePostAction_(body) {
   switch (body.action) {
     case 'write':
       return handlePostWrite_(body);
+    case 'append':
+      return handlePostAppend_(body);
     default:
       return jsonResponse_({ error: 'Unknown action: ' + body.action });
   }
+}
+
+/**
+ * POST経由のシート末尾追記（レースコンディション回避）
+ * @param {Object} body - {sheet, data} dataは2次元配列
+ * @return {ContentService} レスポンス
+ */
+function handlePostAppend_(body) {
+  var sheetName = body.sheet;
+  var data = body.data;
+
+  if (!sheetName || !data) {
+    return jsonResponse_({ error: 'sheet, data parameters required' });
+  }
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return jsonResponse_({ error: 'Sheet not found: ' + sheetName });
+
+  var lastRow = sheet.getLastRow();
+  sheet.getRange(lastRow + 1, 1, data.length, data[0].length).setValues(data);
+  return jsonResponse_({ success: true, sheet: sheetName, rowsAppended: data.length, startRow: lastRow + 1 });
 }
 
 /**
