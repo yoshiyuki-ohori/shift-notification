@@ -338,14 +338,14 @@
 
     updateMonthDisplay();
 
-    // GAS URLが未設定の場合のみ設定画面を表示（APIキーは任意）
+    // テスト用: ログインをスキップしてダミー値をセット
     if (!GAS_URL) {
-      showAuth();
-    } else {
-      hideAuth();
-      switchTab(activeTab);
-      loadStaffList();
+      API_KEY = '111';
+      GAS_URL = 'aaa';
     }
+    hideAuth();
+    switchTab(activeTab);
+    loadStaffList();
   }
 
   // --- Auth ---
