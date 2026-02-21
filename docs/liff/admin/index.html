@@ -319,6 +319,9 @@
     var params = new URLSearchParams(location.search);
     API_KEY = params.get('key') || localStorage.getItem('admin_api_key') || '';
     GAS_URL = params.get('gas_url') || localStorage.getItem('admin_gas_url') || '';
+    // テスト用ダミー値が残っていたらクリア
+    if (GAS_URL === 'aaa') { GAS_URL = ''; localStorage.removeItem('admin_gas_url'); }
+    if (API_KEY === '111') { API_KEY = ''; localStorage.removeItem('admin_api_key'); }
 
     var monthParam = params.get('month') || '';
     if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
@@ -338,14 +341,14 @@
 
     updateMonthDisplay();
 
-    // テスト用: ログインをスキップしてダミー値をセット
+    // GAS URL未設定時のみ初期設定画面を表示（1回入力すればlocalStorageに保存）
     if (!GAS_URL) {
-      API_KEY = '111';
-      GAS_URL = 'aaa';
+      showAuth();
+    } else {
+      hideAuth();
+      switchTab(activeTab);
+      loadStaffList();
     }
-    hideAuth();
-    switchTab(activeTab);
-    loadStaffList();
   }
 
   // --- Auth ---
