@@ -195,6 +195,284 @@ function handleEmpRegister_(params) {
 }
 
 /**
+ * 全施設配置状況 JSON API エンドポイント (doGet から呼ばれる)
+ * ADMIN_API_KEY 認証済み前提 (doGet で検証済み)
+ * @param {Object} params - クエリパラメータ { month }
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handleFacilityOverview_(params) {
+  try {
+    // 対象年月の決定
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    // シフトデータ全行取得
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var shiftSheet = ss.getSheetByName(SHEET_NAMES.SHIFT_DATA);
+    if (!shiftSheet || shiftSheet.getLastRow() <= 1) {
+      return jsonResponse_({
+        targetMonth: targetMonth,
+        facilities: [],
+        summary: { totalFacilities: 0, totalShifts: 0, totalStaff: 0 }
+      });
+    }
+
+    var shiftData = shiftSheet.getDataRange().getValues();
+
+    // 施設×日付×時間帯でグルーピング
+    var facilityMap = {};  // { facilityName: { dates: { day: [ shifts ] }, area: '', id: '' } }
+    var allStaffSet = {};
+
+    for (var i = 1; i < shiftData.length; i++) {
+      var rawYM = shiftData[i][SHIFT_COLS.YEAR_MONTH - 1];
+      var yearMonth;
+      if (rawYM instanceof Date) {
+        yearMonth = rawYM.getFullYear() + '-' + ('0' + (rawYM.getMonth() + 1)).slice(-2);
+      } else {
+        yearMonth = String(rawYM).trim();
+      }
+      if (yearMonth !== targetMonth) continue;
+
+      var facility = String(shiftData[i][SHIFT_COLS.FACILITY - 1]).trim();
+      var rawDate = shiftData[i][SHIFT_COLS.DATE - 1];
+      var dateStr;
+      if (rawDate instanceof Date) {
+        dateStr = rawDate.getFullYear() + '/' + ('0' + (rawDate.getMonth() + 1)).slice(-2) + '/' + ('0' + rawDate.getDate()).slice(-2);
+      } else {
+        dateStr = String(rawDate).trim();
+      }
+      var area = String(shiftData[i][SHIFT_COLS.AREA - 1]).trim();
+      var facilityId = String(shiftData[i][SHIFT_COLS.FACILITY_ID - 1]).trim();
+      var timeSlot = String(shiftData[i][SHIFT_COLS.TIME_SLOT - 1]).trim();
+      var empNo = String(shiftData[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim();
+      var empName = String(shiftData[i][SHIFT_COLS.FORMAL_NAME - 1]).trim();
+
+      if (!facility) continue;
+
+      // 日付から日を抽出 (例: "2026/03/01" → "1")
+      var day = '';
+      if (dateStr.indexOf('/') !== -1) {
+        var parts = dateStr.split('/');
+        day = String(parseInt(parts[parts.length - 1], 10));
+      } else if (rawDate instanceof Date) {
+        day = String(rawDate.getDate());
+      } else {
+        day = dateStr;
+      }
+
+      if (!facilityMap[facility]) {
+        facilityMap[facility] = { dates: {}, area: area, id: facilityId, staffSet: {} };
+      }
+      if (!facilityMap[facility].dates[day]) {
+        facilityMap[facility].dates[day] = [];
+      }
+
+      facilityMap[facility].dates[day].push({
+        timeSlot: timeSlot,
+        empNo: empNo,
+        name: empName
+      });
+
+      if (empNo) {
+        facilityMap[facility].staffSet[empNo] = true;
+        allStaffSet[empNo] = true;
+      }
+    }
+
+    // 施設一覧を配列に変換
+    var facilities = [];
+    var totalShifts = 0;
+
+    var facilityNames = Object.keys(facilityMap).sort();
+    for (var f = 0; f < facilityNames.length; f++) {
+      var fname = facilityNames[f];
+      var fdata = facilityMap[fname];
+      var facilityShiftCount = 0;
+
+      // 各日の時間帯をソート
+      var sortedDates = {};
+      var days = Object.keys(fdata.dates);
+      for (var d = 0; d < days.length; d++) {
+        var dayShifts = fdata.dates[days[d]];
+        dayShifts.sort(function(a, b) {
+          return getTimeSlotOrder(a.timeSlot) - getTimeSlotOrder(b.timeSlot);
+        });
+        sortedDates[days[d]] = dayShifts;
+        facilityShiftCount += dayShifts.length;
+      }
+
+      totalShifts += facilityShiftCount;
+
+      facilities.push({
+        name: fname,
+        id: fdata.id,
+        area: fdata.area,
+        dates: sortedDates,
+        stats: {
+          totalShifts: facilityShiftCount,
+          uniqueStaff: Object.keys(fdata.staffSet).length
+        }
+      });
+    }
+
+    return jsonResponse_({
+      targetMonth: targetMonth,
+      facilities: facilities,
+      summary: {
+        totalFacilities: facilities.length,
+        totalShifts: totalShifts,
+        totalStaff: Object.keys(allStaffSet).length
+      }
+    });
+
+  } catch (e) {
+    Logger.log('handleFacilityOverview_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * シフト希望データ取得 API エンドポイント (doGet から呼ばれる)
+ * ?action=prefData&token=xxx&month=YYYY-MM
+ * @param {Object} params - クエリパラメータ { token, month }
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handlePrefDataApi_(params) {
+  var token = params.token || '';
+  var month = params.month || '';
+
+  var userId = verifyLineAccessToken_(token);
+  if (!userId) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var employee = findEmployeeByLineUserId_(userId);
+  if (!employee) {
+    return ContentService.createTextOutput(JSON.stringify({ needsRegistration: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 対象年月の決定
+  if (!month) {
+    var period = getCollectionPeriod();
+    month = period ? period.targetMonth : null;
+    if (!month) {
+      var now = new Date();
+      month = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+  }
+
+  try {
+    var preferences = getPreferencesForEmployee(month, employee.employeeNo);
+    var collectionPeriod = getCollectionPeriod();
+    var collectionOpen = isCollectionOpen();
+    var submittedAt = getSubmittedAt(employee.employeeNo, month);
+
+    var result = {
+      employee: {
+        name: employee.name,
+        employeeNo: employee.employeeNo
+      },
+      targetMonth: month,
+      preferences: preferences,
+      collectionPeriod: collectionPeriod,
+      collectionOpen: collectionOpen,
+      submittedAt: submittedAt
+    };
+
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (e) {
+    Logger.log('handlePrefDataApi_ error: ' + e.toString());
+    return ContentService.createTextOutput(JSON.stringify({ error: 'データ取得中にエラーが発生しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * シフト希望一括保存 API エンドポイント (doPost から呼ばれる)
+ * @param {Object} body - リクエストボディ { action, token, month, preferences }
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handleSavePrefBatch_(body) {
+  var token = body.token || '';
+  var month = body.month || '';
+  var preferences = body.preferences || [];
+
+  var userId = verifyLineAccessToken_(token);
+  if (!userId) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var employee = findEmployeeByLineUserId_(userId);
+  if (!employee) {
+    return ContentService.createTextOutput(JSON.stringify({ error: '従業員情報が見つかりません。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (!month) {
+    return ContentService.createTextOutput(JSON.stringify({ error: '対象年月が指定されていません。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  try {
+    // 希望データを整形
+    var prefs = preferences.map(function(p) {
+      return {
+        yearMonth: month,
+        employeeNo: employee.employeeNo,
+        name: employee.name,
+        date: p.date,
+        type: p.type,
+        timeSlot: p.timeSlot || '',
+        reason: p.reason || ''
+      };
+    });
+
+    // 一括保存（既存データは削除して上書き）
+    var savedCount = 0;
+    if (prefs.length > 0) {
+      savedCount = savePreferences(prefs);
+    } else {
+      // 空の場合は既存データを削除
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE);
+      if (sheet && sheet.getLastRow() > 1) {
+        deletePrefsForEmployee_(sheet, month, employee.employeeNo);
+      }
+    }
+
+    // 提出済みマーク
+    var submittedAt = markAsSubmitted(employee.employeeNo, month);
+
+    // 種別ごとのカウント
+    var wantCount = 0, ngCount = 0;
+    prefs.forEach(function(p) {
+      if (p.type === PREF_TYPE.WANT) wantCount++;
+      else if (p.type === PREF_TYPE.NG) ngCount++;
+    });
+
+    // 管理者通知
+    notifyAdminOnSubmission_(employee.name, month, wantCount, ngCount);
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      savedCount: savedCount,
+      submittedAt: submittedAt
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (e) {
+    Logger.log('handleSavePrefBatch_ error: ' + e.toString());
+    return ContentService.createTextOutput(JSON.stringify({ error: '保存中にエラーが発生しました。' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
  * LINE アクセストークンを検証し userId を返す
  * @param {string} accessToken - LIFF のアクセストークン
  * @return {string|null} LINE userId (検証失敗時は null)

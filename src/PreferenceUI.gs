@@ -147,6 +147,71 @@ function buildPreferenceStartMessage(yearMonth, employeeName, existingPrefs) {
     }
   });
 
+  // バブル3: LIFF Webアプリ入力へ誘導
+  try {
+    var liffId = getSettingValue(SETTING_KEYS.LIFF_ID);
+    if (liffId) {
+      bubbles.push({
+        type: 'bubble',
+        size: 'kilo',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [{
+            type: 'text',
+            text: 'Webアプリで入力',
+            weight: 'bold',
+            size: 'md',
+            color: '#FFFFFF'
+          }],
+          backgroundColor: '#2980B9',
+          paddingAll: '12px'
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [
+            {
+              type: 'text',
+              text: 'より詳しく入力したい場合はWebアプリからどうぞ',
+              wrap: true,
+              size: 'sm',
+              color: '#555555'
+            },
+            {
+              type: 'text',
+              text: '・カレンダーで一覧入力\n・時間帯の指定\n・一括提出',
+              wrap: true,
+              size: 'sm',
+              color: '#888888',
+              margin: 'md'
+            }
+          ],
+          paddingAll: '12px'
+        },
+        footer: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [{
+            type: 'button',
+            action: {
+              type: 'uri',
+              label: 'Webアプリで入力する',
+              uri: 'https://liff.line.me/' + liffId + '/preference/?month=' + yearMonth
+            },
+            style: 'primary',
+            color: '#2980B9',
+            height: 'sm'
+          }],
+          paddingAll: '12px'
+        }
+      });
+    }
+  } catch (e) {
+    // LIFF_ID が取得できなければスキップ
+    Logger.log('LIFF bubble skipped: ' + e.toString());
+  }
+
   return {
     type: 'flex',
     altText: displayMonth + ' シフト希望入力',

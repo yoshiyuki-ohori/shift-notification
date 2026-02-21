@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>シフト希望入力</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+  background: #F5F5F5;
+  color: #333;
+  max-width: 480px;
+  margin: 0 auto;
+  -webkit-text-size-adjust: 100%;
+  padding-bottom: 80px;
+}
+
+/* ===== Header ===== */
+.header {
+  background: #1DB446;
+  color: #FFF;
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header h1 { font-size: 16px; font-weight: 700; }
+.header-sub { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+.header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+.deadline-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+/* ===== Loading / Error ===== */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+}
+.spinner {
+  width: 40px; height: 40px;
+  border: 4px solid #E0E0E0;
+  border-top-color: #1DB446;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: #888; font-size: 14px; }
+.error-msg {
+  background: #FFF;
+  margin: 20px 16px;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  color: #E74C3C;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+/* ===== Calendar ===== */
+.calendar-section {
+  margin: 12px 16px;
+  background: #FFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.cal-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #F8F8F8;
+  border-bottom: 1px solid #EEE;
+}
+.cal-header span {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 0;
+  color: #666;
+}
+.cal-header span:first-child { color: #E74C3C; }
+.cal-header span:last-child { color: #2980B9; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #F0F0F0;
+}
+.cal-cell {
+  background: #FFF;
+  min-height: 56px;
+  padding: 2px;
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.cal-cell:active { background: #F0F0F0; }
+.cal-cell.empty { background: #FAFAFA; cursor: default; }
+.cal-cell.empty:active { background: #FAFAFA; }
+.cal-cell.selected { background: #E3F2FD; border: 2px solid #2980B9; }
+.cal-cell.want { background: #D5F5E3; }
+.cal-cell.ng { background: #FADBD8; }
+.cal-cell.either { background: #FDEBD0; }
+.cal-day {
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  padding: 1px 0;
+  color: #333;
+}
+.cal-cell.sunday .cal-day { color: #E74C3C; }
+.cal-cell.saturday .cal-day { color: #2980B9; }
+.cal-badge {
+  font-size: 7px;
+  padding: 1px 2px;
+  border-radius: 2px;
+  color: #FFF;
+  text-align: center;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+.cal-type-icon {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  font-size: 8px;
+  line-height: 1;
+}
+
+/* ===== Legend ===== */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  font-size: 11px;
+  color: #888;
+}
+.legend span::before {
+  content: '';
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  margin-right: 3px;
+  vertical-align: middle;
+}
+.legend .l-want::before { background: #D5F5E3; border: 1px solid #27AE60; }
+.legend .l-ng::before { background: #FADBD8; border: 1px solid #E74C3C; }
+.legend .l-either::before { background: #FDEBD0; border: 1px solid #F39C12; }
+
+/* ===== Input Panel ===== */
+.input-panel {
+  margin: 0 16px 12px;
+  background: #FFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: none;
+}
+.input-panel.show { display: block; }
+.panel-header {
+  background: #2980B9;
+  color: #FFF;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.panel-close {
+  background: none;
+  border: none;
+  color: #FFF;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.panel-body { padding: 12px 16px; }
+
+/* Type buttons */
+.type-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
+.type-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border: 2px solid #DDD;
+  border-radius: 8px;
+  background: #FFF;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.type-btn:active { transform: scale(0.97); }
+.type-btn.want { border-color: #27AE60; color: #27AE60; }
+.type-btn.want.active { background: #27AE60; color: #FFF; }
+.type-btn.ng { border-color: #E74C3C; color: #E74C3C; }
+.type-btn.ng.active { background: #E74C3C; color: #FFF; }
+.type-btn.either { border-color: #F39C12; color: #F39C12; }
+.type-btn.either.active { background: #F39C12; color: #FFF; }
+
+/* Time slot checkboxes */
+.timeslot-section { margin-bottom: 12px; }
+.timeslot-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+.timeslot-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.ts-chip {
+  padding: 6px 12px;
+  border: 1.5px solid #DDD;
+  border-radius: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #FFF;
+  color: #555;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ts-chip:active { transform: scale(0.97); }
+.ts-chip.active { background: #2980B9; color: #FFF; border-color: #2980B9; }
+
+/* Memo */
+.memo-section { margin-bottom: 8px; }
+.memo-label { font-size: 12px; color: #888; margin-bottom: 4px; }
+.memo-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid #DDD;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+}
+.memo-input:focus { border-color: #2980B9; }
+
+/* Panel actions */
+.panel-actions { display: flex; gap: 8px; margin-top: 8px; }
+.panel-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.panel-btn.save { background: #2980B9; color: #FFF; }
+.panel-btn.save:active { background: #2471A3; }
+.panel-btn.delete { background: #EEE; color: #E74C3C; }
+.panel-btn.delete:active { background: #DDD; }
+
+/* ===== Summary Bar ===== */
+.summary-bar {
+  margin: 0 16px 12px;
+  background: #FFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.summary-item { text-align: center; }
+.summary-value { font-size: 20px; font-weight: 700; }
+.summary-value.want { color: #27AE60; }
+.summary-value.ng { color: #E74C3C; }
+.summary-value.either { color: #F39C12; }
+.summary-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+/* ===== Submit Button ===== */
+.submit-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #FFF;
+  padding: 12px 16px;
+  border-top: 1px solid #EEE;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  z-index: 100;
+}
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #1DB446;
+  color: #FFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.submit-btn:active { background: #189a3c; }
+.submit-btn:disabled { background: #CCC; cursor: not-allowed; }
+
+/* ===== Toast ===== */
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #FFF;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* ===== Submitted info ===== */
+.submitted-info {
+  margin: 0 16px 8px;
+  padding: 8px 12px;
+  background: #E8F5E9;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #2E7D32;
+  text-align: center;
+  display: none;
+}
+
+.footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header" id="header">
+  <h1>シフト希望入力</h1>
+  <div class="header-info">
+    <span class="header-sub" id="empName"></span>
+    <span class="deadline-badge" id="deadline"></span>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading" id="loadingView">
+  <div class="spinner"></div>
+  <div class="loading-text">データを読み込み中...</div>
+</div>
+
+<!-- Error -->
+<div class="error-msg" id="errorView" style="display:none;"></div>
+
+<!-- Main Content -->
+<div id="mainContent" style="display:none;">
+
+  <!-- Submitted info -->
+  <div class="submitted-info" id="submittedInfo"></div>
+
+  <!-- Calendar -->
+  <div class="calendar-section">
+    <div class="cal-header">
+      <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="l-want">希望</span>
+    <span class="l-ng">NG</span>
+    <span class="l-either">どちらでも</span>
+  </div>
+
+  <!-- Input Panel -->
+  <div class="input-panel" id="inputPanel">
+    <div class="panel-header">
+      <span id="panelDate"></span>
+      <button class="panel-close" onclick="closePanel()">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="type-buttons">
+        <button class="type-btn want" onclick="selectType('希望')">出勤希望</button>
+        <button class="type-btn ng" onclick="selectType('NG')">NG</button>
+        <button class="type-btn either" onclick="selectType('どちらでも')">どちらでも</button>
+      </div>
+      <div class="timeslot-section">
+        <div class="timeslot-label">時間帯（任意）</div>
+        <div class="timeslot-grid">
+          <span class="ts-chip" data-slot="6時～9時" onclick="toggleSlot(this)">6時～9時</span>
+          <span class="ts-chip" data-slot="17時～22時" onclick="toggleSlot(this)">17時～22時</span>
+          <span class="ts-chip" data-slot="22時～" onclick="toggleSlot(this)">22時～</span>
+          <span class="ts-chip" data-slot="指定なし" onclick="toggleSlot(this)">指定なし</span>
+        </div>
+      </div>
+      <div class="memo-section">
+        <div class="memo-label">メモ（任意）</div>
+        <input type="text" class="memo-input" id="memoInput" placeholder="理由など">
+      </div>
+      <div class="panel-actions">
+        <button class="panel-btn delete" onclick="deleteDate()">削除</button>
+        <button class="panel-btn save" onclick="saveDate()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Bar -->
+  <div class="summary-bar" id="summaryBar">
+    <div class="summary-item">
+      <div class="summary-value want" id="sumWant">0</div>
+      <div class="summary-label">希望</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-value ng" id="sumNg">0</div>
+      <div class="summary-label">NG</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-value either" id="sumEither">0</div>
+      <div class="summary-label">どちらでも</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Submit Button (fixed bottom) -->
+<div class="submit-area" id="submitArea" style="display:none;">
+  <button class="submit-btn" id="submitBtn" onclick="submitPreferences()">この内容で提出する</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<div class="footer">Powered by LIFF</div>
+
+<script>
+// ===== Configuration =====
+var LIFF_ID = '2009168695-9wuS2j5W';
+var GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzAtNi8nRdN-Jk4pu4i8idPuaiBrotzO6rSGA7PYuO2rsfZLbLAr4eRtzkI8v4LrXI0/exec';
+
+var accessToken = null;
+var targetMonth = null;
+var prefData = {};    // { "YYYY/MM/DD": { type, timeSlot, reason } }
+var selectedDate = null;
+var selectedType = null;
+var employeeInfo = null;
+var collectionOpen = true;
+
+var TIME_SLOT_COLORS = {
+  '6時～9時': '#4ECDC4',
+  '17時～22時': '#FF6B6B',
+  '22時～': '#845EC2',
+  '指定なし': '#AAA'
+};
+
+// ===== Initialization =====
+window.onload = function() {
+  initLiff();
+};
+
+function initLiff() {
+  liff.init({ liffId: LIFF_ID })
+    .then(function() {
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+      accessToken = liff.getAccessToken();
+      if (!accessToken) {
+        showError('アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。');
+        return;
+      }
+      // URL param: month
+      var params = new URLSearchParams(window.location.search);
+      targetMonth = params.get('month') || null;
+      loadPrefData();
+    })
+    .catch(function(err) {
+      showError('LIFF初期化に失敗しました。\n' + (err.message || JSON.stringify(err)));
+    });
+}
+
+// ===== Data Loading =====
+function loadPrefData() {
+  var url = GAS_API_URL + '?action=prefData&token=' + encodeURIComponent(accessToken);
+  if (targetMonth) url += '&month=' + encodeURIComponent(targetMonth);
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) { showError(data.error); return; }
+      if (data.needsRegistration) {
+        showError('LINE連携が完了していません。\nマイシフトアプリから社員登録を行ってください。');
+        return;
+      }
+      onDataLoaded(data);
+    })
+    .catch(function(err) {
+      showError('データの取得に失敗しました。\n' + (err.message || err));
+    });
+}
+
+function onDataLoaded(data) {
+  employeeInfo = data.employee;
+  targetMonth = data.targetMonth;
+  collectionOpen = data.collectionOpen;
+
+  // Header
+  document.getElementById('empName').textContent = data.employee.name + ' さん | ' + formatMonth(targetMonth);
+  if (data.collectionPeriod && data.collectionPeriod.endDate) {
+    var parts = data.collectionPeriod.endDate.split('-');
+    document.getElementById('deadline').textContent = '締切: ' + parseInt(parts[1],10) + '/' + parseInt(parts[2],10);
+  }
+
+  // Populate existing preferences
+  prefData = {};
+  if (data.preferences) {
+    data.preferences.forEach(function(p) {
+      var dateKey = p.date;
+      // If multiple rows per date (different timeSlots), use the first one's type
+      if (!prefData[dateKey]) {
+        prefData[dateKey] = { type: p.type, timeSlot: p.timeSlot || '', reason: p.reason || '' };
+      } else {
+        // Append timeSlot if different
+        if (p.timeSlot && prefData[dateKey].timeSlot.indexOf(p.timeSlot) === -1) {
+          prefData[dateKey].timeSlot += (prefData[dateKey].timeSlot ? ', ' : '') + p.timeSlot;
+        }
+      }
+    });
+  }
+
+  // Submitted info
+  if (data.submittedAt) {
+    var d = new Date(data.submittedAt);
+    var info = document.getElementById('submittedInfo');
+    info.textContent = '最終提出: ' + d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' ' +
+      ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+    info.style.display = 'block';
+  }
+
+  renderCalendar();
+  updateSummary();
+
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('submitArea').style.display = 'block';
+}
+
+// ===== Calendar Rendering =====
+function renderCalendar() {
+  var parts = targetMonth.split('-');
+  var year = parseInt(parts[0], 10);
+  var month = parseInt(parts[1], 10);
+  var firstDay = new Date(year, month - 1, 1);
+  var lastDay = new Date(year, month, 0);
+  var startDow = firstDay.getDay();
+  var daysInMonth = lastDay.getDate();
+
+  var html = '';
+
+  // Empty cells before first day
+  for (var i = 0; i < startDow; i++) {
+    html += '<div class="cal-cell empty"></div>';
+  }
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var dow = (startDow + day - 1) % 7;
+    var dateStr = year + '/' + String(month).padStart(2, '0') + '/' + String(day).padStart(2, '0');
+    var pref = prefData[dateStr];
+
+    var classes = 'cal-cell';
+    if (dow === 0) classes += ' sunday';
+    if (dow === 6) classes += ' saturday';
+    if (selectedDate === dateStr) classes += ' selected';
+    if (pref) {
+      if (pref.type === '希望') classes += ' want';
+      else if (pref.type === 'NG') classes += ' ng';
+      else if (pref.type === 'どちらでも') classes += ' either';
+    }
+
+    html += '<div class="' + classes + '" onclick="onDateClick(\'' + dateStr + '\')">';
+    html += '<div class="cal-day">' + day + '</div>';
+
+    // Type icon
+    if (pref) {
+      var iconColor = pref.type === 'NG' ? '#E74C3C' : (pref.type === '希望' ? '#27AE60' : '#F39C12');
+      var icon = pref.type === 'NG' ? '&#10005;' : '&#9679;';
+      html += '<span class="cal-type-icon" style="color:' + iconColor + ';">' + icon + '</span>';
+    }
+
+    // Time slot badges
+    if (pref && pref.timeSlot) {
+      var slots = pref.timeSlot.split(', ');
+      slots.forEach(function(slot) {
+        var color = TIME_SLOT_COLORS[slot] || '#AAA';
+        var shortLabel = slot.replace('時～', '-').replace('時', '');
+        html += '<div class="cal-badge" style="background:' + color + ';">' + escapeHtml(shortLabel) + '</div>';
+      });
+    }
+
+    html += '</div>';
+  }
+
+  // Fill remaining cells
+  var totalCells = startDow + daysInMonth;
+  var remainder = totalCells % 7;
+  if (remainder > 0) {
+    for (var k = 0; k < 7 - remainder; k++) {
+      html += '<div class="cal-cell empty"></div>';
+    }
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+// ===== Date Click =====
+function onDateClick(dateStr) {
+  selectedDate = dateStr;
+  var pref = prefData[dateStr];
+
+  // Populate panel
+  var dateParts = dateStr.split('/');
+  var dayNum = parseInt(dateParts[2], 10);
+  var d = new Date(parseInt(dateParts[0],10), parseInt(dateParts[1],10)-1, dayNum);
+  var dows = ['日','月','火','水','木','金','土'];
+  document.getElementById('panelDate').textContent =
+    parseInt(dateParts[1],10) + '月' + dayNum + '日(' + dows[d.getDay()] + ')';
+
+  // Reset panel state
+  selectedType = pref ? pref.type : null;
+  updateTypeButtons();
+
+  // Time slots
+  var currentSlots = pref && pref.timeSlot ? pref.timeSlot.split(', ') : [];
+  document.querySelectorAll('.ts-chip').forEach(function(chip) {
+    chip.classList.toggle('active', currentSlots.indexOf(chip.dataset.slot) !== -1);
+  });
+
+  // Memo
+  document.getElementById('memoInput').value = pref ? (pref.reason || '') : '';
+
+  // Show panel
+  document.getElementById('inputPanel').classList.add('show');
+  renderCalendar();
+
+  // Scroll to panel
+  setTimeout(function() {
+    document.getElementById('inputPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
+function closePanel() {
+  selectedDate = null;
+  document.getElementById('inputPanel').classList.remove('show');
+  renderCalendar();
+}
+
+// ===== Type Selection =====
+function selectType(type) {
+  selectedType = type;
+  updateTypeButtons();
+}
+
+function updateTypeButtons() {
+  document.querySelectorAll('.type-btn').forEach(function(btn) {
+    btn.classList.remove('active');
+  });
+  if (selectedType === '希望') document.querySelector('.type-btn.want').classList.add('active');
+  else if (selectedType === 'NG') document.querySelector('.type-btn.ng').classList.add('active');
+  else if (selectedType === 'どちらでも') document.querySelector('.type-btn.either').classList.add('active');
+}
+
+// ===== Time Slot Toggle =====
+function toggleSlot(el) {
+  var slot = el.dataset.slot;
+  if (slot === '指定なし') {
+    // Deselect all others, toggle this one
+    document.querySelectorAll('.ts-chip').forEach(function(chip) {
+      if (chip.dataset.slot !== '指定なし') chip.classList.remove('active');
+    });
+    el.classList.toggle('active');
+  } else {
+    // Deselect "指定なし"
+    document.querySelector('.ts-chip[data-slot="指定なし"]').classList.remove('active');
+    el.classList.toggle('active');
+  }
+}
+
+function getSelectedSlots() {
+  var slots = [];
+  document.querySelectorAll('.ts-chip.active').forEach(function(chip) {
+    slots.push(chip.dataset.slot);
+  });
+  return slots;
+}
+
+// ===== Save / Delete Date =====
+function saveDate() {
+  if (!selectedDate) return;
+  if (!selectedType) {
+    showToast('種別を選択してください');
+    return;
+  }
+
+  var slots = getSelectedSlots();
+  var reason = document.getElementById('memoInput').value.trim();
+
+  prefData[selectedDate] = {
+    type: selectedType,
+    timeSlot: slots.join(', '),
+    reason: reason
+  };
+
+  showToast('保存しました');
+  closePanel();
+  renderCalendar();
+  updateSummary();
+}
+
+function deleteDate() {
+  if (!selectedDate) return;
+  delete prefData[selectedDate];
+  showToast('削除しました');
+  closePanel();
+  renderCalendar();
+  updateSummary();
+}
+
+// ===== Summary =====
+function updateSummary() {
+  var want = 0, ng = 0, either = 0;
+  Object.keys(prefData).forEach(function(date) {
+    var p = prefData[date];
+    if (p.type === '希望') want++;
+    else if (p.type === 'NG') ng++;
+    else if (p.type === 'どちらでも') either++;
+  });
+  document.getElementById('sumWant').textContent = want;
+  document.getElementById('sumNg').textContent = ng;
+  document.getElementById('sumEither').textContent = either;
+}
+
+// ===== Submit =====
+function submitPreferences() {
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '送信中...';
+
+  // Build preferences array
+  // For entries with multiple time slots, create separate rows
+  var prefs = [];
+  Object.keys(prefData).forEach(function(date) {
+    var p = prefData[date];
+    var slots = p.timeSlot ? p.timeSlot.split(', ').filter(function(s) { return s; }) : [''];
+
+    if (slots.length === 0 || (slots.length === 1 && slots[0] === '')) {
+      prefs.push({ date: date, type: p.type, timeSlot: '', reason: p.reason || '' });
+    } else if (slots.length === 1 && slots[0] === '指定なし') {
+      prefs.push({ date: date, type: p.type, timeSlot: '', reason: p.reason || '' });
+    } else {
+      slots.forEach(function(slot) {
+        if (slot === '指定なし') slot = '';
+        prefs.push({ date: date, type: p.type, timeSlot: slot, reason: p.reason || '' });
+      });
+    }
+  });
+
+  var payload = {
+    action: 'savePrefBatch',
+    token: accessToken,
+    month: targetMonth,
+    preferences: prefs
+  };
+
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'この内容で提出する';
+
+      if (data.error) {
+        showToast('エラー: ' + data.error);
+        return;
+      }
+
+      showToast('提出しました！');
+
+      // Update submitted info
+      if (data.submittedAt) {
+        var d = new Date(data.submittedAt);
+        var info = document.getElementById('submittedInfo');
+        info.textContent = '最終提出: ' + d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' ' +
+          ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+        info.style.display = 'block';
+      }
+
+      // Optional: close LIFF after delay
+      setTimeout(function() {
+        if (liff.isInClient()) {
+          liff.closeWindow();
+        }
+      }, 2000);
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'この内容で提出する';
+      showToast('送信に失敗しました');
+    });
+}
+
+// ===== Utilities =====
+function formatMonth(ym) {
+  var parts = ym.split('-');
+  return parts[0] + '年' + parseInt(parts[1],10) + '月';
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showError(msg) {
+  document.getElementById('loadingView').style.display = 'none';
+  document.getElementById('errorView').style.display = 'block';
+  document.getElementById('errorView').textContent = msg;
+}
+
+function showToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(function() { toast.classList.remove('show'); }, 2000);
+}
+</script>
+</body>
+</html>

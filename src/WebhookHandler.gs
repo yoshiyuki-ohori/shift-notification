@@ -18,6 +18,11 @@ function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
 
+    // LIFF API (POST) - savePrefBatch はLIFFトークン認証
+    if (body.action === 'savePrefBatch') {
+      return handleSavePrefBatch_(body);
+    }
+
     // Admin API (POST書き込み) - actionフィールドで判別
     if (body.action) {
       var expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
@@ -72,7 +77,7 @@ function doGet(e) {
   // 管理APIキー検証（Script Propertiesに ADMIN_API_KEY を設定）
   // ADMIN_API_KEYが未設定の場合はアクション実行を拒否（デフォルト拒否）
   // ical は独自のトークン認証、lineWebhook はCloud Functions経由、liff/myshift はLIFF用のため除外
-  if (action && action !== 'ical' && action !== 'lineWebhook' && action !== 'liff' && action !== 'myshift' && action !== 'empLookup' && action !== 'empRegister') {
+  if (action && action !== 'ical' && action !== 'lineWebhook' && action !== 'liff' && action !== 'myshift' && action !== 'empLookup' && action !== 'empRegister' && action !== 'prefData') {
     const expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
     if (!expectedKey || adminKey !== expectedKey) {
       return jsonResponse_({ error: 'Unauthorized' }, 401);
@@ -105,6 +110,8 @@ function doGet(e) {
         return handleEmpLookup_(params);
       case 'empRegister':
         return handleEmpRegister_(params);
+      case 'prefData':
+        return handlePrefDataApi_(params);
       case 'facilityOverview':
         return handleFacilityOverview_(params);
       case 'lineWebhook':

@@ -289,6 +289,54 @@ function sendPreferenceReminder(yearMonth) {
   return { sent: sent, failed: failed };
 }
 
+/**
+ * 提出済みとしてマーク（スクリプトプロパティに記録）
+ * @param {string} employeeNo - 社員番号
+ * @param {string} yearMonth - 対象年月 (YYYY-MM)
+ * @return {string} ISO日時文字列
+ */
+function markAsSubmitted(employeeNo, yearMonth) {
+  var key = 'PREF_SUBMITTED_' + employeeNo + '_' + yearMonth;
+  var now = new Date().toISOString();
+  PropertiesService.getScriptProperties().setProperty(key, now);
+  return now;
+}
+
+/**
+ * 最終提出日時を取得
+ * @param {string} employeeNo - 社員番号
+ * @param {string} yearMonth - 対象年月 (YYYY-MM)
+ * @return {string|null} ISO日時文字列 or null
+ */
+function getSubmittedAt(employeeNo, yearMonth) {
+  var key = 'PREF_SUBMITTED_' + employeeNo + '_' + yearMonth;
+  return PropertiesService.getScriptProperties().getProperty(key) || null;
+}
+
+/**
+ * 提出時に管理者へLINE Push通知を送信
+ * @param {string} employeeName - 従業員名
+ * @param {string} yearMonth - 対象年月 (YYYY-MM)
+ * @param {number} wantCount - 希望日数
+ * @param {number} ngCount - NG日数
+ */
+function notifyAdminOnSubmission_(employeeName, yearMonth, wantCount, ngCount) {
+  try {
+    var adminUserId = getSettingValue(SETTING_KEYS.ADMIN_NOTIFY_USER_ID);
+    if (!adminUserId) return;
+
+    var parts = yearMonth.split('-');
+    var displayMonth = parts[0] + '年' + parseInt(parts[1], 10) + '月';
+
+    var text = employeeName + 'さんが' + displayMonth + 'のシフト希望を提出しました' +
+      ' (希望:' + wantCount + '日, NG:' + ngCount + '日)';
+
+    pushMessage(adminUserId, [createTextMessage(text)]);
+  } catch (e) {
+    Logger.log('notifyAdminOnSubmission_ error: ' + e.toString());
+  }
+}
+
 // ===== Private helpers =====
 
 /**

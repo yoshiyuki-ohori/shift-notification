@@ -94,7 +94,9 @@ const SETTING_KEYS = {
   PREF_COLLECTION_START: '希望収集開始日',
   PREF_COLLECTION_END: '希望収集締切日',
   PREF_TARGET_MONTH: '希望対象年月',
-  LIFF_ID: 'LIFF_ID'
+  LIFF_ID: 'LIFF_ID',
+  EMPLOYEE_MASTER_SS_ID: 'EMPLOYEE_MASTER_SS_ID',
+  ADMIN_NOTIFY_USER_ID: 'テスト送信先UserId'
 };
 
 // ===== LINE API定数 =====
