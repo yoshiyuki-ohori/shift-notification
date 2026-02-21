@@ -473,6 +473,55 @@ function handleSavePrefBatch_(body) {
 }
 
 /**
+ * コンプライアンスチェック API エンドポイント (doGet から呼ばれる)
+ * ADMIN_API_KEY 認証済み前提
+ * ?action=complianceCheck&month=YYYY-MM
+ * @param {Object} params - クエリパラメータ
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handleComplianceCheck_(params) {
+  try {
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    var result = runComplianceCheck(targetMonth);
+    result.targetMonth = targetMonth;
+
+    return jsonResponse_(result);
+  } catch (e) {
+    Logger.log('handleComplianceCheck_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 配置充足率チェック API エンドポイント (doGet から呼ばれる)
+ * ADMIN_API_KEY 認証済み前提
+ * ?action=staffingCheck&month=YYYY-MM
+ * @param {Object} params - クエリパラメータ
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handleStaffingCheck_(params) {
+  try {
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    var result = checkStaffingLevels(targetMonth);
+
+    return jsonResponse_(result);
+  } catch (e) {
+    Logger.log('handleStaffingCheck_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
  * LINE アクセストークンを検証し userId を返す
  * @param {string} accessToken - LIFF のアクセストークン
  * @return {string|null} LINE userId (検証失敗時は null)

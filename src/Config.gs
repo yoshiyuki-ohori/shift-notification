@@ -11,7 +11,9 @@ const SHEET_NAMES = {
   SETTINGS: '設定',
   UNMATCHED: '名寄せ未マッチ',
   SHIFT_PREFERENCE: 'シフト希望',
-  STAFFING_REQUIREMENT: '必要配置'
+  STAFFING_REQUIREMENT: '必要配置',
+  LABOR_RULES: '労基ルール',
+  COMPLIANCE_RESULT: '労基チェック結果'
 };
 
 // ===== 従業員マスタ列定数 (1-indexed) =====
@@ -125,6 +127,26 @@ const SEND_STATUS = {
 
 // ===== 練馬エリア 時間帯定数 =====
 const NERIMA_TIME_SLOTS = ['6時～9時', '17時～22時', '22時～'];
+
+// ===== 時間帯→労働時間マッピング =====
+const TIME_SLOT_HOURS = {
+  '6時～9時':   { start: 6, end: 9, hours: 3 },
+  '9時～17時':  { start: 9, end: 17, hours: 8 },
+  '17時～22時': { start: 17, end: 22, hours: 5 },
+  '22時～':     { start: 22, end: 30, hours: 8 }  // 翌06:00 = 30時
+};
+
+// ===== 労基チェック結果列定数 =====
+const COMPLIANCE_COLS = {
+  CHECK_DATE: 1,    // A: チェック日時
+  TARGET_MONTH: 2,  // B: 対象年月
+  CHECK_ID: 3,      // C: チェックID
+  SEVERITY: 4,      // D: 重大度
+  EMPLOYEE_NO: 5,   // E: 社員No
+  NAME: 6,          // F: 氏名
+  DETAIL: 7,        // G: 詳細
+  DATES: 8          // H: 対象日
+};
 
 // ===== 施設マッピング (CSV施設名 → Firestore施設ID/正式名) =====
 // safe-rise-prod Firestore facilities コレクションと同期

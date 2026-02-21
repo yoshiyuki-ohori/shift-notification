@@ -114,6 +114,10 @@ function doGet(e) {
         return handlePrefDataApi_(params);
       case 'facilityOverview':
         return handleFacilityOverview_(params);
+      case 'complianceCheck':
+        return handleComplianceCheck_(params);
+      case 'staffingCheck':
+        return handleStaffingCheck_(params);
       case 'lineWebhook':
         return handleLineWebhookViaGet_(params);
       default:

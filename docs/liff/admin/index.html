@@ -20,7 +20,7 @@
   .header-right button:hover { background: #3dbdb5; }
 
   /* Auth overlay */
-  .auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 100; }
   .auth-box { background: #fff; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; }
   .auth-box h2 { font-size: 20px; margin-bottom: 8px; }
   .auth-box p { color: #666; font-size: 14px; margin-bottom: 20px; }
@@ -28,6 +28,14 @@
   .auth-box input:focus { border-color: #4ECDC4; outline: none; }
   .auth-box button { width: 100%; padding: 12px; background: #1a1a2e; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
   .auth-box .error { color: #FF6B6B; font-size: 13px; margin-bottom: 8px; }
+
+  /* Tabs */
+  .tab-bar { display: flex; background: #fff; border-bottom: 2px solid #eee; padding: 0 24px; gap: 0; }
+  .tab-btn { padding: 12px 20px; font-size: 14px; font-weight: 600; color: #888; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab-btn:hover { color: #1a1a2e; }
+  .tab-btn.active { color: #1a1a2e; border-bottom-color: #4ECDC4; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 
   /* Summary cards */
   .summary { display: flex; gap: 16px; padding: 20px 24px; flex-wrap: wrap; }
@@ -37,6 +45,12 @@
   .summary-card:nth-child(1) .value { color: #1a1a2e; }
   .summary-card:nth-child(2) .value { color: #4ECDC4; }
   .summary-card:nth-child(3) .value { color: #FFD93D; }
+
+  /* Summary card colors for compliance/staffing */
+  .summary-card .value.red { color: #FF6B6B; }
+  .summary-card .value.yellow { color: #FFD93D; }
+  .summary-card .value.green { color: #4ECDC4; }
+  .summary-card .value.blue { color: #1a1a2e; }
 
   /* Main content */
   .content { padding: 0 24px 24px; }
@@ -117,6 +131,37 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   .error-msg { text-align: center; padding: 40px; color: #FF6B6B; }
 
+  /* Compliance list */
+  .compliance-item { background: #fff; border-radius: 10px; padding: 14px 18px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; }
+  .compliance-item .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 6px; white-space: nowrap; }
+  .badge.violation { background: #FFE0E0; color: #CC3333; }
+  .badge.warning { background: #FFF3CD; color: #997700; }
+  .compliance-item .ci-body { flex: 1; min-width: 0; }
+  .compliance-item .ci-name { font-weight: 700; font-size: 14px; }
+  .compliance-item .ci-detail { font-size: 13px; color: #555; margin-top: 2px; }
+  .compliance-item .ci-dates { font-size: 12px; color: #999; margin-top: 2px; }
+  .compliance-item .ci-type { font-size: 11px; color: #aaa; white-space: nowrap; }
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .filter-bar select, .filter-bar input { padding: 8px 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 13px; }
+  .filter-bar select:focus, .filter-bar input:focus { border-color: #4ECDC4; outline: none; }
+
+  /* Staffing heatmap */
+  .area-summary-row { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .area-card { background: #fff; border-radius: 12px; padding: 16px 20px; flex: 1; min-width: 200px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .area-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .area-stat { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+  .area-stat .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .dot.red { background: #FF6B6B; }
+  .dot.yellow { background: #FFD93D; }
+  .dot.green { background: #4ECDC4; }
+  .staffing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1px; background: #eee; padding: 1px; border-radius: 8px; overflow: hidden; }
+  .staffing-cell { padding: 8px 10px; min-height: 48px; font-size: 12px; }
+  .staffing-cell.shortage { background: #FFE0E0; }
+  .staffing-cell.caution { background: #FFF8E1; }
+  .staffing-cell.ok { background: #E8F5E9; }
+  .staffing-cell .sc-label { font-weight: 700; margin-bottom: 2px; }
+  .staffing-cell .sc-count { font-size: 13px; font-weight: 600; }
+
   /* Responsive */
   @media (max-width: 768px) {
     .header { padding: 12px 16px; }
@@ -126,6 +171,8 @@
     .content { padding: 0 16px 16px; }
     .date-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
     .facility-stats { display: none; }
+    .tab-bar { padding: 0 16px; }
+    .tab-btn { padding: 10px 14px; font-size: 13px; }
   }
 </style>
 </head>
@@ -142,36 +189,86 @@
 </div>
 
 <div class="header">
-  <h1>配置状況ダッシュボード</h1>
+  <h1>配置状況ダッシュボード <span style="font-size:11px;opacity:0.5">v3.0</span></h1>
   <div class="month-nav">
     <button onclick="changeMonth(-1)" title="前月">&#9664;</button>
     <span class="current-month" id="currentMonth"></span>
     <button onclick="changeMonth(1)" title="翌月">&#9654;</button>
   </div>
   <div class="header-right">
-    <button onclick="loadData()">再読み込み</button>
+    <button onclick="refreshCurrentTab()">再読み込み</button>
   </div>
 </div>
 
-<div class="summary" id="summary" style="display:none;">
-  <div class="summary-card">
-    <div class="label">施設数</div>
-    <div class="value" id="sumFacilities">-</div>
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" data-tab="facility" onclick="switchTab('facility')">施設一覧</button>
+  <button class="tab-btn" data-tab="compliance" onclick="switchTab('compliance')">労基チェック</button>
+  <button class="tab-btn" data-tab="staffing" onclick="switchTab('staffing')">配置充足率</button>
+</div>
+
+<!-- Tab 1: Facility Overview (existing) -->
+<div class="tab-content active" id="tab-facility">
+  <div class="summary" id="summary" style="display:none;">
+    <div class="summary-card">
+      <div class="label">施設数</div>
+      <div class="value" id="sumFacilities">-</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">総シフト数</div>
+      <div class="value" id="sumShifts">-</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">配置人数</div>
+      <div class="value" id="sumStaff">-</div>
+    </div>
   </div>
-  <div class="summary-card">
-    <div class="label">総シフト数</div>
-    <div class="value" id="sumShifts">-</div>
-  </div>
-  <div class="summary-card">
-    <div class="label">配置人数</div>
-    <div class="value" id="sumStaff">-</div>
+  <div class="content" id="content">
+    <div class="loading" id="loadingMsg" style="display:none;">
+      <div class="spinner"></div>
+      <p style="margin-top:12px;">読み込み中...</p>
+    </div>
   </div>
 </div>
 
-<div class="content" id="content">
-  <div class="loading" id="loadingMsg" style="display:none;">
-    <div class="spinner"></div>
-    <p style="margin-top:12px;">読み込み中...</p>
+<!-- Tab 2: Compliance Check -->
+<div class="tab-content" id="tab-compliance">
+  <div class="summary" id="complianceSummary" style="display:none;">
+    <div class="summary-card">
+      <div class="label">違反</div>
+      <div class="value red" id="compViolations">-</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">警告</div>
+      <div class="value yellow" id="compWarnings">-</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">チェック済み</div>
+      <div class="value blue" id="compChecked">-</div>
+    </div>
+  </div>
+  <div class="content" id="complianceContent">
+    <div class="loading"><p>タブを選択してデータを読み込みます</p></div>
+  </div>
+</div>
+
+<!-- Tab 3: Staffing Fill Rate -->
+<div class="tab-content" id="tab-staffing">
+  <div class="summary" id="staffingSummary" style="display:none;">
+    <div class="summary-card">
+      <div class="label">不足</div>
+      <div class="value red" id="staffShortage">-</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">注意</div>
+      <div class="value yellow" id="staffCaution">-</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">目標達成</div>
+      <div class="value green" id="staffOk">-</div>
+    </div>
+  </div>
+  <div class="content" id="staffingContent">
+    <div class="loading"><p>タブを選択してデータを読み込みます</p></div>
   </div>
 </div>
 
@@ -182,12 +279,11 @@
     <div class="modal-info" id="modalInfo"></div>
     <label>時間帯</label>
     <select id="modalTimeSlot">
-      <option value="">選択してください</option>
+      <option value="夜勤(17-9時)">夜勤(17-9時)</option>
       <option value="6時～9時">6時～9時</option>
       <option value="9時～17時">9時～17時</option>
       <option value="17時～22時">17時～22時</option>
       <option value="22時～">22時～</option>
-      <option value="夜勤(17-9時)">夜勤(17-9時)</option>
     </select>
     <label>職員</label>
     <div class="staff-search-wrap">
@@ -208,22 +304,22 @@
 <script>
 (function() {
   // --- Config ---
-  var GAS_URL = '';  // Set at runtime from URL params or stored value
+  var GAS_URL = '';
   var API_KEY = '';
   var currentYear, currentMonth;
-  var staffList = [];       // 従業員マスタキャッシュ
+  var staffList = [];
   var staffListLoaded = false;
-  var modalFacility = null; // モーダルで選択中の施設情報
-  var modalDate = null;     // モーダルで選択中の日付
+  var modalFacility = null;
+  var modalDate = null;
+  var activeTab = 'facility';
+  var tabDataLoaded = { facility: false, compliance: false, staffing: false };
 
   // --- Init ---
   function init() {
-    // Read URL params
     var params = new URLSearchParams(location.search);
     API_KEY = params.get('key') || localStorage.getItem('admin_api_key') || '';
     GAS_URL = params.get('gas_url') || localStorage.getItem('admin_gas_url') || '';
 
-    // Parse month param
     var monthParam = params.get('month') || '';
     if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
       currentYear = parseInt(monthParam.split('-')[0], 10);
@@ -234,26 +330,28 @@
       currentMonth = now.getMonth() + 1;
     }
 
+    // Tab from URL
+    var tabParam = params.get('tab') || '';
+    if (['facility','compliance','staffing'].indexOf(tabParam) >= 0) {
+      activeTab = tabParam;
+    }
+
     updateMonthDisplay();
 
-    if (!API_KEY || !GAS_URL) {
-      showAuth();
-    } else {
+    // TODO: ログイン機能は本番導入時に有効化する
+    // if (!API_KEY || !GAS_URL) {
+    //   showAuth();
+    // } else {
       hideAuth();
-      loadData();
+      switchTab(activeTab);
       loadStaffList();
-    }
+    // }
   }
 
   // --- Auth ---
   function showAuth() {
     var overlay = document.getElementById('authOverlay');
     overlay.style.display = 'flex';
-    // Pre-fill known values
-    if (GAS_URL) {
-      document.getElementById('apiKeyInput').placeholder = 'ADMIN_API_KEY';
-    }
-    // If no GAS_URL, show both fields
     if (!GAS_URL) {
       var box = overlay.querySelector('.auth-box');
       if (!document.getElementById('gasUrlInput')) {
@@ -274,30 +372,53 @@
     var key = document.getElementById('apiKeyInput').value.trim();
     var urlInput = document.getElementById('gasUrlInput');
     var url = urlInput ? urlInput.value.trim() : GAS_URL;
-
-    if (!key) {
-      document.getElementById('authError').textContent = 'APIキーを入力してください';
-      return;
-    }
-    if (!url) {
-      document.getElementById('authError').textContent = 'GAS URLを入力してください';
-      return;
-    }
-
+    if (!key) { document.getElementById('authError').textContent = 'APIキーを入力してください'; return; }
+    if (!url) { document.getElementById('authError').textContent = 'GAS URLを入力してください'; return; }
     API_KEY = key;
     GAS_URL = url;
     localStorage.setItem('admin_api_key', API_KEY);
     localStorage.setItem('admin_gas_url', GAS_URL);
     hideAuth();
-    loadData();
+    switchTab(activeTab);
     loadStaffList();
+  };
+
+  // --- Tabs ---
+  window.switchTab = function(tab) {
+    activeTab = tab;
+    // Update tab buttons
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.toggle('active', btns[i].getAttribute('data-tab') === tab);
+    }
+    // Update tab contents
+    var contents = document.querySelectorAll('.tab-content');
+    for (var j = 0; j < contents.length; j++) {
+      contents[j].classList.toggle('active', contents[j].id === 'tab-' + tab);
+    }
+    // Update URL
+    var url = new URL(location.href);
+    url.searchParams.set('tab', tab);
+    history.replaceState(null, '', url);
+    // Load data if needed
+    if (!tabDataLoaded[tab]) {
+      if (tab === 'facility') loadFacilityData();
+      else if (tab === 'compliance') loadComplianceData();
+      else if (tab === 'staffing') loadStaffingData();
+    }
+  };
+
+  window.refreshCurrentTab = function() {
+    tabDataLoaded[activeTab] = false;
+    if (activeTab === 'facility') loadFacilityData();
+    else if (activeTab === 'compliance') loadComplianceData();
+    else if (activeTab === 'staffing') loadStaffingData();
   };
 
   // --- Month Navigation ---
   function updateMonthDisplay() {
     var mm = ('0' + currentMonth).slice(-2);
     document.getElementById('currentMonth').textContent = currentYear + '年' + currentMonth + '月';
-    // Update URL without reload
     var url = new URL(location.href);
     url.searchParams.set('month', currentYear + '-' + mm);
     history.replaceState(null, '', url);
@@ -308,63 +429,47 @@
     if (currentMonth > 12) { currentMonth = 1; currentYear++; }
     if (currentMonth < 1) { currentMonth = 12; currentYear--; }
     updateMonthDisplay();
-    loadData();
+    tabDataLoaded = { facility: false, compliance: false, staffing: false };
+    if (activeTab === 'facility') loadFacilityData();
+    else if (activeTab === 'compliance') loadComplianceData();
+    else if (activeTab === 'staffing') loadStaffingData();
   };
 
-  // --- Data Loading ---
-  window.loadData = function() {
+  // ========================================
+  // Tab 1: Facility Overview (existing logic)
+  // ========================================
+  window.loadData = function() { loadFacilityData(); };
+
+  function loadFacilityData() {
     var content = document.getElementById('content');
     var summary = document.getElementById('summary');
-
-    // Create loading element fresh each time (innerHTML destroys previous)
     content.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px;">読み込み中...</p></div>';
     summary.style.display = 'none';
 
     var mm = ('0' + currentMonth).slice(-2);
     var targetMonth = currentYear + '-' + mm;
-
     var url = GAS_URL + '?action=facilityOverview&key=' + encodeURIComponent(API_KEY) + '&month=' + encodeURIComponent(targetMonth);
 
-    console.log('[Admin] Fetching:', url);
     fetch(url, { redirect: 'follow' })
-      .then(function(res) {
-        console.log('[Admin] Response status:', res.status, 'url:', res.url);
-        return res.text();
-      })
+      .then(function(res) { return res.text(); })
       .then(function(text) {
-        console.log('[Admin] Response length:', text.length, 'bytes');
-        try {
-          return JSON.parse(text);
-        } catch (e) {
-          console.error('[Admin] JSON parse error. First 500 chars:', text.substring(0, 500));
-          throw new Error('JSONパース失敗: ' + text.substring(0, 200));
-        }
+        try { return JSON.parse(text); }
+        catch (e) { throw new Error('JSONパース失敗: ' + text.substring(0, 200)); }
       })
       .then(function(data) {
-        console.log('[Admin] Parsed data:', {
-          facilities: data.facilities ? data.facilities.length : 0,
-          summary: data.summary,
-          error: data.error
-        });
         if (data.error) {
-          if (data.error === 'Unauthorized') {
-            localStorage.removeItem('admin_api_key');
-            showAuth();
-            document.getElementById('authError').textContent = 'APIキーが無効です';
-            return;
-          }
+          if (data.error === 'Unauthorized') { localStorage.removeItem('admin_api_key'); showAuth(); document.getElementById('authError').textContent = 'APIキーが無効です'; return; }
           content.innerHTML = '<div class="error-msg">エラー: ' + escapeHtml(data.error) + '</div>';
           return;
         }
         renderDashboard(data);
+        tabDataLoaded.facility = true;
       })
       .catch(function(err) {
-        console.error('[Admin] Fetch error:', err);
         content.innerHTML = '<div class="error-msg">通信エラー: ' + escapeHtml(err.message || String(err)) + '</div>';
       });
-  };
+  }
 
-  // --- Rendering ---
   function renderDashboard(data) {
     var summary = document.getElementById('summary');
     summary.style.display = 'flex';
@@ -380,60 +485,45 @@
       return;
     }
 
-    // Get days in month
     var parts = data.targetMonth.split('-');
     var year = parseInt(parts[0], 10);
     var month = parseInt(parts[1], 10);
     var daysInMonth = new Date(year, month, 0).getDate();
 
-    // 夜勤マージ適用 & stats再計算
     var totalShiftsMerged = 0;
     for (var i = 0; i < data.facilities.length; i++) {
       var fac = data.facilities[i];
       fac.dates = mergeOvernightShifts(fac.dates || {});
-      // stats再計算
       var facShifts = 0;
       var staffSet = {};
       var dayKeys = Object.keys(fac.dates);
       for (var di = 0; di < dayKeys.length; di++) {
         var arr = fac.dates[dayKeys[di]];
         facShifts += arr.length;
-        for (var si = 0; si < arr.length; si++) {
-          if (arr[si].empNo) staffSet[arr[si].empNo] = true;
-        }
+        for (var si = 0; si < arr.length; si++) { if (arr[si].empNo) staffSet[arr[si].empNo] = true; }
       }
       fac.stats = { totalShifts: facShifts, uniqueStaff: Object.keys(staffSet).length };
       totalShiftsMerged += facShifts;
     }
     document.getElementById('sumShifts').textContent = totalShiftsMerged;
 
-    console.log('[Admin] Rendering', data.facilities.length, 'facilities for', year + '-' + month);
     for (var i = 0; i < data.facilities.length; i++) {
-      try {
-        content.appendChild(createFacilityCard(data.facilities[i], year, month, daysInMonth));
-      } catch (e) {
-        console.error('[Admin] Error rendering facility', i, data.facilities[i].name, e);
-      }
+      try { content.appendChild(createFacilityCard(data.facilities[i], year, month, daysInMonth)); }
+      catch (e) { console.error('[Admin] Error rendering facility', i, e); }
     }
-    console.log('[Admin] Rendered', content.children.length, 'facility cards');
   }
 
   function createFacilityCard(facility, year, month, daysInMonth) {
     var card = document.createElement('div');
     card.className = 'facility-card';
-
-    // Count unplaced days (days with 0 shifts in a facility that has data)
     var hasAnyShift = facility.stats.totalShifts > 0;
     var unplacedDays = 0;
     if (hasAnyShift) {
       for (var dd = 1; dd <= daysInMonth; dd++) {
-        if (!(facility.dates[String(dd)] && facility.dates[String(dd)].length > 0)) {
-          unplacedDays++;
-        }
+        if (!(facility.dates[String(dd)] && facility.dates[String(dd)].length > 0)) unplacedDays++;
       }
     }
 
-    // Header
     var header = document.createElement('div');
     header.className = 'facility-header';
     header.innerHTML =
@@ -445,26 +535,20 @@
         '<span>スタッフ: <b>' + facility.stats.uniqueStaff + '</b></span>' +
         (unplacedDays > 0 ? '<span class="unplaced-count">未配置: ' + unplacedDays + '日</span>' : '') +
       '</div>';
-
-    header.addEventListener('click', function() {
-      card.classList.toggle('open');
-    });
+    header.addEventListener('click', function() { card.classList.toggle('open'); });
     card.appendChild(header);
 
-    // Body - date grid
     var body = document.createElement('div');
     body.className = 'facility-body';
-
     var grid = document.createElement('div');
     grid.className = 'date-grid';
 
     for (var d = 1; d <= daysInMonth; d++) {
       var cell = document.createElement('div');
       cell.className = 'date-cell';
-
       var dateObj = new Date(year, month - 1, d);
       var dow = dateObj.getDay();
-      var dowLabels = ['日', '月', '火', '水', '木', '金', '土'];
+      var dowLabels = ['日','月','火','水','木','金','土'];
       var labelClass = '';
       if (dow === 0) { cell.classList.add('sunday'); labelClass = ' sunday'; }
       if (dow === 6) { cell.classList.add('weekend'); labelClass = ' saturday'; }
@@ -495,51 +579,303 @@
         cell.appendChild(chip);
       }
 
-      // Add shift button
       var addBtn = document.createElement('button');
       addBtn.className = 'add-shift-btn';
       addBtn.textContent = '+';
       addBtn.title = 'シフトを追加';
       (function(fac, yr, mo, day) {
-        addBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          openShiftModal(fac, yr, mo, day);
-        });
+        addBtn.addEventListener('click', function(e) { e.stopPropagation(); openShiftModal(fac, yr, mo, day); });
       })(facility, year, month, d);
       cell.appendChild(addBtn);
-
       grid.appendChild(cell);
     }
 
     body.appendChild(grid);
     card.appendChild(body);
-
     return card;
   }
 
+  // ========================================
+  // Tab 2: Compliance Check
+  // ========================================
+  function loadComplianceData() {
+    var content = document.getElementById('complianceContent');
+    var summary = document.getElementById('complianceSummary');
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px;">労基チェック実行中...</p></div>';
+    summary.style.display = 'none';
+
+    var mm = ('0' + currentMonth).slice(-2);
+    var targetMonth = currentYear + '-' + mm;
+    var url = GAS_URL + '?action=complianceCheck&key=' + encodeURIComponent(API_KEY) + '&month=' + encodeURIComponent(targetMonth);
+
+    fetch(url, { redirect: 'follow' })
+      .then(function(res) { return res.text(); })
+      .then(function(text) {
+        try { return JSON.parse(text); }
+        catch (e) { throw new Error('JSONパース失敗'); }
+      })
+      .then(function(data) {
+        if (data.error) {
+          if (data.error === 'Unauthorized') { localStorage.removeItem('admin_api_key'); showAuth(); return; }
+          content.innerHTML = '<div class="error-msg">エラー: ' + escapeHtml(data.error) + '</div>';
+          return;
+        }
+        renderCompliance(data);
+        tabDataLoaded.compliance = true;
+      })
+      .catch(function(err) {
+        content.innerHTML = '<div class="error-msg">通信エラー: ' + escapeHtml(err.message || String(err)) + '</div>';
+      });
+  }
+
+  function renderCompliance(data) {
+    var summary = document.getElementById('complianceSummary');
+    summary.style.display = 'flex';
+    document.getElementById('compViolations').textContent = data.summary.totalViolations;
+    document.getElementById('compWarnings').textContent = data.summary.totalWarnings;
+    document.getElementById('compChecked').textContent = data.summary.checkedEmployees + '名';
+
+    var content = document.getElementById('complianceContent');
+    content.innerHTML = '';
+
+    var allItems = [];
+    if (data.violations) {
+      for (var i = 0; i < data.violations.length; i++) allItems.push(data.violations[i]);
+    }
+    if (data.warnings) {
+      for (var j = 0; j < data.warnings.length; j++) allItems.push(data.warnings[j]);
+    }
+
+    if (allItems.length === 0) {
+      content.innerHTML = '<div class="loading"><p>問題は検出されませんでした</p></div>';
+      return;
+    }
+
+    // Filter bar
+    var filterBar = document.createElement('div');
+    filterBar.className = 'filter-bar';
+
+    var sevFilter = document.createElement('select');
+    sevFilter.id = 'compSevFilter';
+    sevFilter.innerHTML = '<option value="">全て</option><option value="violation">違反のみ</option><option value="warning">警告のみ</option>';
+    filterBar.appendChild(sevFilter);
+
+    var nameFilter = document.createElement('input');
+    nameFilter.type = 'text';
+    nameFilter.placeholder = '職員名で絞り込み...';
+    nameFilter.id = 'compNameFilter';
+    filterBar.appendChild(nameFilter);
+
+    content.appendChild(filterBar);
+
+    var listEl = document.createElement('div');
+    listEl.id = 'complianceList';
+    content.appendChild(listEl);
+
+    function renderList() {
+      var sev = document.getElementById('compSevFilter').value;
+      var name = document.getElementById('compNameFilter').value.trim().toLowerCase();
+      listEl.innerHTML = '';
+
+      var filtered = allItems.filter(function(item) {
+        if (sev && item.severity !== sev) return false;
+        if (name && item.employeeName.toLowerCase().indexOf(name) < 0) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="loading"><p>該当する項目はありません</p></div>';
+        return;
+      }
+
+      for (var k = 0; k < filtered.length; k++) {
+        var item = filtered[k];
+        var el = document.createElement('div');
+        el.className = 'compliance-item';
+        el.innerHTML =
+          '<span class="badge ' + item.severity + '">' + (item.severity === 'violation' ? '違反' : '警告') + '</span>' +
+          '<div class="ci-body">' +
+            '<div class="ci-name">' + escapeHtml(item.employeeName) + ' <span style="color:#999;font-weight:400;font-size:12px">' + escapeHtml(item.employeeNo) + '</span></div>' +
+            '<div class="ci-detail">' + escapeHtml(item.detail) + '</div>' +
+            '<div class="ci-dates">' + escapeHtml((item.dates || []).join(', ')) + '</div>' +
+          '</div>' +
+          '<span class="ci-type">' + escapeHtml(item.type) + '</span>';
+        listEl.appendChild(el);
+      }
+    }
+
+    sevFilter.addEventListener('change', renderList);
+    nameFilter.addEventListener('input', renderList);
+    renderList();
+  }
+
+  // ========================================
+  // Tab 3: Staffing Fill Rate
+  // ========================================
+  function loadStaffingData() {
+    var content = document.getElementById('staffingContent');
+    var summary = document.getElementById('staffingSummary');
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px;">配置充足率チェック中...</p></div>';
+    summary.style.display = 'none';
+
+    var mm = ('0' + currentMonth).slice(-2);
+    var targetMonth = currentYear + '-' + mm;
+    var url = GAS_URL + '?action=staffingCheck&key=' + encodeURIComponent(API_KEY) + '&month=' + encodeURIComponent(targetMonth);
+
+    fetch(url, { redirect: 'follow' })
+      .then(function(res) { return res.text(); })
+      .then(function(text) {
+        try { return JSON.parse(text); }
+        catch (e) { throw new Error('JSONパース失敗'); }
+      })
+      .then(function(data) {
+        if (data.error) {
+          if (data.error === 'Unauthorized') { localStorage.removeItem('admin_api_key'); showAuth(); return; }
+          content.innerHTML = '<div class="error-msg">エラー: ' + escapeHtml(data.error) + '</div>';
+          return;
+        }
+        renderStaffing(data);
+        tabDataLoaded.staffing = true;
+      })
+      .catch(function(err) {
+        content.innerHTML = '<div class="error-msg">通信エラー: ' + escapeHtml(err.message || String(err)) + '</div>';
+      });
+  }
+
+  function renderStaffing(data) {
+    var content = document.getElementById('staffingContent');
+    content.innerHTML = '';
+
+    // Count totals
+    var totalShortage = 0, totalCaution = 0, totalOk = 0;
+    var areas = Object.keys(data.areaSummary || {});
+    for (var a = 0; a < areas.length; a++) {
+      var as = data.areaSummary[areas[a]];
+      totalShortage += as.shortage;
+      totalCaution += as.caution;
+      totalOk += as.ok;
+    }
+
+    var summary = document.getElementById('staffingSummary');
+    summary.style.display = 'flex';
+    document.getElementById('staffShortage').textContent = totalShortage;
+    document.getElementById('staffCaution').textContent = totalCaution;
+    document.getElementById('staffOk').textContent = totalOk;
+
+    if (areas.length === 0 && (!data.facilities || data.facilities.length === 0)) {
+      content.innerHTML = '<div class="loading"><p>必要配置データがありません。「必要配置」シートにデータを登録してください。</p></div>';
+      return;
+    }
+
+    // Area summary cards
+    if (areas.length > 0) {
+      var areaRow = document.createElement('div');
+      areaRow.className = 'area-summary-row';
+      for (var i = 0; i < areas.length; i++) {
+        var areaName = areas[i];
+        var as = data.areaSummary[areaName];
+        var card = document.createElement('div');
+        card.className = 'area-card';
+        card.innerHTML =
+          '<h4>' + escapeHtml(areaName) + 'エリア</h4>' +
+          '<div class="area-stat"><span><span class="dot green"></span>目標達成</span><span><b>' + as.ok + '</b>件</span></div>' +
+          '<div class="area-stat"><span><span class="dot yellow"></span>注意</span><span><b>' + as.caution + '</b>件</span></div>' +
+          '<div class="area-stat"><span><span class="dot red"></span>不足</span><span><b>' + as.shortage + '</b>件</span></div>' +
+          '<div class="area-stat" style="border-top:1px solid #eee;padding-top:6px;margin-top:4px"><span>平均充足率</span><span><b>' + as.avgFillRate + '%</b></span></div>';
+        areaRow.appendChild(card);
+      }
+      content.appendChild(areaRow);
+    }
+
+    // Facility-grouped staffing grid (show only shortage/caution)
+    var alerts = data.alerts || [];
+    var facilitiesData = data.facilities || [];
+
+    // Group by facility
+    var facGroups = {};
+    for (var f = 0; f < facilitiesData.length; f++) {
+      var entry = facilitiesData[f];
+      if (entry.status === 'ok') continue; // Only show issues
+      var key = entry.facilityName || entry.facilityId;
+      if (!facGroups[key]) facGroups[key] = [];
+      facGroups[key].push(entry);
+    }
+
+    var facNames = Object.keys(facGroups).sort();
+    if (facNames.length === 0) {
+      var okMsg = document.createElement('div');
+      okMsg.className = 'loading';
+      okMsg.innerHTML = '<p>全ての施設・時間帯で目標を達成しています</p>';
+      content.appendChild(okMsg);
+      return;
+    }
+
+    for (var fi = 0; fi < facNames.length; fi++) {
+      var fname = facNames[fi];
+      var items = facGroups[fname];
+      var facCard = document.createElement('div');
+      facCard.className = 'facility-card';
+
+      var facHeader = document.createElement('div');
+      facHeader.className = 'facility-header';
+      var shortageCount = items.filter(function(x) { return x.status === 'shortage'; }).length;
+      var cautionCount = items.filter(function(x) { return x.status === 'caution'; }).length;
+      facHeader.innerHTML =
+        '<span class="facility-toggle">&#9654;</span>' +
+        '<span class="facility-name">' + escapeHtml(fname) + '</span>' +
+        '<div class="facility-stats">' +
+          (shortageCount > 0 ? '<span class="unplaced-count">不足: ' + shortageCount + '件</span>' : '') +
+          '<span>注意: ' + cautionCount + '件</span>' +
+        '</div>';
+      facHeader.addEventListener('click', function() { this.parentElement.classList.toggle('open'); });
+      facCard.appendChild(facHeader);
+
+      var facBody = document.createElement('div');
+      facBody.className = 'facility-body';
+      var grid = document.createElement('div');
+      grid.className = 'staffing-grid';
+
+      for (var gi = 0; gi < items.length; gi++) {
+        var it = items[gi];
+        var cell = document.createElement('div');
+        cell.className = 'staffing-cell ' + it.status;
+        var dateParts = (it.date || '').split('/');
+        var shortDate = dateParts.length >= 3 ? parseInt(dateParts[1],10) + '/' + parseInt(dateParts[2],10) : it.date;
+        cell.innerHTML =
+          '<div class="sc-label">' + escapeHtml(shortDate) + ' ' + escapeHtml(it.timeSlot) + '</div>' +
+          '<div class="sc-count">' + it.assigned + '/' + it.required + '名' +
+          (it.target > it.required ? ' (目標' + it.target + ')' : '') + '</div>';
+        grid.appendChild(cell);
+      }
+
+      facBody.appendChild(grid);
+      facCard.appendChild(facBody);
+      content.appendChild(facCard);
+    }
+  }
+
+  // ========================================
+  // Shared utilities
+  // ========================================
   function getTimeSlotClass(timeSlot) {
-    if (/^\d{1,2}-\d{1,2}時$/.test(timeSlot)) return 'night';  // 17-9時 (夜勤統合)
+    if (/^\d{1,2}-\d{1,2}時$/.test(timeSlot)) return 'night';
     if (timeSlot.indexOf('6') === 0) return 'morning';
     if (timeSlot.indexOf('9') === 0) return 'daytime';
     if (timeSlot.indexOf('22') === 0) return 'night';
-    if (/^\d{1,2}時～翌/.test(timeSlot)) return 'night';       // 17時～翌 (朝データ欠損時)
+    if (/^\d{1,2}時～翌/.test(timeSlot)) return 'night';
     if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('16') === 0) return 'evening';
     return 'daytime';
   }
 
-  // 社員番号から黄金角で最大分離の色を生成
-  // 連番 (001,002,003...) でも隣接色にならない
   function getStaffColor(empNo) {
     var num = parseInt(empNo, 10) || 0;
-    var hue = (num * 137.508) % 360;  // 黄金角
+    var hue = (num * 137.508) % 360;
     return 'hsl(' + Math.round(hue) + ', 60%, 82%)';
   }
 
-  // --- 夜勤マージ ---
-  // 同一スタッフの 17時～22時 + 22時～ + 翌6時～9時 → 入りの日に「17-9時」1行
   function mergeOvernightShifts(dates) {
     var dayNums = Object.keys(dates).map(Number).sort(function(a, b) { return a - b; });
-    var toRemove = {};  // "day_empNo_timeSlot" -> true
+    var toRemove = {};
 
     for (var i = 0; i < dayNums.length; i++) {
       var day = dayNums[i];
@@ -550,42 +886,32 @@
       for (var s = 0; s < shifts.length; s++) {
         var ev = shifts[s];
         if (!ev.empNo || !/^\d{1,2}時～22時$/.test(ev.timeSlot)) continue;
-
         var emp = ev.empNo;
-        // 同日の「22時～」
         var lateNight = null;
         for (var j = 0; j < shifts.length; j++) {
           if (shifts[j].empNo === emp && /^22時～$/.test(shifts[j].timeSlot)) { lateNight = shifts[j]; break; }
         }
-        // 翌日の「6時～N時」
         var morning = null;
         for (var k = 0; k < nextShifts.length; k++) {
           if (nextShifts[k].empNo === emp && /^6時～\d{1,2}時$/.test(nextShifts[k].timeSlot)) { morning = nextShifts[k]; break; }
         }
-
         if (lateNight || morning) {
           var startMatch = ev.timeSlot.match(/^(\d{1,2})時/);
           var startH = startMatch ? startMatch[1] : '17';
-          var endH = '9';  // デフォルト: 翌9時
-          if (morning) {
-            var endMatch = morning.timeSlot.match(/～(\d{1,2})時/);
-            endH = endMatch ? endMatch[1] : '9';
-          }
+          var endH = '9';
+          if (morning) { var endMatch = morning.timeSlot.match(/～(\d{1,2})時/); endH = endMatch ? endMatch[1] : '9'; }
           ev.timeSlot = startH + '-' + endH + '時';
           if (lateNight) toRemove[day + '_' + emp + '_' + lateNight.timeSlot] = true;
-          if (morning)   toRemove[nextDay + '_' + emp + '_' + morning.timeSlot] = true;
+          if (morning) toRemove[nextDay + '_' + emp + '_' + morning.timeSlot] = true;
         }
       }
     }
 
-    // 削除対象を除去
     for (var di = 0; di < dayNums.length; di++) {
       var d = dayNums[di];
       var key = String(d);
       if (!dates[key]) continue;
-      dates[key] = dates[key].filter(function(s) {
-        return !toRemove[d + '_' + s.empNo + '_' + s.timeSlot];
-      });
+      dates[key] = dates[key].filter(function(s) { return !toRemove[d + '_' + s.empNo + '_' + s.timeSlot]; });
       if (dates[key].length === 0) delete dates[key];
     }
     return dates;
@@ -605,7 +931,6 @@
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (!data.data || data.data.length < 2) return;
-        var headers = data.data[0];
         staffList = [];
         for (var i = 1; i < data.data.length; i++) {
           var row = data.data[i];
@@ -613,21 +938,13 @@
           var name = String(row[1] || '').trim();
           var kana = String(row[2] || '').trim();
           var status = String(row[3] || '').trim();
-          // 在職者のみ（「退職」等を除外）
           if (!empNo || !name) continue;
           if (status && (status.indexOf('退職') >= 0 || status.indexOf('退社') >= 0)) continue;
-          staffList.push({
-            empNo: empNo.padStart(3, '0'),
-            name: name,
-            kana: kana
-          });
+          staffList.push({ empNo: empNo.padStart(3, '0'), name: name, kana: kana });
         }
         staffListLoaded = true;
-        console.log('[Admin] Staff list loaded:', staffList.length, 'members');
       })
-      .catch(function(err) {
-        console.error('[Admin] Staff list load error:', err);
-      });
+      .catch(function(err) { console.error('[Admin] Staff list load error:', err); });
   }
 
   // --- Shift Modal ---
@@ -636,9 +953,8 @@
     var mm = ('0' + month).slice(-2);
     var dd = ('0' + day).slice(-2);
     modalDate = { year: year, month: month, day: day, yearMonth: year + '-' + mm, dateStr: year + '/' + mm + '/' + dd };
-
     document.getElementById('modalInfo').textContent = facility.name + ' / ' + year + '年' + month + '月' + day + '日';
-    document.getElementById('modalTimeSlot').value = '';
+    document.getElementById('modalTimeSlot').value = '夜勤(17-9時)';
     document.getElementById('staffSearchInput').value = '';
     document.getElementById('selectedEmpNo').value = '';
     document.getElementById('selectedEmpName').value = '';
@@ -654,12 +970,10 @@
     modalDate = null;
   };
 
-  // Close modal on overlay click
   document.getElementById('shiftModal').addEventListener('click', function(e) {
     if (e.target === this) closeShiftModal();
   });
 
-  // Staff search
   var staffSearchInput = document.getElementById('staffSearchInput');
   var staffDropdown = document.getElementById('staffDropdown');
 
@@ -667,16 +981,9 @@
     var query = this.value.trim().toLowerCase();
     if (!query) { staffDropdown.classList.remove('open'); return; }
     var filtered = staffList.filter(function(s) {
-      return s.name.toLowerCase().indexOf(query) >= 0 ||
-             s.empNo.indexOf(query) >= 0 ||
-             s.kana.toLowerCase().indexOf(query) >= 0;
+      return s.name.toLowerCase().indexOf(query) >= 0 || s.empNo.indexOf(query) >= 0 || s.kana.toLowerCase().indexOf(query) >= 0;
     }).slice(0, 20);
-
-    if (filtered.length === 0) {
-      staffDropdown.classList.remove('open');
-      return;
-    }
-
+    if (filtered.length === 0) { staffDropdown.classList.remove('open'); return; }
     staffDropdown.innerHTML = '';
     for (var i = 0; i < filtered.length; i++) {
       var item = document.createElement('div');
@@ -696,17 +1003,8 @@
     staffDropdown.classList.add('open');
   });
 
-  staffSearchInput.addEventListener('focus', function() {
-    if (this.value.trim()) this.dispatchEvent(new Event('input'));
-  });
-
-  // Close dropdown on outside click
-  document.addEventListener('click', function(e) {
-    if (!e.target.closest('.staff-search-wrap')) {
-      staffDropdown.classList.remove('open');
-    }
-  });
-
+  staffSearchInput.addEventListener('focus', function() { if (this.value.trim()) this.dispatchEvent(new Event('input')); });
+  document.addEventListener('click', function(e) { if (!e.target.closest('.staff-search-wrap')) staffDropdown.classList.remove('open'); });
   document.getElementById('modalTimeSlot').addEventListener('change', updateSaveButton);
 
   function updateSaveButton() {
@@ -715,75 +1013,49 @@
     document.getElementById('btnSaveShift').disabled = !(ts && emp);
   }
 
-  // --- Save Shift ---
   window.saveShift = function() {
     var timeSlot = document.getElementById('modalTimeSlot').value;
     var empNo = document.getElementById('selectedEmpNo').value;
     var empName = document.getElementById('selectedEmpName').value;
     if (!timeSlot || !empNo || !modalFacility || !modalDate) return;
-
     var btn = document.getElementById('btnSaveShift');
     btn.disabled = true;
     btn.textContent = '保存中...';
-
     var fac = modalFacility;
     var dt = modalDate;
     var rows = buildShiftRows(fac, dt, timeSlot, empNo, empName);
+    var payload = { action: 'append', key: API_KEY, sheet: 'シフトデータ', data: rows };
 
-    var payload = {
-      action: 'append',
-      key: API_KEY,
-      sheet: 'シフトデータ',
-      data: rows
-    };
-
-    fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      redirect: 'follow'
-    })
+    fetch(GAS_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), redirect: 'follow' })
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.error) throw new Error(data.error);
       closeShiftModal();
       showToast('シフトを追加しました');
-      loadData();
+      tabDataLoaded.facility = false;
+      loadFacilityData();
     })
-    .catch(function(err) {
-      console.error('[Admin] Save shift error:', err);
-      showToast('保存エラー: ' + (err.message || String(err)));
-    })
-    .finally(function() {
-      btn.disabled = false;
-      btn.textContent = '保存';
-    });
+    .catch(function(err) { showToast('保存エラー: ' + (err.message || String(err))); })
+    .finally(function() { btn.disabled = false; btn.textContent = '保存'; });
   };
 
   function buildShiftRows(fac, dt, timeSlot, empNo, empName) {
     var area = fac.area || '';
     var facName = fac.name || '';
     var facId = fac.facilityId || fac.facId || '';
-
     if (timeSlot === '夜勤(17-9時)') {
-      // 3行書き込み: 17時～22時, 22時～, 翌日6時～9時
       var nextDate = new Date(dt.year, dt.month - 1, dt.day + 1);
       var nextYM = nextDate.getFullYear() + '-' + ('0' + (nextDate.getMonth() + 1)).slice(-2);
       var nextDateStr = nextDate.getFullYear() + '/' + ('0' + (nextDate.getMonth() + 1)).slice(-2) + '/' + ('0' + nextDate.getDate()).slice(-2);
-
       return [
         [dt.yearMonth, dt.dateStr, area, facName, facId, '17時～22時', empName, empNo, empName],
-        [dt.yearMonth, dt.dateStr, area, facName, facId, '22時～',     empName, empNo, empName],
-        [nextYM,       nextDateStr, area, facName, facId, '6時～9時',  empName, empNo, empName]
+        [dt.yearMonth, dt.dateStr, area, facName, facId, '22時～', empName, empNo, empName],
+        [nextYM, nextDateStr, area, facName, facId, '6時～9時', empName, empNo, empName]
       ];
     }
-
-    return [
-      [dt.yearMonth, dt.dateStr, area, facName, facId, timeSlot, empName, empNo, empName]
-    ];
+    return [[dt.yearMonth, dt.dateStr, area, facName, facId, timeSlot, empName, empNo, empName]];
   }
 
-  // --- Toast ---
   function showToast(msg) {
     var toast = document.getElementById('toast');
     toast.textContent = msg;

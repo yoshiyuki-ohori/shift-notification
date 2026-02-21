@@ -26,6 +26,11 @@ function onOpen() {
     .addItem('一斉メッセージ送信 (全友だち)', 'sendBroadcastMessage')
     .addToUi();
 
+  ui.createMenu('社員マスタ')
+    .addItem('外部マスタから同期 (手動)', 'runManualSync')
+    .addItem('毎日自動同期トリガー設定', 'setupDailySyncTrigger')
+    .addToUi();
+
   ui.createMenu('シフト希望')
     .addItem('希望収集を開始', 'startPreferenceCollection')
     .addItem('希望収集を締切', 'closePreferenceCollection')
@@ -34,6 +39,14 @@ function onOpen() {
     .addItem('未提出者にリマインド送信', 'sendPreferenceReminders')
     .addSeparator()
     .addItem('希望一覧シート表示', 'showPreferenceSheet')
+    .addToUi();
+
+  ui.createMenu('労基チェック')
+    .addItem('労基チェック実行', 'runComplianceCheckMenu')
+    .addItem('配置充足率チェック', 'runStaffingCheckMenu')
+    .addSeparator()
+    .addItem('労基チェック結果表示', 'showComplianceResults')
+    .addItem('労基ルール設定表示', 'showLaborRulesSheet')
     .addToUi();
 }
 
@@ -63,6 +76,9 @@ function importNerimaShifts() {
     }
 
     ui.alert('取込完了', '練馬エリア: ' + totalRecords + '件のシフトデータを取り込みました。', ui.ButtonSet.OK);
+
+    // 自動コンプライアンスチェック
+    runAutoComplianceCheck_(targetMonth);
   } catch (e) {
     ui.alert('エラー', '練馬シフト取込でエラーが発生しました:\n' + e.message, ui.ButtonSet.OK);
     Logger.log('importNerimaShifts error: ' + e.toString());
@@ -93,6 +109,9 @@ function importSetagayaShifts() {
     }
 
     ui.alert('取込完了', '世田谷エリア: ' + totalRecords + '件のシフトデータを取り込みました。', ui.ButtonSet.OK);
+
+    // 自動コンプライアンスチェック
+    runAutoComplianceCheck_(targetMonth);
   } catch (e) {
     ui.alert('エラー', '世田谷シフト取込でエラーが発生しました:\n' + e.message, ui.ButtonSet.OK);
     Logger.log('importSetagayaShifts error: ' + e.toString());
@@ -567,6 +586,12 @@ function setupSheets() {
     sheet.setFrozenRows(1);
   }
 
+  // 労基ルール
+  setupLaborRulesSheet();
+
+  // 労基チェック結果
+  setupComplianceResultSheet();
+
   SpreadsheetApp.getUi().alert('セットアップ完了', '全シートの初期設定が完了しました。', SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
@@ -861,4 +886,191 @@ function autoSendPreferenceReminder() {
   Logger.log('Auto reminder sent: ' + result.sent + ' success, ' + result.failed + ' failed');
 
   deletePreferenceReminderTriggers_();
+}
+
+// ===== 労基チェック関連 =====
+
+/**
+ * メニューから労基チェックを実行
+ */
+function runComplianceCheckMenu() {
+  var ui = SpreadsheetApp.getUi();
+  try {
+    var targetMonth = getSettingValue(SETTING_KEYS.TARGET_MONTH);
+    var confirm = ui.alert('労基チェック実行',
+      '対象年月: ' + targetMonth + '\n\n' +
+      '労働基準法に基づくコンプライアンスチェックを実行します。\n' +
+      '結果は「労基チェック結果」シートに出力されます。',
+      ui.ButtonSet.OK_CANCEL);
+
+    if (confirm !== ui.Button.OK) return;
+
+    var result = runComplianceCheck(targetMonth);
+    writeComplianceResults(targetMonth, result);
+
+    var msg = '【チェック完了】\n' +
+      '対象: ' + result.summary.checkedEmployees + '名\n' +
+      '違反: ' + result.summary.totalViolations + '件\n' +
+      '警告: ' + result.summary.totalWarnings + '件\n' +
+      '問題のある職員: ' + result.summary.employeesWithIssues + '名';
+
+    if (result.summary.totalViolations > 0) {
+      msg += '\n\n【重大違反あり】\n';
+      for (var i = 0; i < Math.min(result.violations.length, 5); i++) {
+        var v = result.violations[i];
+        msg += '- ' + v.employeeName + ': ' + v.detail + '\n';
+      }
+      if (result.violations.length > 5) {
+        msg += '...他' + (result.violations.length - 5) + '件';
+      }
+    }
+
+    ui.alert('労基チェック結果', msg, ui.ButtonSet.OK);
+
+    // 結果シートを表示
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName(SHEET_NAMES.COMPLIANCE_RESULT);
+    if (sheet) ss.setActiveSheet(sheet);
+  } catch (e) {
+    ui.alert('エラー', '労基チェックでエラーが発生しました:\n' + e.message, ui.ButtonSet.OK);
+    Logger.log('runComplianceCheckMenu error: ' + e.toString());
+  }
+}
+
+/**
+ * メニューから配置充足率チェックを実行
+ */
+function runStaffingCheckMenu() {
+  var ui = SpreadsheetApp.getUi();
+  try {
+    var targetMonth = getSettingValue(SETTING_KEYS.TARGET_MONTH);
+    var result = checkStaffingLevels(targetMonth);
+
+    var msg = '【配置充足率チェック結果】\n対象年月: ' + targetMonth + '\n\n';
+
+    // エリア別サマリー
+    var areas = Object.keys(result.areaSummary);
+    for (var i = 0; i < areas.length; i++) {
+      var area = areas[i];
+      var s = result.areaSummary[area];
+      msg += '■ ' + area + 'エリア\n';
+      msg += '  充足率: ' + s.avgFillRate + '%\n';
+      msg += '  不足: ' + s.shortage + '件 / 注意: ' + s.caution + '件 / OK: ' + s.ok + '件\n\n';
+    }
+
+    if (result.alerts.length > 0) {
+      msg += '【要対応（人員不足）】\n';
+      for (var j = 0; j < Math.min(result.alerts.length, 10); j++) {
+        var a = result.alerts[j];
+        msg += '- ' + a.facilityName + ' ' + formatShortDate_(a.date) + ' ' + a.timeSlot +
+               ' (' + a.assigned + '/' + a.required + '名)\n';
+      }
+      if (result.alerts.length > 10) {
+        msg += '...他' + (result.alerts.length - 10) + '件';
+      }
+    }
+
+    ui.alert('配置充足率', msg, ui.ButtonSet.OK);
+  } catch (e) {
+    ui.alert('エラー', '配置充足率チェックでエラーが発生しました:\n' + e.message, ui.ButtonSet.OK);
+    Logger.log('runStaffingCheckMenu error: ' + e.toString());
+  }
+}
+
+/**
+ * 労基チェック結果シートを表示
+ */
+function showComplianceResults() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAMES.COMPLIANCE_RESULT);
+  if (sheet) {
+    ss.setActiveSheet(sheet);
+  } else {
+    SpreadsheetApp.getUi().alert('情報', '労基チェック結果はまだありません。', SpreadsheetApp.getUi().ButtonSet.OK);
+  }
+}
+
+/**
+ * 労基ルール設定シートを表示
+ */
+function showLaborRulesSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAMES.LABOR_RULES);
+  if (sheet) {
+    ss.setActiveSheet(sheet);
+  } else {
+    // シートが無ければ作成
+    setupLaborRulesSheet();
+    sheet = ss.getSheetByName(SHEET_NAMES.LABOR_RULES);
+    if (sheet) ss.setActiveSheet(sheet);
+  }
+}
+
+/**
+ * シフト取込後の自動コンプライアンスチェック
+ * @param {string} targetMonth - 対象年月
+ * @private
+ */
+function runAutoComplianceCheck_(targetMonth) {
+  try {
+    var result = runComplianceCheck(targetMonth);
+    writeComplianceResults(targetMonth, result);
+
+    if (result.summary.totalViolations > 0) {
+      // 重大違反があればアラート表示
+      var ui = SpreadsheetApp.getUi();
+      var msg = '【労基チェック自動実行結果】\n' +
+        '違反: ' + result.summary.totalViolations + '件\n' +
+        '警告: ' + result.summary.totalWarnings + '件\n\n';
+
+      for (var i = 0; i < Math.min(result.violations.length, 5); i++) {
+        var v = result.violations[i];
+        msg += '- ' + v.employeeName + ': ' + v.detail + '\n';
+      }
+
+      ui.alert('労基違反検知', msg, ui.ButtonSet.OK);
+
+      // 管理者へLINE Push通知
+      notifyComplianceViolation_(targetMonth, result);
+    }
+
+    Logger.log('Auto compliance check: ' + result.summary.totalViolations + ' violations, ' +
+               result.summary.totalWarnings + ' warnings');
+  } catch (e) {
+    Logger.log('runAutoComplianceCheck_ error: ' + e.toString());
+  }
+}
+
+/**
+ * 重大違反時の管理者LINE通知
+ * @param {string} targetMonth - 対象年月
+ * @param {Object} result - チェック結果
+ * @private
+ */
+function notifyComplianceViolation_(targetMonth, result) {
+  try {
+    var adminUserId = getSettingValue(SETTING_KEYS.ADMIN_NOTIFY_USER_ID);
+    if (!adminUserId) return;
+
+    var parts = targetMonth.split('-');
+    var displayMonth = parts[0] + '年' + parseInt(parts[1], 10) + '月';
+
+    var text = '【労基違反検知】' + displayMonth + '\n' +
+      '違反: ' + result.summary.totalViolations + '件\n' +
+      '警告: ' + result.summary.totalWarnings + '件\n\n';
+
+    for (var i = 0; i < Math.min(result.violations.length, 3); i++) {
+      var v = result.violations[i];
+      text += v.employeeName + ': ' + v.detail + '\n';
+    }
+    if (result.violations.length > 3) {
+      text += '...他' + (result.violations.length - 3) + '件';
+    }
+
+    text += '\n\n管理者ダッシュボードで詳細を確認してください。';
+
+    pushMessage(adminUserId, [createTextMessage(text)]);
+  } catch (e) {
+    Logger.log('notifyComplianceViolation_ error: ' + e.toString());
+  }
 }
