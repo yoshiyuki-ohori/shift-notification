@@ -180,11 +180,11 @@
 
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-box">
-    <h2>管理者ログイン</h2>
-    <p>APIキーを入力してください</p>
+    <h2>初期設定</h2>
+    <p>GAS URLを入力してください（APIキーは任意）</p>
     <div class="error" id="authError"></div>
     <input type="password" id="apiKeyInput" placeholder="ADMIN_API_KEY" autocomplete="off">
-    <button onclick="submitApiKey()">ログイン</button>
+    <button onclick="submitApiKey()">接続</button>
   </div>
 </div>
 
@@ -338,14 +338,14 @@
 
     updateMonthDisplay();
 
-    // TODO: ログイン機能は本番導入時に有効化する
-    // if (!API_KEY || !GAS_URL) {
-    //   showAuth();
-    // } else {
+    // GAS URLが未設定の場合のみ設定画面を表示（APIキーは任意）
+    if (!GAS_URL) {
+      showAuth();
+    } else {
       hideAuth();
       switchTab(activeTab);
       loadStaffList();
-    // }
+    }
   }
 
   // --- Auth ---
@@ -372,9 +372,8 @@
     var key = document.getElementById('apiKeyInput').value.trim();
     var urlInput = document.getElementById('gasUrlInput');
     var url = urlInput ? urlInput.value.trim() : GAS_URL;
-    if (!key) { document.getElementById('authError').textContent = 'APIキーを入力してください'; return; }
     if (!url) { document.getElementById('authError').textContent = 'GAS URLを入力してください'; return; }
-    API_KEY = key;
+    API_KEY = key || '';
     GAS_URL = url;
     localStorage.setItem('admin_api_key', API_KEY);
     localStorage.setItem('admin_gas_url', GAS_URL);
