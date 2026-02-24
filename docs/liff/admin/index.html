@@ -180,11 +180,11 @@
 
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-box">
-    <h2>初期設定</h2>
-    <p>GAS URLを入力してください（APIキーは任意）</p>
+    <h2>管理者ログイン</h2>
+    <p>パスワードを入力してください</p>
     <div class="error" id="authError"></div>
-    <input type="password" id="apiKeyInput" placeholder="ADMIN_API_KEY" autocomplete="off">
-    <button onclick="submitApiKey()">接続</button>
+    <input type="password" id="passwordInput" placeholder="パスワード" autocomplete="off">
+    <button onclick="submitPassword()">ログイン</button>
   </div>
 </div>
 
@@ -317,11 +317,15 @@
   // --- Init ---
   function init() {
     var params = new URLSearchParams(location.search);
-    API_KEY = params.get('key') || localStorage.getItem('admin_api_key') || '';
-    GAS_URL = params.get('gas_url') || localStorage.getItem('admin_gas_url') || '';
-    // テスト用ダミー値が残っていたらクリア
+
+    // URLパラメータでGAS URL/APIキーが渡された場合はlocalStorageに保存
+    if (params.get('gas_url')) { localStorage.setItem('admin_gas_url', params.get('gas_url')); }
+    if (params.get('key')) { localStorage.setItem('admin_api_key', params.get('key')); }
+
+    API_KEY = localStorage.getItem('admin_api_key') || '';
+    GAS_URL = localStorage.getItem('admin_gas_url') || '';
+    // ダミー値クリア
     if (GAS_URL === 'aaa') { GAS_URL = ''; localStorage.removeItem('admin_gas_url'); }
-    if (API_KEY === '111') { API_KEY = ''; localStorage.removeItem('admin_api_key'); }
 
     var monthParam = params.get('month') || '';
     if (monthParam && /^\d{4}-\d{2}$/.test(monthParam)) {
@@ -333,7 +337,6 @@
       currentMonth = now.getMonth() + 1;
     }
 
-    // Tab from URL
     var tabParam = params.get('tab') || '';
     if (['facility','compliance','staffing'].indexOf(tabParam) >= 0) {
       activeTab = tabParam;
@@ -341,49 +344,50 @@
 
     updateMonthDisplay();
 
-    // GAS URL未設定時のみ初期設定画面を表示（1回入力すればlocalStorageに保存）
-    if (!GAS_URL) {
-      showAuth();
-    } else {
+    // ログイン済み（localStorageにGAS URL保存済み）ならスキップ
+    var loggedIn = localStorage.getItem('admin_logged_in') === 'true';
+    if (loggedIn && GAS_URL) {
       hideAuth();
       switchTab(activeTab);
       loadStaffList();
+    } else {
+      showAuth();
     }
   }
 
   // --- Auth ---
   function showAuth() {
-    var overlay = document.getElementById('authOverlay');
-    overlay.style.display = 'flex';
-    if (!GAS_URL) {
-      var box = overlay.querySelector('.auth-box');
-      if (!document.getElementById('gasUrlInput')) {
-        var urlInput = document.createElement('input');
-        urlInput.type = 'text';
-        urlInput.id = 'gasUrlInput';
-        urlInput.placeholder = 'GAS WebApp URL (https://script.google.com/...)';
-        box.insertBefore(urlInput, box.querySelector('button'));
-      }
-    }
+    document.getElementById('authOverlay').style.display = 'flex';
   }
 
   function hideAuth() {
     document.getElementById('authOverlay').style.display = 'none';
   }
 
-  window.submitApiKey = function() {
-    var key = document.getElementById('apiKeyInput').value.trim();
-    var urlInput = document.getElementById('gasUrlInput');
-    var url = urlInput ? urlInput.value.trim() : GAS_URL;
-    if (!url) { document.getElementById('authError').textContent = 'GAS URLを入力してください'; return; }
-    API_KEY = key || '';
-    GAS_URL = url;
-    localStorage.setItem('admin_api_key', API_KEY);
-    localStorage.setItem('admin_gas_url', GAS_URL);
+  window.submitPassword = function() {
+    var pw = document.getElementById('passwordInput').value;
+    // パスワード照合（SHA等は使わずシンプルに）
+    var hash = 0;
+    for (var i = 0; i < pw.length; i++) { hash = ((hash << 5) - hash) + pw.charCodeAt(i); hash |= 0; }
+    if (hash !== 490009618) {
+      document.getElementById('authError').textContent = 'パスワードが違います';
+      return;
+    }
+    localStorage.setItem('admin_logged_in', 'true');
     hideAuth();
+    // GAS URLが未設定なら初回URLパラメータ経由で設定が必要
+    if (!GAS_URL) {
+      document.getElementById('authError').textContent = '';
+      showToast('GAS URLを設定してください（URLパラメータ: ?gas_url=...）');
+    }
     switchTab(activeTab);
     loadStaffList();
   };
+
+  // Enterキーでログイン
+  document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') submitPassword();
+  });
 
   // --- Tabs ---
   window.switchTab = function(tab) {
