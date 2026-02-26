@@ -131,6 +131,9 @@ function handleEmpLookup_(params) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
+  // 全角数字→半角変換
+  empNo = empNo.replace(/[０-９]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+
   if (!empNo) {
     return ContentService.createTextOutput(JSON.stringify({ error: '社員番号を入力してください。' }))
       .setMimeType(ContentService.MimeType.JSON);

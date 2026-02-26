@@ -1079,8 +1079,12 @@ function showRegisterView() {
   document.getElementById('regError').textContent = '';
 }
 
+function toHalfWidth(s) {
+  return s.replace(/[０-９]/g, function(c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); });
+}
+
 function lookupEmployee() {
-  var empNo = document.getElementById('regEmpNo').value.trim();
+  var empNo = toHalfWidth(document.getElementById('regEmpNo').value).trim();
   if (!empNo) {
     document.getElementById('regError').textContent = t('regErrEmpty');
     return;
