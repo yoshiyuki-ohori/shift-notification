@@ -36,14 +36,14 @@ function aggregateByEmployee(targetMonth) {
   const grouped = new Map();
 
   for (let i = 1; i < shiftData.length; i++) {
-    const yearMonth = String(shiftData[i][SHIFT_COLS.YEAR_MONTH - 1]).trim();
+    var yearMonth = formatYearMonth_(shiftData[i][SHIFT_COLS.YEAR_MONTH - 1]);
     if (yearMonth !== targetMonth) continue;
 
-    const employeeNo = String(shiftData[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim();
+    const employeeNo = String(shiftData[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0');
     if (!employeeNo) continue;
 
     const shift = {
-      date: String(shiftData[i][SHIFT_COLS.DATE - 1]).trim(),
+      date: formatDateValue_(shiftData[i][SHIFT_COLS.DATE - 1]),
       timeSlot: String(shiftData[i][SHIFT_COLS.TIME_SLOT - 1]).trim(),
       facility: String(shiftData[i][SHIFT_COLS.FACILITY - 1]).trim()
     };

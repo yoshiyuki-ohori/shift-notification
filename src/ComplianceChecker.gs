@@ -92,7 +92,7 @@ function buildShiftMap_(targetMonth) {
     }
     if (yearMonth !== targetMonth) continue;
 
-    var empNo = String(data[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim();
+    var empNo = String(data[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0');
     if (!empNo) continue;
 
     var rawDate = data[i][SHIFT_COLS.DATE - 1];

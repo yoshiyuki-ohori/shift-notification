@@ -32,12 +32,11 @@ const SHIFT_COLS = {
   YEAR_MONTH: 1,  // A: 年月
   DATE: 2,        // B: 日付
   AREA: 3,        // C: エリア
-  FACILITY: 4,    // D: 施設名(正式)
-  FACILITY_ID: 5, // E: 施設コード
-  TIME_SLOT: 6,   // F: 時間帯
-  ORIGINAL_NAME: 7,// G: 担当者名(原文)
-  EMPLOYEE_NO: 8, // H: 社員No
-  FORMAL_NAME: 9  // I: 氏名(正式)
+  FACILITY: 4,    // D: 施設名
+  TIME_SLOT: 5,   // E: 時間帯
+  ORIGINAL_NAME: 6,// F: 担当者名(原文)
+  EMPLOYEE_NO: 7, // G: 社員No
+  FORMAL_NAME: 8  // H: 氏名(正式)
 };
 
 // ===== 送信ログ列定数 =====
@@ -232,6 +231,35 @@ function setSettingValue(key, value) {
   // キーが無い場合は追記
   const lastRow = sheet.getLastRow();
   sheet.getRange(lastRow + 1, 1, 1, 2).setValues([[key, value]]);
+}
+
+/**
+ * 日付値を "YYYY/MM/DD" 形式の文字列に変換
+ * Google Sheets が Date オブジェクトを返す場合に対応
+ * @param {Date|string} rawDate - セルの日付値
+ * @return {string} "YYYY/MM/DD" 形式
+ */
+function formatDateValue_(rawDate) {
+  if (rawDate instanceof Date) {
+    var y = rawDate.getFullYear();
+    var m = ('0' + (rawDate.getMonth() + 1)).slice(-2);
+    var d = ('0' + rawDate.getDate()).slice(-2);
+    return y + '/' + m + '/' + d;
+  }
+  return String(rawDate).trim();
+}
+
+/**
+ * 年月値を "YYYY-MM" 形式の文字列に変換
+ * Google Sheets が Date オブジェクトを返す場合に対応
+ * @param {Date|string} rawYM - セルの年月値
+ * @return {string} "YYYY-MM" 形式
+ */
+function formatYearMonth_(rawYM) {
+  if (rawYM instanceof Date) {
+    return rawYM.getFullYear() + '-' + ('0' + (rawYM.getMonth() + 1)).slice(-2);
+  }
+  return String(rawYM).trim();
 }
 
 // ===== LINEチャネル種別 =====

@@ -32,6 +32,26 @@ body {
 }
 .header h1 { font-size: 16px; font-weight: 700; }
 .header .emp-name { font-size: 13px; opacity: 0.9; margin-top: 2px; }
+.lang-switcher {
+  display: flex;
+  gap: 4px;
+}
+.lang-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #FFF;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+}
+.lang-btn.active {
+  background: #FFF;
+  color: #1DB446;
+}
+.lang-btn:active { opacity: 0.8; }
 .month-nav {
   display: flex;
   align-items: center;
@@ -56,7 +76,7 @@ body {
 .month-label {
   font-size: 18px;
   font-weight: 700;
-  min-width: 120px;
+  min-width: 140px;
   text-align: center;
 }
 
@@ -166,7 +186,9 @@ body {
   position: relative;
 }
 .cal-cell.empty { background: #FAFAFA; }
-.cal-cell.today { background: #F0FFF4; }
+.cal-cell.today { background: #D4EDDA; border: 2px solid #1DB446; }
+.cal-cell.has-shift { background: #E8F5E9; }
+.cal-cell.has-shift.today { background: #C8E6C9; }
 .cal-day {
   font-size: 11px;
   font-weight: 600;
@@ -177,8 +199,8 @@ body {
 .cal-cell.sunday .cal-day { color: #E74C3C; }
 .cal-cell.saturday .cal-day { color: #2980B9; }
 .cal-pill {
-  font-size: 8px;
-  padding: 1px 3px;
+  font-size: 9px;
+  padding: 2px 3px;
   border-radius: 3px;
   color: #FFF;
   margin-top: 1px;
@@ -223,8 +245,142 @@ body {
 
 /* ===== 空状態 ===== */
 .empty-state { text-align: center; padding: 40px 20px; color: #AAA; }
-.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  background: #1DB446;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #FFF;
+  font-weight: 700;
+  line-height: 1;
+}
+.empty-icon .ei-month { font-size: 10px; background: #FFF; color: #E74C3C; width: 100%; text-align: center; border-radius: 10px 10px 0 0; padding: 2px 0; }
+.empty-icon .ei-day { font-size: 22px; margin-top: 2px; }
 .empty-state p { font-size: 14px; }
+
+/* ===== 管理者バー ===== */
+.admin-bar {
+  background: #FFF3CD;
+  border-bottom: 2px solid #FFC107;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-badge {
+  background: #FF6B00;
+  color: #FFF;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.admin-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #DDD;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+}
+.admin-input:focus { border-color: #FFC107; }
+.admin-search-btn {
+  background: #FF6B00;
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-search-btn:active { background: #E05D00; }
+.admin-overview-btn {
+  background: #1976D2;
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-overview-btn:active { background: #1565C0; }
+.admin-viewing {
+  font-size: 12px;
+  color: #856404;
+  margin-top: 4px;
+  padding: 0 16px;
+  background: #FFF3CD;
+  padding-bottom: 8px;
+}
+
+/* ===== 全体シフト一覧 ===== */
+.overview-summary {
+  display: flex; gap: 8px; padding: 12px 16px; flex-wrap: wrap;
+}
+.overview-summary .stat-card { flex: 1; min-width: 80px; }
+.facility-card {
+  background: #FFF;
+  margin: 8px 16px;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.facility-card-header {
+  background: #F8F9FA;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #EEE;
+}
+.facility-card-header h3 {
+  font-size: 14px; font-weight: 700; color: #333; margin: 0;
+}
+.facility-card-header .fac-meta {
+  font-size: 11px; color: #888;
+}
+.facility-card-body { display: none; padding: 0; }
+.facility-card.open .facility-card-body { display: block; }
+.facility-card-header .toggle-icon {
+  font-size: 12px; color: #999; transition: transform 0.2s;
+}
+.facility-card.open .toggle-icon { transform: rotate(90deg); }
+.day-row {
+  display: flex; align-items: flex-start; padding: 6px 14px;
+  border-bottom: 1px solid #F0F0F0; font-size: 13px;
+}
+.day-row:last-child { border-bottom: none; }
+.day-label {
+  min-width: 48px; font-weight: 600; color: #555; padding-top: 2px;
+}
+.day-label.sun { color: #E74C3C; }
+.day-label.sat { color: #2980B9; }
+.day-shifts { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; }
+.shift-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 8px; border-radius: 10px; font-size: 11px;
+  background: #F0F0F0; color: #333;
+}
+.shift-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.back-to-my {
+  display: inline-block; margin: 8px 16px;
+  color: #1976D2; font-size: 13px; font-weight: 600;
+  cursor: pointer; text-decoration: underline;
+}
 
 /* ===== フッター ===== */
 .footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
@@ -236,8 +392,13 @@ body {
 <div class="header" id="header">
   <div class="header-top">
     <div>
-      <h1>マイシフト</h1>
+      <h1 id="appTitle">マイシフト</h1>
       <div class="emp-name" id="empName"></div>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('ja')">JP</button>
+      <button class="lang-btn" onclick="setLang('zh')">CN</button>
+      <button class="lang-btn" onclick="setLang('vi')">VN</button>
     </div>
   </div>
   <div class="month-nav">
@@ -247,10 +408,44 @@ body {
   </div>
 </div>
 
+<!-- 管理者バー -->
+<div id="adminBar" style="display:none;">
+  <div class="admin-bar">
+    <span class="admin-badge">管理者</span>
+    <input type="text" class="admin-input" id="adminEmpNo" inputmode="numeric" pattern="[0-9]*" placeholder="社員番号">
+    <button class="admin-search-btn" onclick="adminSearch()">表示</button>
+    <button class="admin-overview-btn" onclick="loadOverview()">全体</button>
+  </div>
+  <div class="admin-viewing" id="adminViewing" style="display:none;"></div>
+</div>
+
+<!-- 全体シフト一覧 -->
+<div id="overviewContent" style="display:none;">
+  <div class="overview-summary">
+    <div class="stat-card">
+      <div class="stat-value" id="ovFacCount">0</div>
+      <div class="stat-label">施設数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="ovShiftCount">0</div>
+      <div class="stat-label">シフト数</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="ovStaffCount">0</div>
+      <div class="stat-label">職員数</div>
+    </div>
+  </div>
+  <div style="padding:0 16px 8px;display:flex;justify-content:space-between;align-items:center;">
+    <span class="back-to-my" onclick="backToMyShift()">← マイシフトに戻る</span>
+    <input type="text" id="ovSearch" placeholder="施設名で検索" oninput="filterFacilities()" style="padding:6px 10px;border:1px solid #DDD;border-radius:8px;font-size:12px;width:140px;outline:none;">
+  </div>
+  <div id="facilityList"></div>
+</div>
+
 <!-- ローディング -->
 <div class="loading" id="loadingView">
   <div class="spinner"></div>
-  <div class="loading-text">シフトデータを読み込み中...</div>
+  <div class="loading-text" id="loadingText">シフトデータを読み込み中...</div>
 </div>
 
 <!-- エラー -->
@@ -260,8 +455,8 @@ body {
 <div id="registerView" style="display:none;">
   <div style="background:#FFF;margin:20px 16px;padding:24px;border-radius:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
     <div style="font-size:40px;margin-bottom:12px;">&#128100;</div>
-    <h2 style="font-size:16px;color:#333;margin-bottom:8px;">社員登録</h2>
-    <p style="font-size:13px;color:#888;margin-bottom:20px;line-height:1.5;">
+    <h2 style="font-size:16px;color:#333;margin-bottom:8px;" id="regTitle">社員登録</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:20px;line-height:1.5;" id="regDesc">
       はじめにご自身の社員番号を<br>入力してください
     </p>
     <div id="regStep1">
@@ -269,29 +464,29 @@ body {
         style="width:80%;padding:12px 16px;border:2px solid #DDD;border-radius:8px;font-size:16px;text-align:center;outline:none;"
         onfocus="this.style.borderColor='#1DB446'" onblur="this.style.borderColor='#DDD'">
       <div id="regError" style="color:#E74C3C;font-size:13px;margin-top:8px;min-height:20px;white-space:pre-line;"></div>
-      <button onclick="lookupEmployee()" style="margin-top:12px;background:#1DB446;color:#FFF;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:600;cursor:pointer;width:80%;">
+      <button onclick="lookupEmployee()" id="regConfirmBtn" style="margin-top:12px;background:#1DB446;color:#FFF;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:600;cursor:pointer;width:80%;">
         確認
       </button>
     </div>
     <div id="regStep2" style="display:none;">
       <div style="background:#F0FFF4;border-radius:10px;padding:16px;margin-bottom:16px;">
-        <div style="font-size:13px;color:#888;">社員番号: <span id="confirmEmpNo"></span></div>
-        <div style="font-size:22px;font-weight:700;color:#333;margin-top:4px;"><span id="confirmName"></span> さん</div>
+        <div style="font-size:13px;color:#888;" id="confirmEmpNoLabel">社員番号: <span id="confirmEmpNo"></span></div>
+        <div style="font-size:22px;font-weight:700;color:#333;margin-top:4px;"><span id="confirmName"></span> <span id="confirmSuffix">さん</span></div>
       </div>
-      <p style="font-size:14px;color:#555;margin-bottom:16px;">この方で間違いないですか？</p>
+      <p style="font-size:14px;color:#555;margin-bottom:16px;" id="regAskConfirm">この方で間違いないですか？</p>
       <div style="display:flex;gap:10px;justify-content:center;">
-        <button onclick="cancelRegister()" style="background:#EEE;color:#555;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
+        <button onclick="cancelRegister()" id="regBackBtn" style="background:#EEE;color:#555;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
           戻る
         </button>
-        <button onclick="confirmRegister()" style="background:#1DB446;color:#FFF;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
+        <button onclick="confirmRegister()" id="regRegisterBtn" style="background:#1DB446;color:#FFF;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
           登録する
         </button>
       </div>
     </div>
     <div id="regStep3" style="display:none;">
       <div style="font-size:40px;margin-bottom:8px;">&#9989;</div>
-      <p style="font-size:15px;color:#1DB446;font-weight:600;">登録が完了しました</p>
-      <p style="font-size:13px;color:#888;margin-top:8px;">シフトデータを読み込みます...</p>
+      <p style="font-size:15px;color:#1DB446;font-weight:600;" id="regDoneMsg">登録が完了しました</p>
+      <p style="font-size:13px;color:#888;margin-top:8px;" id="regDoneSub">シフトデータを読み込みます...</p>
     </div>
   </div>
 </div>
@@ -301,28 +496,28 @@ body {
   <div class="stats">
     <div class="stat-card">
       <div class="stat-value" id="statShifts">0</div>
-      <div class="stat-label">勤務回数</div>
+      <div class="stat-label" id="labelShifts">勤務回数</div>
     </div>
     <div class="stat-card">
       <div class="stat-value" id="statFacilities">0</div>
-      <div class="stat-label">施設数</div>
+      <div class="stat-label" id="labelFacilities">施設数</div>
     </div>
   </div>
 
   <div class="pref-status" id="prefStatus" style="display:none;">
     <div class="pref-info" id="prefInfo"></div>
-    <button class="pref-btn" onclick="openPreference()">希望を入力</button>
+    <button class="pref-btn" onclick="openPreference()" id="prefBtn">希望を入力</button>
   </div>
 
   <div class="calendar-section">
-    <div class="cal-header">
+    <div class="cal-header" id="calHeader">
       <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
     </div>
     <div class="cal-grid" id="calGrid"></div>
   </div>
 
   <div class="shift-list" id="shiftList">
-    <h2>シフト一覧</h2>
+    <h2 id="shiftListTitle">シフト一覧</h2>
     <div id="shiftItems"></div>
   </div>
 </div>
@@ -330,15 +525,164 @@ body {
 <div class="footer">Powered by LIFF</div>
 
 <script>
+// ===== 多言語テキスト =====
+var LANG = {
+  ja: {
+    appTitle: 'マイシフト',
+    loading: 'シフトデータを読み込み中...',
+    statShifts: '勤務回数',
+    statFacilities: '施設数',
+    shiftList: 'シフト一覧',
+    noShift: 'この月のシフトはありません',
+    prefSubmit: '希望提出',
+    prefCount: '件',
+    prefBtn: '希望を入力',
+    regTitle: '社員登録',
+    regDesc: 'はじめにご自身の社員番号を<br>入力してください',
+    regPlaceholder: '社員番号（例: 072）',
+    regConfirm: '確認',
+    regAsk: 'この方で間違いないですか？',
+    regBack: '戻る',
+    regRegister: '登録する',
+    regDone: '登録が完了しました',
+    regDoneSub: 'シフトデータを読み込みます...',
+    regEmpNoLabel: '社員番号',
+    regSuffix: 'さん',
+    regErrEmpty: '社員番号を入力してください。',
+    regErrComm: '通信エラーが発生しました。',
+    errToken: 'アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。',
+    errLiff: 'LIFF初期化に失敗しました。',
+    errNoData: 'データが取得できませんでした。',
+    errFetch: 'データの取得に失敗しました。',
+    days: ['日', '月', '火', '水', '木', '金', '土'],
+    monthFmt: function(y, m) { return y + '年' + m + '月'; }
+  },
+  zh: {
+    appTitle: '我的班次',
+    loading: '正在加载班次数据...',
+    statShifts: '工作次数',
+    statFacilities: '设施数',
+    shiftList: '班次列表',
+    noShift: '本月没有班次',
+    prefSubmit: '已提交意愿',
+    prefCount: '件',
+    prefBtn: '输入意愿',
+    regTitle: '员工注册',
+    regDesc: '请输入您的员工编号',
+    regPlaceholder: '员工编号（例: 072）',
+    regConfirm: '确认',
+    regAsk: '是这位员工吗？',
+    regBack: '返回',
+    regRegister: '注册',
+    regDone: '注册完成',
+    regDoneSub: '正在加载班次数据...',
+    regEmpNoLabel: '员工编号',
+    regSuffix: '',
+    regErrEmpty: '请输入员工编号。',
+    regErrComm: '通信错误，请重试。',
+    errToken: '无法获取访问令牌。\n请从LINE应用重新打开。',
+    errLiff: 'LIFF初始化失败。',
+    errNoData: '无法获取数据。',
+    errFetch: '数据获取失败。',
+    days: ['日', '一', '二', '三', '四', '五', '六'],
+    monthFmt: function(y, m) { return y + '年' + m + '月'; }
+  },
+  vi: {
+    appTitle: 'Ca làm của tôi',
+    loading: 'Đang tải dữ liệu ca làm...',
+    statShifts: 'Số ca làm',
+    statFacilities: 'Số cơ sở',
+    shiftList: 'Danh sách ca làm',
+    noShift: 'Không có ca làm trong tháng này',
+    prefSubmit: 'Đã gửi nguyện vọng',
+    prefCount: '',
+    prefBtn: 'Nhập nguyện vọng',
+    regTitle: 'Đăng ký nhân viên',
+    regDesc: 'Vui lòng nhập mã nhân viên của bạn',
+    regPlaceholder: 'Mã nhân viên (VD: 072)',
+    regConfirm: 'Xác nhận',
+    regAsk: 'Đây có đúng là bạn không?',
+    regBack: 'Quay lại',
+    regRegister: 'Đăng ký',
+    regDone: 'Đăng ký hoàn tất',
+    regDoneSub: 'Đang tải dữ liệu ca làm...',
+    regEmpNoLabel: 'Mã NV',
+    regSuffix: '',
+    regErrEmpty: 'Vui lòng nhập mã nhân viên.',
+    regErrComm: 'Lỗi kết nối. Vui lòng thử lại.',
+    errToken: 'Không thể lấy mã truy cập.\nVui lòng mở lại từ ứng dụng LINE.',
+    errLiff: 'Khởi tạo LIFF thất bại.',
+    errNoData: 'Không thể lấy dữ liệu.',
+    errFetch: 'Lỗi tải dữ liệu.',
+    days: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+    monthFmt: function(y, m) { return 'Tháng ' + m + '/' + y; }
+  }
+};
+
+var currentLang = 'ja';
+
+function t(key) { return LANG[currentLang][key] || LANG.ja[key] || key; }
+
+function setLang(lang) {
+  currentLang = lang;
+  try { localStorage.setItem('myshift_lang', lang); } catch(e) {}
+  // ボタンのアクティブ状態更新
+  var btns = document.querySelectorAll('.lang-btn');
+  btns.forEach(function(b) {
+    b.classList.toggle('active', b.textContent.trim() === {ja:'JP',zh:'CN',vi:'VN'}[lang]);
+  });
+  applyLang();
+}
+
+function applyLang() {
+  document.getElementById('appTitle').textContent = t('appTitle');
+  document.getElementById('loadingText').textContent = t('loading');
+  document.getElementById('labelShifts').textContent = t('statShifts');
+  document.getElementById('labelFacilities').textContent = t('statFacilities');
+  document.getElementById('shiftListTitle').textContent = t('shiftList');
+  document.getElementById('prefBtn').textContent = t('prefBtn');
+  document.getElementById('regTitle').textContent = t('regTitle');
+  document.getElementById('regDesc').innerHTML = t('regDesc');
+  document.getElementById('regEmpNo').placeholder = t('regPlaceholder');
+  document.getElementById('regConfirmBtn').textContent = t('regConfirm');
+  document.getElementById('regAskConfirm').textContent = t('regAsk');
+  document.getElementById('regBackBtn').textContent = t('regBack');
+  document.getElementById('regRegisterBtn').textContent = t('regRegister');
+  document.getElementById('regDoneMsg').textContent = t('regDone');
+  document.getElementById('regDoneSub').textContent = t('regDoneSub');
+  document.getElementById('confirmSuffix').textContent = t('regSuffix');
+  // カレンダーヘッダー
+  var days = t('days');
+  var headerSpans = document.querySelectorAll('#calHeader span');
+  for (var i = 0; i < headerSpans.length && i < days.length; i++) {
+    headerSpans[i].textContent = days[i];
+  }
+  // 月ラベル
+  updateMonthLabel();
+  // 名前の接尾辞
+  if (currentData && currentData.employee) {
+    var suffix = t('regSuffix');
+    document.getElementById('empName').textContent = currentData.employee.name + (suffix ? ' ' + suffix : '');
+  }
+  // カレンダー・一覧を再描画
+  if (currentData) {
+    renderCalendar(currentData);
+    renderShiftList(currentData);
+    renderPrefStatus(currentData);
+  }
+}
+
 // ===== 設定 =====
 var LIFF_ID = '2009168695-9wuS2j5W';
-var GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzAtNi8nRdN-Jk4pu4i8idPuaiBrotzO6rSGA7PYuO2rsfZLbLAr4eRtzkI8v4LrXI0/exec';
+var GAS_API_URL = '/api/gas';
 
 var accessToken = null;
 var currentData = null;
 var currentMonth = null;
 var overrideEmpNo = '';
-var CACHE_TTL = 10 * 60 * 1000; // キャッシュ有効期限: 10分
+var debugToday = null;
+var isAdminMode = false;
+var CACHE_TTL = 10 * 60 * 1000;
 
 var TIME_COLORS = {
   morning: '#4ECDC4', daytime: '#FFD93D', evening: '#FF6B6B', night: '#845EC2'
@@ -355,6 +699,11 @@ function getTimeColor(timeSlot) {
 
 // ===== 初期化 =====
 window.onload = function() {
+  // 保存された言語設定を復元
+  try {
+    var saved = localStorage.getItem('myshift_lang');
+    if (saved && LANG[saved]) { setLang(saved); }
+  } catch(e) {}
   initLiff();
 };
 
@@ -367,18 +716,32 @@ function initLiff() {
       }
       accessToken = liff.getAccessToken();
       if (!accessToken) {
-        showError('アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。');
+        showError(t('errToken'));
         return;
       }
-      // URL パラメータで社員番号指定（管理者テスト用）
       var params = new URLSearchParams(window.location.search);
       overrideEmpNo = params.get('empNo') || '';
-      var now = new Date();
+      isAdminMode = params.get('admin') === 'true';
+      var debugDate = params.get('debugDate') || '';
+      if (debugDate) {
+        debugToday = new Date(debugDate + 'T00:00:00');
+      }
+      var now = debugToday || new Date();
       currentMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+      if (isAdminMode) {
+        document.getElementById('adminBar').style.display = 'block';
+        document.getElementById('appTitle').textContent = 'シフト管理';
+        if (overrideEmpNo) {
+          document.getElementById('adminEmpNo').value = overrideEmpNo;
+        }
+        document.getElementById('adminEmpNo').addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') adminSearch();
+        });
+      }
       loadShiftData();
     })
     .catch(function(err) {
-      showError('LIFF初期化に失敗しました。\n' + (err.message || JSON.stringify(err)));
+      showError(t('errLiff') + '\n' + (err.message || JSON.stringify(err)));
     });
 }
 
@@ -406,11 +769,10 @@ function setCache(data) {
   } catch (e) {}
 }
 
-// ===== データ読み込み (fetch で GAS API 呼び出し) =====
+// ===== データ読み込み =====
 function loadShiftData() {
   updateMonthLabel();
 
-  // キャッシュ確認
   var cached = getCache();
   if (cached) {
     onDataLoaded(cached);
@@ -429,19 +791,34 @@ function loadShiftData() {
       onDataLoaded(data);
     })
     .catch(function(err) {
-      showError('データの取得に失敗しました。\n' + (err.message || err));
+      showError(t('errFetch') + '\n' + (err.message || err));
     });
 }
 
 function onDataLoaded(data) {
-  if (!data) { showError('データが取得できませんでした。'); return; }
-  if (data.needsRegistration) { showRegisterView(); return; }
+  if (!data) { showError(t('errNoData')); return; }
+  if (data.needsRegistration) {
+    if (isAdminMode) {
+      showError('社員番号が未登録です。正しい番号を入力してください。');
+      document.getElementById('adminBar').style.display = 'block';
+      return;
+    }
+    showRegisterView();
+    return;
+  }
   if (data.error) { showError(data.error); return; }
 
   currentData = data;
-  document.getElementById('empName').textContent = data.employee.name + ' さん';
+  var suffix = t('regSuffix');
+  document.getElementById('empName').textContent = data.employee.name + (suffix ? ' ' + suffix : '');
   document.getElementById('statShifts').textContent = data.stats.totalShifts;
   document.getElementById('statFacilities').textContent = data.stats.facilityCount;
+  // 管理者モード: 閲覧中の社員を表示
+  if (isAdminMode && data.employee) {
+    var viewEl = document.getElementById('adminViewing');
+    viewEl.textContent = '閲覧中: ' + data.employee.empNo + ' - ' + data.employee.name;
+    viewEl.style.display = 'block';
+  }
   renderPrefStatus(data);
   renderCalendar(data);
   renderShiftList(data);
@@ -464,7 +841,10 @@ function changeMonth(delta) {
 
 function updateMonthLabel() {
   var parts = currentMonth.split('-');
-  document.getElementById('monthLabel').textContent = parseInt(parts[0], 10) + '年' + parseInt(parts[1], 10) + '月';
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  var fmt = LANG[currentLang] ? LANG[currentLang].monthFmt : LANG.ja.monthFmt;
+  document.getElementById('monthLabel').textContent = fmt(y, m);
 }
 
 // ===== 希望ステータス =====
@@ -472,7 +852,7 @@ function renderPrefStatus(data) {
   var el = document.getElementById('prefStatus');
   if (!data.collectionOpen) { el.style.display = 'none'; return; }
   var prefCount = data.preferences ? data.preferences.length : 0;
-  document.getElementById('prefInfo').innerHTML = '希望提出: <strong>' + prefCount + '件</strong>';
+  document.getElementById('prefInfo').innerHTML = t('prefSubmit') + ': <strong>' + prefCount + (t('prefCount') ? t('prefCount') : '') + '</strong>';
   el.style.display = 'flex';
 }
 
@@ -509,7 +889,7 @@ function renderCalendar(data) {
     });
   }
 
-  var today = new Date();
+  var today = debugToday || new Date();
   var todayDay = (today.getFullYear() === year && today.getMonth() + 1 === month) ? today.getDate() : -1;
   var html = '';
 
@@ -517,15 +897,15 @@ function renderCalendar(data) {
 
   for (var day = 1; day <= daysInMonth; day++) {
     var dow = (startDow + day - 1) % 7;
+    var dayShifts = shiftMap[day];
     var classes = 'cal-cell';
     if (dow === 0) classes += ' sunday';
     if (dow === 6) classes += ' saturday';
     if (day === todayDay) classes += ' today';
+    if (dayShifts) classes += ' has-shift';
 
     html += '<div class="' + classes + '">';
     html += '<div class="cal-day">' + day + '</div>';
-
-    var dayShifts = shiftMap[day];
     if (dayShifts) {
       dayShifts.forEach(function(s) {
         var color = getTimeColor(s.timeSlot);
@@ -553,20 +933,30 @@ function renderCalendar(data) {
 function renderShiftList(data) {
   var container = document.getElementById('shiftItems');
   if (!data.shifts || data.shifts.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="icon">&#128197;</div><p>この月のシフトはありません</p></div>';
+    var now = new Date();
+    var mNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    var todayMonth = mNames[now.getMonth()];
+    var todayDate = now.getDate();
+    container.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-icon"><div class="ei-month">' + todayMonth + '</div><div class="ei-day">' + todayDate + '</div></div>' +
+      '<p>' + t('noShift') + '</p></div>';
     return;
   }
 
+  var days = t('days');
   var html = '';
+  var today = debugToday ? new Date(debugToday.getTime()) : new Date();
+  today.setHours(0, 0, 0, 0);
   data.shifts.forEach(function(s) {
     var dateInfo = parseShiftDate(s.date);
+    if (dateInfo.dateObj < today) return; // 過去日付はスキップ
     var color = getTimeColor(s.timeSlot);
     var dowClass = dateInfo.dow === 0 ? ' sunday' : (dateInfo.dow === 6 ? ' saturday' : '');
 
     html += '<div class="shift-item">';
     html += '<div class="shift-date-box' + dowClass + '">';
     html += '<div class="shift-date-num">' + dateInfo.day + '</div>';
-    html += '<div class="shift-date-day">' + dateInfo.dayLabel + '</div>';
+    html += '<div class="shift-date-day">' + days[dateInfo.dow] + '</div>';
     html += '</div>';
     html += '<div class="shift-divider" style="background:' + color + ';"></div>';
     html += '<div class="shift-detail">';
@@ -574,6 +964,10 @@ function renderShiftList(data) {
     html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
     html += '</div></div>';
   });
+  if (!html) {
+    container.innerHTML = '<div class="empty-state"><p>' + t('noShift') + '</p></div>';
+    return;
+  }
   container.innerHTML = html;
 }
 
@@ -588,8 +982,7 @@ function parseShiftDate(dateStr) {
   var parts = String(dateStr).split(/[\/\-]/);
   var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, d = parseInt(parts[2], 10);
   var dt = new Date(y, m, d);
-  var days = ['日', '月', '火', '水', '木', '金', '土'];
-  return { day: d, dow: dt.getDay(), dayLabel: days[dt.getDay()] };
+  return { day: d, dow: dt.getDay(), dateObj: dt };
 }
 
 function shortenName(name) { return !name ? '' : (name.length > 5 ? name.substring(0, 5) : name); }
@@ -608,6 +1001,7 @@ function hideAll() {
 
 function showLoading() {
   hideAll();
+  document.getElementById('loadingText').textContent = t('loading');
   document.getElementById('loadingView').style.display = 'flex';
 }
 
@@ -634,7 +1028,7 @@ function showRegisterView() {
 function lookupEmployee() {
   var empNo = document.getElementById('regEmpNo').value.trim();
   if (!empNo) {
-    document.getElementById('regError').textContent = '社員番号を入力してください。';
+    document.getElementById('regError').textContent = t('regErrEmpty');
     return;
   }
   document.getElementById('regError').textContent = '';
@@ -658,13 +1052,152 @@ function lookupEmployee() {
       }
     })
     .catch(function(err) {
-      document.getElementById('regError').textContent = '通信エラーが発生しました。';
+      document.getElementById('regError').textContent = t('regErrComm');
     });
 }
 
 function cancelRegister() {
   document.getElementById('regStep2').style.display = 'none';
   document.getElementById('regStep1').style.display = 'block';
+}
+
+// ===== 管理者モード =====
+function adminSearch() {
+  var empNo = document.getElementById('adminEmpNo').value.trim();
+  if (!empNo) return;
+  overrideEmpNo = empNo;
+  // 全体表示を閉じて個人表示に
+  document.getElementById('overviewContent').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+  try { sessionStorage.removeItem(getCacheKey()); } catch(e) {}
+  loadShiftData();
+}
+
+var overviewData = null;
+
+function loadOverview() {
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('overviewContent').style.display = 'block';
+  document.getElementById('loadingView').style.display = 'flex';
+  document.getElementById('loadingText').textContent = '全体シフトを読み込み中...';
+  document.getElementById('overviewContent').style.display = 'none';
+
+  var url = GAS_API_URL + '?action=facilityOverview&key=' + encodeURIComponent(getAdminKey()) + '&month=' + encodeURIComponent(currentMonth);
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      document.getElementById('loadingView').style.display = 'none';
+      if (data.error) {
+        showError('全体表示エラー: ' + data.error);
+        return;
+      }
+      overviewData = data;
+      document.getElementById('overviewContent').style.display = 'block';
+      renderOverview(data);
+    })
+    .catch(function(err) {
+      document.getElementById('loadingView').style.display = 'none';
+      showError('通信エラー: ' + (err.message || ''));
+    });
+}
+
+function getAdminKey() {
+  // URLパラメータまたはaccessTokenで認証
+  var params = new URLSearchParams(window.location.search);
+  return params.get('key') || '';
+}
+
+function renderOverview(data) {
+  document.getElementById('ovFacCount').textContent = data.summary.totalFacilities;
+  document.getElementById('ovShiftCount').textContent = data.summary.totalShifts;
+  document.getElementById('ovStaffCount').textContent = data.summary.totalStaff;
+
+  var container = document.getElementById('facilityList');
+  container.innerHTML = '';
+
+  var DOW = ['日','月','火','水','木','金','土'];
+
+  // 月の日数
+  var parts = currentMonth.split('-');
+  var year = parseInt(parts[0]); var month = parseInt(parts[1]);
+  var daysInMonth = new Date(year, month, 0).getDate();
+
+  for (var f = 0; f < data.facilities.length; f++) {
+    var fac = data.facilities[f];
+    var card = document.createElement('div');
+    card.className = 'facility-card';
+    card.setAttribute('data-name', fac.name);
+
+    var header = document.createElement('div');
+    header.className = 'facility-card-header';
+    header.innerHTML = '<div><h3>' + escHtml(fac.name) + '</h3></div>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+      '<span class="fac-meta">' + fac.stats.uniqueStaff + '名 / ' + fac.stats.totalShifts + '件</span>' +
+      '<span class="toggle-icon">&#9654;</span></div>';
+    header.onclick = (function(c) { return function() { c.classList.toggle('open'); }; })(card);
+
+    var body = document.createElement('div');
+    body.className = 'facility-card-body';
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dayShifts = fac.dates[String(d)] || [];
+      if (dayShifts.length === 0) continue;
+
+      var dt = new Date(year, month - 1, d);
+      var dow = dt.getDay();
+      var dowClass = dow === 0 ? ' sun' : dow === 6 ? ' sat' : '';
+
+      var row = document.createElement('div');
+      row.className = 'day-row';
+
+      var label = document.createElement('div');
+      label.className = 'day-label' + dowClass;
+      label.textContent = d + '(' + DOW[dow] + ')';
+
+      var chips = document.createElement('div');
+      chips.className = 'day-shifts';
+
+      for (var s = 0; s < dayShifts.length; s++) {
+        var shift = dayShifts[s];
+        var chip = document.createElement('span');
+        chip.className = 'shift-chip';
+        var color = getTimeColor(shift.timeSlot);
+        chip.innerHTML = '<span class="dot" style="background:' + color + '"></span>' +
+          escHtml(shift.name || shift.empNo || '?') +
+          '<span style="color:#999;font-size:10px;">' + escHtml(shift.timeSlot) + '</span>';
+        chips.appendChild(chip);
+      }
+
+      row.appendChild(label);
+      row.appendChild(chips);
+      body.appendChild(row);
+    }
+
+    card.appendChild(header);
+    card.appendChild(body);
+    container.appendChild(card);
+  }
+}
+
+function filterFacilities() {
+  var q = document.getElementById('ovSearch').value.trim().toLowerCase();
+  var cards = document.querySelectorAll('.facility-card');
+  for (var i = 0; i < cards.length; i++) {
+    var name = cards[i].getAttribute('data-name') || '';
+    cards[i].style.display = (!q || name.toLowerCase().indexOf(q) >= 0) ? '' : 'none';
+  }
+}
+
+function backToMyShift() {
+  document.getElementById('overviewContent').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+}
+
+function escHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }
 
 function confirmRegister() {
@@ -686,7 +1219,7 @@ function confirmRegister() {
       }
     })
     .catch(function(err) {
-      document.getElementById('regError').textContent = '通信エラーが発生しました。';
+      document.getElementById('regError').textContent = t('regErrComm');
       document.getElementById('regStep2').style.display = 'none';
       document.getElementById('regStep1').style.display = 'block';
     });

@@ -173,7 +173,8 @@ function loadShiftDataForStaffing_(targetMonth) {
     }
     if (yearMonth !== targetMonth) continue;
 
-    var facilityId = String(data[i][SHIFT_COLS.FACILITY_ID - 1]).trim();
+    var facilityName = String(data[i][SHIFT_COLS.FACILITY - 1]).trim();
+    var facilityId = getFacilityId(facilityName) || facilityName;
     var rawDate = data[i][SHIFT_COLS.DATE - 1];
     var dateStr;
     if (rawDate instanceof Date) {
@@ -182,7 +183,7 @@ function loadShiftDataForStaffing_(targetMonth) {
       dateStr = String(rawDate).trim();
     }
     var timeSlot = String(data[i][SHIFT_COLS.TIME_SLOT - 1]).trim();
-    var empNo = String(data[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim();
+    var empNo = String(data[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0');
 
     if (!facilityId || !empNo) continue;
 

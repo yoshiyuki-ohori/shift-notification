@@ -245,9 +245,9 @@ function handleFacilityOverview_(params) {
         dateStr = String(rawDate).trim();
       }
       var area = String(shiftData[i][SHIFT_COLS.AREA - 1]).trim();
-      var facilityId = String(shiftData[i][SHIFT_COLS.FACILITY_ID - 1]).trim();
+      var facilityId = getFacilityId(facility) || '';
       var timeSlot = String(shiftData[i][SHIFT_COLS.TIME_SLOT - 1]).trim();
-      var empNo = String(shiftData[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim();
+      var empNo = String(shiftData[i][SHIFT_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0');
       var empName = String(shiftData[i][SHIFT_COLS.FORMAL_NAME - 1]).trim();
 
       if (!facility) continue;
@@ -550,4 +550,15 @@ function verifyLineAccessToken_(accessToken) {
     Logger.log('verifyLineAccessToken_ error: ' + e.toString());
     return null;
   }
+}
+
+/**
+ * LIFF ページを GAS HtmlService で返す
+ * doGet の case 'liff' から呼ばれる
+ * @return {HtmlService.HtmlOutput}
+ */
+function serveLiffPage() {
+  return HtmlService.createHtmlOutputFromFile('LiffView')
+    .setTitle('マイシフト')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }

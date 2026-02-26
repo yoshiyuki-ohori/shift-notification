@@ -112,10 +112,10 @@ function getPreferencesForEmployee(yearMonth, employeeNo) {
   const results = [];
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][PREF_COLS.YEAR_MONTH - 1]).trim() === yearMonth &&
+    if (formatYearMonth_(data[i][PREF_COLS.YEAR_MONTH - 1]) === yearMonth &&
         String(data[i][PREF_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0') === employeeNo) {
       results.push({
-        date: String(data[i][PREF_COLS.DATE - 1]).trim(),
+        date: formatDateValue_(data[i][PREF_COLS.DATE - 1]),
         type: String(data[i][PREF_COLS.TYPE - 1]).trim(),
         timeSlot: String(data[i][PREF_COLS.TIME_SLOT - 1] || '').trim(),
         reason: String(data[i][PREF_COLS.REASON - 1] || '').trim()
@@ -143,7 +143,7 @@ function getSubmissionStatus(yearMonth) {
   if (sheet && sheet.getLastRow() > 1) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][PREF_COLS.YEAR_MONTH - 1]).trim() !== yearMonth) continue;
+      if (formatYearMonth_(data[i][PREF_COLS.YEAR_MONTH - 1]) !== yearMonth) continue;
       var empNo = String(data[i][PREF_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0');
       if (!submittedMap[empNo]) {
         submittedMap[empNo] = {
@@ -241,8 +241,8 @@ function getPreferenceSummaryByDate(yearMonth) {
   var summary = {};
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][PREF_COLS.YEAR_MONTH - 1]).trim() !== yearMonth) continue;
-    var date = String(data[i][PREF_COLS.DATE - 1]).trim();
+    if (formatYearMonth_(data[i][PREF_COLS.YEAR_MONTH - 1]) !== yearMonth) continue;
+    var date = formatDateValue_(data[i][PREF_COLS.DATE - 1]);
     var type = String(data[i][PREF_COLS.TYPE - 1]).trim();
 
     if (!summary[date]) {
@@ -347,9 +347,9 @@ function deletePrefIfExists_(sheet, yearMonth, employeeNo, date, type) {
 
   var data = sheet.getDataRange().getValues();
   for (var i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][0]).trim() === yearMonth &&
+    if (formatYearMonth_(data[i][0]) === yearMonth &&
         String(data[i][1]).trim().padStart(3, '0') === employeeNo &&
-        String(data[i][3]).trim() === date &&
+        formatDateValue_(data[i][3]) === date &&
         String(data[i][4]).trim() === type) {
       sheet.deleteRow(i + 1);
     }
@@ -364,7 +364,7 @@ function deletePrefsForEmployee_(sheet, yearMonth, employeeNo) {
 
   var data = sheet.getDataRange().getValues();
   for (var i = data.length - 1; i >= 1; i--) {
-    if (String(data[i][0]).trim() === yearMonth &&
+    if (formatYearMonth_(data[i][0]) === yearMonth &&
         String(data[i][1]).trim().padStart(3, '0') === employeeNo) {
       sheet.deleteRow(i + 1);
     }
