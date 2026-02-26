@@ -358,7 +358,7 @@ function loadEmployeeMaster() {
     if (!no || !name) continue;
 
     employees.push({
-      employeeNo: no,
+      employeeNo: no.padStart(3, '0'),
       name: name,
       furigana: String(data[i][MASTER_COLS.FURIGANA - 1] || '').trim(),
       lineUserId: String(data[i][MASTER_COLS.LINE_USER_ID - 1] || '').trim(),

@@ -209,7 +209,7 @@ function loadPreferenceDataForStaffing_(targetMonth) {
   var counts = {};
 
   for (var i = 1; i < data.length; i++) {
-    if (String(data[i][PREF_COLS.YEAR_MONTH - 1]).trim() !== targetMonth) continue;
+    if (formatYearMonth_(data[i][PREF_COLS.YEAR_MONTH - 1]) !== targetMonth) continue;
     var type = String(data[i][PREF_COLS.TYPE - 1]).trim();
     if (type !== PREF_TYPE.WANT) continue;
 

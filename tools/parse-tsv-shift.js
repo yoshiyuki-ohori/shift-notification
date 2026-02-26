@@ -415,7 +415,7 @@ async function writeToSpreadsheet(records) {
       // シート全体をクリアして書き直す
       // まずヘッダー+保持行を書き込み
       const writeData = [header, ...keepRows];
-      const range = `A1:I${writeData.length}`;
+      const range = `A1:H${writeData.length}`;
       console.log('  非対象月データを書き戻し中...');
       const writeResult = await postJSON(WEBAPP_URL, {
         action: 'write',
@@ -434,8 +434,8 @@ async function writeToSpreadsheet(records) {
       if (allData.length > writeData.length) {
         const clearStart = writeData.length + 1;
         const clearEnd = allData.length;
-        const emptyRows = Array(clearEnd - clearStart + 1).fill(['','','','','','','','','']);
-        const clearRange = `A${clearStart}:I${clearEnd}`;
+        const emptyRows = Array(clearEnd - clearStart + 1).fill(['','','','','','','','']);
+        const clearRange = `A${clearStart}:H${clearEnd}`;
         console.log(`  余分な行をクリア中: ${clearStart}～${clearEnd}`);
         await postJSON(WEBAPP_URL, {
           action: 'write',

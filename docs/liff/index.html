@@ -732,14 +732,23 @@ function getParam(name) {
 }
 
 function initLiff() {
+  // 管理者キー付きの場合はLIFFログイン不要で全体表示可能
+  var adminKeyPresent = getParam('key') && getParam('admin') === 'true';
+
   liff.init({ liffId: LIFF_ID })
     .then(function() {
       if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
+        if (adminKeyPresent) {
+          // 管理者モード: ログイン不要で全体表示
+          accessToken = null;
+        } else {
+          liff.login();
+          return;
+        }
+      } else {
+        accessToken = liff.getAccessToken();
       }
-      accessToken = liff.getAccessToken();
-      if (!accessToken) {
+      if (!accessToken && !adminKeyPresent) {
         showError(t('errToken'));
         return;
       }
@@ -760,10 +769,25 @@ function initLiff() {
         document.getElementById('adminEmpNo').addEventListener('keydown', function(e) {
           if (e.key === 'Enter') adminSearch();
         });
+        // 管理者キーがある場合は自動で全体表示
+        if (getAdminKey()) {
+          loadOverview();
+          return;
+        }
       }
       loadShiftData();
     })
     .catch(function(err) {
+      // LIFF初期化失敗でも管理者キーがあれば全体表示を試行
+      if (adminKeyPresent) {
+        isAdminMode = true;
+        var now = new Date();
+        currentMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+        document.getElementById('adminBar').style.display = 'block';
+        document.getElementById('appTitle').textContent = 'シフト管理';
+        loadOverview();
+        return;
+      }
       showError(t('errLiff') + '\n' + (err.message || JSON.stringify(err)));
     });
 }
@@ -863,6 +887,7 @@ function changeMonth(delta) {
 }
 
 function updateMonthLabel() {
+  if (!currentMonth) return;
   var parts = currentMonth.split('-');
   var y = parseInt(parts[0], 10);
   var m = parseInt(parts[1], 10);
@@ -1020,6 +1045,7 @@ function hideAll() {
   document.getElementById('errorView').style.display = 'none';
   document.getElementById('mainContent').style.display = 'none';
   document.getElementById('registerView').style.display = 'none';
+  document.getElementById('overviewContent').style.display = 'none';
 }
 
 function showLoading() {
@@ -1099,11 +1125,10 @@ function adminSearch() {
 var overviewData = null;
 
 function loadOverview() {
-  document.getElementById('mainContent').style.display = 'none';
-  document.getElementById('overviewContent').style.display = 'block';
+  hideAll();
+  document.getElementById('adminBar').style.display = 'block';
   document.getElementById('loadingView').style.display = 'flex';
   document.getElementById('loadingText').textContent = '全体シフトを読み込み中...';
-  document.getElementById('overviewContent').style.display = 'none';
 
   var url = GAS_API_URL + '?action=facilityOverview&key=' + encodeURIComponent(getAdminKey()) + '&month=' + encodeURIComponent(currentMonth);
 
@@ -1141,7 +1166,7 @@ function renderOverview(data) {
 
   // 月の日数
   var parts = currentMonth.split('-');
-  var year = parseInt(parts[0]); var month = parseInt(parts[1]);
+  var year = parseInt(parts[0], 10); var month = parseInt(parts[1], 10);
   var daysInMonth = new Date(year, month, 0).getDate();
 
   for (var f = 0; f < data.facilities.length; f++) {
@@ -1212,12 +1237,17 @@ function filterFacilities() {
 
 function backToMyShift() {
   document.getElementById('overviewContent').style.display = 'none';
-  document.getElementById('mainContent').style.display = 'block';
+  if (currentData) {
+    document.getElementById('mainContent').style.display = 'block';
+  } else {
+    loadShiftData();
+  }
 }
 
 function escHtml(s) {
+  if (s == null) return '';
   var d = document.createElement('div');
-  d.textContent = s;
+  d.textContent = String(s);
   return d.innerHTML;
 }
 
