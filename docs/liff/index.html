@@ -1154,6 +1154,58 @@ function getAdminKey() {
   return getParam('key');
 }
 
+// 夜勤まとめ: 同一人物の17時～22時 + 22時～ + 翌6時～9時 → 「17時～9時」として入り日に表示
+function mergeNightShifts(fac, daysInMonth) {
+  for (var d = 1; d <= daysInMonth; d++) {
+    var today = fac.dates[String(d)] || [];
+    var tomorrow = fac.dates[String(d + 1)] || [];
+    if (today.length === 0) continue;
+
+    // 当日のシフトを人ごとにグループ化
+    var byPerson = {};
+    for (var i = 0; i < today.length; i++) {
+      var key = today[i].empNo || today[i].name;
+      if (!byPerson[key]) byPerson[key] = { evening: -1, night: -1, name: today[i].name, empNo: today[i].empNo };
+      var ts = today[i].timeSlot;
+      if (ts.indexOf('17') === 0) byPerson[key].evening = i;
+      if (ts.indexOf('22') === 0 || ts.indexOf('21') === 0) byPerson[key].night = i;
+    }
+
+    // 翌朝の6時シフトをインデックス化
+    var morningIdx = {};
+    for (var j = 0; j < tomorrow.length; j++) {
+      if (tomorrow[j].timeSlot.indexOf('6') === 0) {
+        morningIdx[tomorrow[j].empNo || tomorrow[j].name] = j;
+      }
+    }
+
+    // マージ対象を特定（インデックスが大きい順に削除するため逆順ソート）
+    var removeToday = [];
+    var removeTomorrow = [];
+    for (var person in byPerson) {
+      var p = byPerson[person];
+      if (p.evening >= 0 && p.night >= 0) {
+        // 17時+22時 → まとめ。翌朝6時があれば「17時～9時」、なければ「17時～翌朝」
+        today[p.evening].timeSlot = (morningIdx[person] !== undefined) ? '17時～9時' : '17時～翌朝';
+        removeToday.push(p.night);
+        if (morningIdx[person] !== undefined) {
+          removeTomorrow.push(morningIdx[person]);
+        }
+      }
+    }
+
+    removeToday.sort(function(a, b) { return b - a; });
+    for (var r = 0; r < removeToday.length; r++) today.splice(removeToday[r], 1);
+    fac.dates[String(d)] = today;
+
+    if (removeTomorrow.length > 0) {
+      removeTomorrow.sort(function(a, b) { return b - a; });
+      for (var r = 0; r < removeTomorrow.length; r++) tomorrow.splice(removeTomorrow[r], 1);
+      fac.dates[String(d + 1)] = tomorrow;
+    }
+  }
+}
+
 function renderOverview(data) {
   document.getElementById('ovFacCount').textContent = data.summary.totalFacilities;
   document.getElementById('ovShiftCount').textContent = data.summary.totalShifts;
@@ -1168,6 +1220,11 @@ function renderOverview(data) {
   var parts = currentMonth.split('-');
   var year = parseInt(parts[0], 10); var month = parseInt(parts[1], 10);
   var daysInMonth = new Date(year, month, 0).getDate();
+
+  // 全施設で夜勤まとめ処理
+  for (var f = 0; f < data.facilities.length; f++) {
+    mergeNightShifts(data.facilities[f], daysInMonth);
+  }
 
   for (var f = 0; f < data.facilities.length; f++) {
     var fac = data.facilities[f];
