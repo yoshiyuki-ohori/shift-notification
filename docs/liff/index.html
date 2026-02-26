@@ -376,6 +376,13 @@ body {
 .shift-chip .dot {
   width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
 }
+.shift-chip.empty-chip {
+  background: #FFEBEE; color: #D32F2F; font-weight: 600;
+  border: 1px solid #EF9A9A;
+}
+.day-row.no-staff {
+  background: #FFF5F5;
+}
 .back-to-my {
   display: inline-block; margin: 8px 16px;
   color: #1976D2; font-size: 13px; font-weight: 600;
@@ -1255,14 +1262,13 @@ function renderOverview(data) {
 
     for (var d = 1; d <= daysInMonth; d++) {
       var dayShifts = fac.dates[String(d)] || [];
-      if (dayShifts.length === 0) continue;
 
       var dt = new Date(year, month - 1, d);
       var dow = dt.getDay();
       var dowClass = dow === 0 ? ' sun' : dow === 6 ? ' sat' : '';
 
       var row = document.createElement('div');
-      row.className = 'day-row';
+      row.className = 'day-row' + (dayShifts.length === 0 ? ' no-staff' : '');
 
       var label = document.createElement('div');
       label.className = 'day-label' + dowClass;
@@ -1270,6 +1276,13 @@ function renderOverview(data) {
 
       var chips = document.createElement('div');
       chips.className = 'day-shifts';
+
+      if (dayShifts.length === 0) {
+        var empty = document.createElement('span');
+        empty.className = 'shift-chip empty-chip';
+        empty.textContent = '未配置';
+        chips.appendChild(empty);
+      }
 
       for (var s = 0; s < dayShifts.length; s++) {
         var shift = dayShifts[s];
