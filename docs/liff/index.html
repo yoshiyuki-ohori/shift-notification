@@ -435,6 +435,11 @@ body {
       <div class="stat-label">職員数</div>
     </div>
   </div>
+  <div class="month-nav" style="margin:0 16px 8px;">
+    <button class="month-btn" onclick="changeOverviewMonth(-1)">&#9664;</button>
+    <span class="month-label" id="ovMonthLabel"></span>
+    <button class="month-btn" onclick="changeOverviewMonth(1)">&#9654;</button>
+  </div>
   <div style="padding:0 16px 8px;display:flex;justify-content:space-between;align-items:center;">
     <span class="back-to-my" onclick="backToMyShift()">← マイシフトに戻る</span>
     <input type="text" id="ovSearch" placeholder="施設名で検索" oninput="filterFacilities()" style="padding:6px 10px;border:1px solid #DDD;border-radius:8px;font-size:12px;width:140px;outline:none;">
@@ -1124,9 +1129,28 @@ function adminSearch() {
 
 var overviewData = null;
 
+function updateOverviewMonthLabel() {
+  if (!currentMonth) return;
+  var parts = currentMonth.split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10);
+  document.getElementById('ovMonthLabel').textContent = y + '年' + m + '月';
+}
+
+function changeOverviewMonth(delta) {
+  var parts = currentMonth.split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10) + delta;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  currentMonth = y + '-' + ('0' + m).slice(-2);
+  loadOverview();
+}
+
 function loadOverview() {
   hideAll();
   document.getElementById('adminBar').style.display = 'block';
+  updateOverviewMonthLabel();
   document.getElementById('loadingView').style.display = 'flex';
   document.getElementById('loadingText').textContent = '全体シフトを読み込み中...';
 
