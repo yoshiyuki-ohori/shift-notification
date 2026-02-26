@@ -1263,12 +1263,23 @@ function renderOverview(data) {
     for (var d = 1; d <= daysInMonth; d++) {
       var dayShifts = fac.dates[String(d)] || [];
 
+      // 実際に配置されているシフトと未配置を分離
+      var assigned = [];
+      var unassigned = [];
+      for (var s = 0; s < dayShifts.length; s++) {
+        var sh = dayShifts[s];
+        var hasStaff = sh.name && sh.name !== '' && sh.empNo !== '000';
+        if (hasStaff) { assigned.push(sh); } else { unassigned.push(sh); }
+      }
+
+      var isEmpty = assigned.length === 0;
+
       var dt = new Date(year, month - 1, d);
       var dow = dt.getDay();
       var dowClass = dow === 0 ? ' sun' : dow === 6 ? ' sat' : '';
 
       var row = document.createElement('div');
-      row.className = 'day-row' + (dayShifts.length === 0 ? ' no-staff' : '');
+      row.className = 'day-row' + (isEmpty ? ' no-staff' : '');
 
       var label = document.createElement('div');
       label.className = 'day-label' + dowClass;
@@ -1277,15 +1288,9 @@ function renderOverview(data) {
       var chips = document.createElement('div');
       chips.className = 'day-shifts';
 
-      if (dayShifts.length === 0) {
-        var empty = document.createElement('span');
-        empty.className = 'shift-chip empty-chip';
-        empty.textContent = '未配置';
-        chips.appendChild(empty);
-      }
-
-      for (var s = 0; s < dayShifts.length; s++) {
-        var shift = dayShifts[s];
+      // 配置ありシフト
+      for (var s = 0; s < assigned.length; s++) {
+        var shift = assigned[s];
         var chip = document.createElement('span');
         chip.className = 'shift-chip';
         var color = getTimeColor(shift.timeSlot);
@@ -1293,6 +1298,22 @@ function renderOverview(data) {
           escHtml(shift.name || shift.empNo || '?') +
           '<span style="color:#999;font-size:10px;">' + escHtml(shift.timeSlot) + '</span>';
         chips.appendChild(chip);
+      }
+
+      // 未配置シフト（赤表示）
+      for (var u = 0; u < unassigned.length; u++) {
+        var uchip = document.createElement('span');
+        uchip.className = 'shift-chip empty-chip';
+        uchip.textContent = '未配置 ' + (unassigned[u].timeSlot || '');
+        chips.appendChild(uchip);
+      }
+
+      // データ自体がない日も未配置
+      if (dayShifts.length === 0) {
+        var empty = document.createElement('span');
+        empty.className = 'shift-chip empty-chip';
+        empty.textContent = '未配置';
+        chips.appendChild(empty);
       }
 
       row.appendChild(label);
