@@ -704,8 +704,32 @@ window.onload = function() {
     var saved = localStorage.getItem('myshift_lang');
     if (saved && LANG[saved]) { setLang(saved); }
   } catch(e) {}
+  // LIFFログインでクエリパラメータが消えるため、事前に保存
+  try {
+    var preParams = new URLSearchParams(window.location.search);
+    if (preParams.get('admin') === 'true') {
+      sessionStorage.setItem('liff_admin', 'true');
+    }
+    if (preParams.get('key')) {
+      sessionStorage.setItem('liff_key', preParams.get('key'));
+    }
+    if (preParams.get('empNo')) {
+      sessionStorage.setItem('liff_empNo', preParams.get('empNo'));
+    }
+    if (preParams.get('debugDate')) {
+      sessionStorage.setItem('liff_debugDate', preParams.get('debugDate'));
+    }
+  } catch(e) {}
   initLiff();
 };
+
+function getParam(name) {
+  // URLパラメータ優先、なければsessionStorageから復元
+  var params = new URLSearchParams(window.location.search);
+  var val = params.get(name);
+  if (val) return val;
+  try { return sessionStorage.getItem('liff_' + name) || ''; } catch(e) { return ''; }
+}
 
 function initLiff() {
   liff.init({ liffId: LIFF_ID })
@@ -719,10 +743,9 @@ function initLiff() {
         showError(t('errToken'));
         return;
       }
-      var params = new URLSearchParams(window.location.search);
-      overrideEmpNo = params.get('empNo') || '';
-      isAdminMode = params.get('admin') === 'true';
-      var debugDate = params.get('debugDate') || '';
+      overrideEmpNo = getParam('empNo');
+      isAdminMode = getParam('admin') === 'true';
+      var debugDate = getParam('debugDate');
       if (debugDate) {
         debugToday = new Date(debugDate + 'T00:00:00');
       }
@@ -1103,9 +1126,7 @@ function loadOverview() {
 }
 
 function getAdminKey() {
-  // URLパラメータまたはaccessTokenで認証
-  var params = new URLSearchParams(window.location.search);
-  return params.get('key') || '';
+  return getParam('key');
 }
 
 function renderOverview(data) {
