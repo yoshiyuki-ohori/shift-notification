@@ -1249,11 +1249,25 @@ function renderOverview(data) {
     card.className = 'facility-card';
     card.setAttribute('data-name', fac.name);
 
+    // 未配置件数をカウント
+    var unassignedCount = 0;
+    var allDays = Object.keys(fac.dates);
+    for (var di = 0; di < allDays.length; di++) {
+      var ds = fac.dates[allDays[di]];
+      for (var si = 0; si < ds.length; si++) {
+        if (!ds[si].name || ds[si].name === '' || ds[si].empNo === '000') unassignedCount++;
+      }
+    }
+
     var header = document.createElement('div');
     header.className = 'facility-card-header';
+    var metaText = fac.stats.uniqueStaff + '名';
+    if (unassignedCount > 0) {
+      metaText += ' / <span style="color:#D32F2F;font-weight:600;">未配置' + unassignedCount + '件</span>';
+    }
     header.innerHTML = '<div><h3>' + escHtml(fac.name) + '</h3></div>' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
-      '<span class="fac-meta">' + fac.stats.uniqueStaff + '名 / ' + fac.stats.totalShifts + '件</span>' +
+      '<span class="fac-meta">' + metaText + '</span>' +
       '<span class="toggle-icon">&#9654;</span></div>';
     header.onclick = (function(c) { return function() { c.classList.toggle('open'); }; })(card);
 
