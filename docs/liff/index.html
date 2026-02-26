@@ -1154,6 +1154,7 @@ function changeOverviewMonth(delta) {
 function loadOverview() {
   hideAll();
   document.getElementById('adminBar').style.display = 'block';
+  updateMonthLabel();
   updateOverviewMonthLabel();
   document.getElementById('loadingView').style.display = 'flex';
   document.getElementById('loadingText').textContent = '全体シフトを読み込み中...';
