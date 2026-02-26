@@ -151,6 +151,12 @@ function handleEmpLookup_(params) {
   for (var i = 1; i < data.length; i++) {
     var no = String(data[i][MASTER_COLS.NO - 1]).trim().padStart(3, '0');
     if (no === targetEmpNo) {
+      var status = String(data[i][MASTER_COLS.STATUS - 1] || '在職').trim();
+      if (status === '退職') {
+        return ContentService.createTextOutput(JSON.stringify({
+          error: 'この社員番号は現在使用できません。\n管理者にお問い合わせください。'
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
       var existingLineId = String(data[i][MASTER_COLS.LINE_USER_ID - 1] || '').trim();
       if (existingLineId && existingLineId !== userId) {
         return ContentService.createTextOutput(JSON.stringify({
