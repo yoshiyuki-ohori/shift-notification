@@ -480,6 +480,7 @@ body {
         <div style="font-size:13px;color:#888;" id="confirmEmpNoLabel">社員番号: <span id="confirmEmpNo"></span></div>
         <div style="font-size:22px;font-weight:700;color:#333;margin-top:4px;"><span id="confirmName"></span> <span id="confirmSuffix">さん</span></div>
       </div>
+      <div id="regReRegisterWarning" style="display:none;background:#FFF3CD;border:1px solid #FFEAA7;border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;color:#856404;white-space:pre-line;"></div>
       <p style="font-size:14px;color:#555;margin-bottom:16px;" id="regAskConfirm">この方で間違いないですか？</p>
       <div style="display:flex;gap:10px;justify-content:center;">
         <button onclick="cancelRegister()" id="regBackBtn" style="background:#EEE;color:#555;border:none;border-radius:8px;padding:12px 24px;font-size:14px;font-weight:600;cursor:pointer;">
@@ -837,6 +838,7 @@ function loadShiftData() {
 
   var url = GAS_API_URL + '?action=myshift&token=' + encodeURIComponent(accessToken) + '&month=' + encodeURIComponent(currentMonth);
   if (overrideEmpNo) url += '&empNo=' + encodeURIComponent(overrideEmpNo);
+  if (isAdminMode && getAdminKey()) url += '&key=' + encodeURIComponent(getAdminKey());
 
   fetch(url)
     .then(function(res) { return res.json(); })
@@ -1112,6 +1114,17 @@ function lookupEmployee() {
         pendingEmpName = data.name;
         document.getElementById('confirmEmpNo').textContent = data.empNo;
         document.getElementById('confirmName').textContent = data.name;
+        // 再登録の警告表示
+        var warningEl = document.getElementById('regReRegisterWarning');
+        if (warningEl) {
+          if (data.reRegister && data.warning) {
+            warningEl.textContent = data.warning;
+            warningEl.style.display = 'block';
+          } else {
+            warningEl.textContent = '';
+            warningEl.style.display = 'none';
+          }
+        }
         document.getElementById('regStep1').style.display = 'none';
         document.getElementById('regStep2').style.display = 'block';
       }

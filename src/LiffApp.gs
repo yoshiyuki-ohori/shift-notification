@@ -18,7 +18,8 @@ function handleMyShiftApi_(params) {
   var token = params.token || '';
   var month = params.month || '';
   var empNo = params.empNo || '';
-  var data = getMyShiftData(token, month, empNo);
+  var adminKey = params.key || '';
+  var data = getMyShiftData(token, month, empNo, adminKey);
   return ContentService.createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
@@ -31,22 +32,16 @@ function handleMyShiftApi_(params) {
  * @param {string} [overrideEmpNo] - 管理者テスト用: 指定社員番号のデータを表示
  * @return {Object} シフトデータ
  */
-function getMyShiftData(accessToken, targetMonth, overrideEmpNo) {
+function getMyShiftData(accessToken, targetMonth, overrideEmpNo, adminKey) {
   try {
-    // 1. アクセストークンからLINE userId を取得（サーバー側検証）
-    var userId = verifyLineAccessToken_(accessToken);
-    if (!userId) {
-      return { error: 'LINE認証に失敗しました。再度お試しください。' };
-    }
+    var employee = null;
 
-    // 2. userId から社員番号を取得
-    var employee = findEmployeeByLineUserId_(userId);
-    if (!employee) {
-      return { needsRegistration: true };
-    }
-
-    // 2b. 管理者テスト: empNo 指定があれば該当者のデータを表示
-    if (overrideEmpNo) {
+    // 管理者キー認証: LINE トークン不要で社員番号指定のデータを返す
+    if (adminKey && overrideEmpNo) {
+      var expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
+      if (!expectedKey || adminKey !== expectedKey) {
+        return { error: '管理者認証に失敗しました。' };
+      }
       var targetEmpNo = overrideEmpNo.padStart(3, '0');
       var ss = SpreadsheetApp.getActiveSpreadsheet();
       var masterSheet = ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
@@ -59,6 +54,40 @@ function getMyShiftData(accessToken, targetMonth, overrideEmpNo) {
               name: String(data[idx][MASTER_COLS.NAME - 1]).trim()
             };
             break;
+          }
+        }
+      }
+      if (!employee) {
+        return { error: '社員番号「' + overrideEmpNo + '」が見つかりません。' };
+      }
+    } else {
+      // 1. アクセストークンからLINE userId を取得（サーバー側検証）
+      var userId = verifyLineAccessToken_(accessToken);
+      if (!userId) {
+        return { error: 'LINE認証に失敗しました。再度お試しください。' };
+      }
+
+      // 2. userId から社員番号を取得
+      employee = findEmployeeByLineUserId_(userId);
+      if (!employee) {
+        return { needsRegistration: true };
+      }
+
+      // 2b. 管理者テスト: empNo 指定があれば該当者のデータを表示
+      if (overrideEmpNo) {
+        var targetEmpNo2 = overrideEmpNo.padStart(3, '0');
+        var ss2 = SpreadsheetApp.getActiveSpreadsheet();
+        var masterSheet2 = ss2.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
+        if (masterSheet2) {
+          var data2 = masterSheet2.getDataRange().getValues();
+          for (var idx2 = 1; idx2 < data2.length; idx2++) {
+            if (String(data2[idx2][MASTER_COLS.NO - 1]).trim().padStart(3, '0') === targetEmpNo2) {
+              employee = {
+                employeeNo: targetEmpNo2,
+                name: String(data2[idx2][MASTER_COLS.NAME - 1]).trim()
+              };
+              break;
+            }
           }
         }
       }
@@ -158,16 +187,17 @@ function handleEmpLookup_(params) {
         })).setMimeType(ContentService.MimeType.JSON);
       }
       var existingLineId = String(data[i][MASTER_COLS.LINE_USER_ID - 1] || '').trim();
-      if (existingLineId && existingLineId !== userId) {
-        return ContentService.createTextOutput(JSON.stringify({
-          error: 'この社員番号は既に別のLINEアカウントで登録されています。'
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-      return ContentService.createTextOutput(JSON.stringify({
+      var result = {
         found: true,
         empNo: targetEmpNo,
         name: String(data[i][MASTER_COLS.NAME - 1]).trim()
-      })).setMimeType(ContentService.MimeType.JSON);
+      };
+      if (existingLineId && existingLineId !== userId) {
+        result.reRegister = true;
+        result.warning = 'この社員番号は別の端末で登録済みです。\nこの端末で再登録すると、以前の端末ではシフトを確認できなくなります。';
+      }
+      return ContentService.createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
     }
   }
 
