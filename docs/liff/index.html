@@ -881,6 +881,40 @@ var TIME_COLORS = {
   morning: '#4ECDC4', daytime: '#FFD93D', evening: '#FF6B6B', night: '#845EC2'
 };
 
+// 施設カラーマップ
+var FACILITY_COLORS = {
+  'グリーンビレッジＢ': '#4ECDC4', 'グリーンビレッジB': '#4ECDC4',
+  'グリーンビレッジＥ': '#2E86AB', 'グリーンビレッジE': '#2E86AB',
+  'グリーンビレッジE102': '#1B6B93', 'ビレッジE102': '#1B6B93',
+  '中町': '#E76F51',
+  '南大泉': '#F4A261',
+  '南大泉３丁目': '#E09F3E',
+  '大泉町': '#9B5DE5',
+  '春日町 (B103)': '#F15BB5', '春日町同一①': '#F15BB5',
+  '春日町2 (B203)': '#D63384', '春日町２同一①': '#D63384',
+  '東大泉': '#00BBF9',
+  '松原': '#6A994E',
+  '石神井公園': '#386641',
+  '砧 (107)': '#BC4749', '砧①107': '#BC4749',
+  '砧2 (207)': '#A7333F', '砧②207': '#A7333F',
+  '西長久保': '#7209B7',
+  '都民農園': '#3A86FF',
+  '長久保': '#8338EC',
+  '関町南2': '#FF6B6B', '関町南2F同一②': '#FF6B6B',
+  '関町南3': '#EE4266', '関町南3F同一②': '#EE4266', '関町南4F同一②': '#EE4266'
+};
+
+function getFacilityColor(facility) {
+  if (!facility) return '#AAA';
+  if (FACILITY_COLORS[facility]) return FACILITY_COLORS[facility];
+  for (var key in FACILITY_COLORS) {
+    if (facility.indexOf(key) >= 0 || key.indexOf(facility) >= 0) return FACILITY_COLORS[key];
+  }
+  var hash = 0;
+  for (var i = 0; i < facility.length; i++) hash = facility.charCodeAt(i) + ((hash << 5) - hash);
+  return 'hsl(' + (Math.abs(hash) % 360) + ',55%,50%)';
+}
+
 function getTimeColor(timeSlot) {
   if (!timeSlot) return '#CCC';
   if (timeSlot.indexOf('17時～9時') >= 0 || timeSlot.indexOf('17時～翌') >= 0) return TIME_COLORS.evening;
@@ -1256,7 +1290,7 @@ function renderCalendar(data) {
     html += '<div class="cal-day">' + day + '</div>';
     if (dayShifts) {
       dayShifts.forEach(function(s) {
-        var color = getTimeColor(s.timeSlot);
+        var color = getFacilityColor(s.facility);
         var shortFac = shortenName(s.facility);
         var isStandardNight = (s.timeSlot.indexOf('17時～9時') >= 0);
         var pillLabel = isStandardNight ? shortFac : (getTimeAbbrev(s.timeSlot) + ' ' + shortFac);
@@ -1300,7 +1334,7 @@ function renderShiftList(data) {
   data.shifts.forEach(function(s) {
     var dateInfo = parseShiftDate(s.date);
     if (dateInfo.dateObj < today) return; // 過去日付はスキップ
-    var color = getTimeColor(s.timeSlot);
+    var color = getFacilityColor(s.facility);
     var dowClass = dateInfo.dow === 0 ? ' sunday' : (dateInfo.dow === 6 ? ' saturday' : '');
 
     html += '<div class="shift-item">';
