@@ -1223,9 +1223,9 @@ function renderCalendar(data) {
     if (dayShifts) {
       dayShifts.forEach(function(s) {
         var color = getTimeColor(s.timeSlot);
-        var abbrev = getTimeAbbrev(s.timeSlot);
         var shortFac = shortenName(s.facility);
-        var pillLabel = abbrev ? abbrev + ' ' + shortFac : shortFac;
+        var isStandardNight = (s.timeSlot.indexOf('17時～9時') >= 0);
+        var pillLabel = isStandardNight ? shortFac : (getTimeAbbrev(s.timeSlot) + ' ' + shortFac);
         html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(s.facility + ' ' + s.timeSlot) + '">' + escapeHtml(pillLabel) + '</div>';
       });
     }
