@@ -118,6 +118,10 @@ function doGet(e) {
         return handleComplianceCheck_(params);
       case 'staffingCheck':
         return handleStaffingCheck_(params);
+      case 'allPreferences':
+        return handleAllPreferencesApi_(params);
+      case 'prefCoverage':
+        return handlePrefCoverage_(params);
       case 'lineWebhook':
         return handleLineWebhookViaGet_(params);
       default:
@@ -671,6 +675,14 @@ function handlePostbackEvent_(data, userId, replyToken, channel) {
 
     case 'pref_finish':
       handlePrefFinish_(params, employee, replyToken, channel);
+      break;
+
+    case 'attend_confirm':
+      handleAttendConfirm_(params.date, userId, replyToken, channel);
+      break;
+
+    case 'attend_cant':
+      handleAttendCant_(params.date, userId, replyToken, channel);
       break;
 
     default:

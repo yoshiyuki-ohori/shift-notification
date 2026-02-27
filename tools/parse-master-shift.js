@@ -26,6 +26,7 @@ envContent.split('\n').forEach(line => {
   if (key && vals.length) env[key.trim()] = vals.join('=').trim();
 });
 const WEBAPP_URL = env.WEBAPP_URL;
+const ADMIN_KEY = env.ADMIN_API_KEY || '';
 
 // 施設マッピング (Excel施設名 → Firestore施設ID/正式名)
 const FACILITY_MAP = {
@@ -272,7 +273,7 @@ async function writeToSpreadsheet(records) {
   // Step 1: Clear existing data for target month
   console.log('  既存データをクリア中...');
   try {
-    const clearUrl = `${WEBAPP_URL}?action=runFunction&name=clearShiftDataForMonth&arg=${encodeURIComponent(targetMonth)}`;
+    const clearUrl = `${WEBAPP_URL}?action=runFunction&key=${encodeURIComponent(ADMIN_KEY)}&name=clearShiftDataForMonth&arg=${encodeURIComponent(targetMonth)}`;
     await fetch(clearUrl, 0);
     console.log('  クリア完了');
   } catch (e) {
@@ -282,7 +283,7 @@ async function writeToSpreadsheet(records) {
   // Step 2: Get current sheet state to determine starting row
   let startRow = 2;
   try {
-    const readUrl = `${WEBAPP_URL}?action=read&sheet=${encodeURIComponent(SHEET_NAME)}`;
+    const readUrl = `${WEBAPP_URL}?action=read&key=${encodeURIComponent(ADMIN_KEY)}&sheet=${encodeURIComponent(SHEET_NAME)}`;
     const readResult = await fetch(readUrl, 0);
     if (readResult.rows > 0) {
       startRow = readResult.rows + 1;
@@ -318,6 +319,7 @@ async function writeToSpreadsheet(records) {
     try {
       const result = await postJSON(WEBAPP_URL, {
         action: 'write',
+        key: ADMIN_KEY,
         sheet: SHEET_NAME,
         range: range,
         data: rows
@@ -447,7 +449,7 @@ async function main() {
 
   // 名寄せ
   console.log('\n従業員マスタを読み込み中...');
-  const masterResp = await fetch(`${WEBAPP_URL}?action=read&sheet=${encodeURIComponent('従業員マスタ')}`, 0);
+  const masterResp = await fetch(`${WEBAPP_URL}?action=read&key=${encodeURIComponent(ADMIN_KEY)}&sheet=${encodeURIComponent('従業員マスタ')}`, 0);
   const employees = [];
   for (let i = 1; i < masterResp.data.length; i++) {
     const r = masterResp.data[i];

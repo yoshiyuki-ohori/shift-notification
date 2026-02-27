@@ -264,6 +264,31 @@ body {
 .shift-detail { flex: 1; }
 .shift-facility { font-size: 14px; font-weight: 600; color: #333; }
 .shift-time { font-size: 12px; color: #666; margin-top: 2px; }
+.shift-coworkers {
+  font-size: 11px;
+  color: #888;
+  margin-top: 4px;
+  line-height: 1.6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px;
+}
+.shift-coworkers .cw-label {
+  font-weight: 600;
+  color: #666;
+  margin-right: 2px;
+}
+.cw-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 10px;
+  color: #FFF;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.5;
+}
 
 /* ===== 空状態 ===== */
 .empty-state { text-align: center; padding: 40px 20px; color: #AAA; }
@@ -901,7 +926,11 @@ var FACILITY_COLORS = {
   '都民農園': '#3A86FF',
   '長久保': '#8338EC',
   '関町南2': '#FF6B6B', '関町南2F同一②': '#FF6B6B',
-  '関町南3': '#EE4266', '関町南3F同一②': '#EE4266', '関町南4F同一②': '#EE4266'
+  '関町南3': '#EE4266', '関町南3F同一②': '#EE4266', '関町南4F同一②': '#EE4266',
+  'レジオン': '#48BFE3',
+  '江リーザ': '#56CFE1', 'エリーザ': '#56CFE1',
+  '芝久保1': '#FF9F1C', '芝久保１': '#FF9F1C',
+  '芝久保2': '#FFBF69', '芝久保２': '#FFBF69'
 };
 
 function getFacilityColor(facility) {
@@ -913,6 +942,25 @@ function getFacilityColor(facility) {
   var hash = 0;
   for (var i = 0; i < facility.length; i++) hash = facility.charCodeAt(i) + ((hash << 5) - hash);
   return 'hsl(' + (Math.abs(hash) % 360) + ',55%,50%)';
+}
+
+// 職員名からユニークカラーを生成
+var EMPLOYEE_COLOR_PALETTE = [
+  '#E57373','#F06292','#BA68C8','#9575CD','#7986CB',
+  '#64B5F6','#4FC3F7','#4DD0E1','#4DB6AC','#81C784',
+  '#AED581','#DCE775','#FFD54F','#FFB74D','#FF8A65',
+  '#A1887F','#90A4AE','#7E57C2','#5C6BC0','#42A5F5',
+  '#26C6DA','#26A69A','#66BB6A','#D4E157','#FFCA28',
+  '#FFA726','#FF7043','#8D6E63','#78909C','#EC407A'
+];
+var _empColorCache = {};
+function getEmployeeColor(name) {
+  if (_empColorCache[name]) return _empColorCache[name];
+  var hash = 0;
+  for (var i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  var color = EMPLOYEE_COLOR_PALETTE[Math.abs(hash) % EMPLOYEE_COLOR_PALETTE.length];
+  _empColorCache[name] = color;
+  return color;
 }
 
 function getTimeColor(timeSlot) {
@@ -969,6 +1017,17 @@ function mergeUserNightShifts(shifts) {
 
       // まとめ
       shifts[hasEvening.idx].timeSlot = morningEntry ? '17時～9時' : '17時～翌朝';
+      // 同僚情報もマージ
+      var mergedCw = {};
+      [hasEvening, hasNight, morningEntry].forEach(function(entry) {
+        if (entry && entry.shift.coworkers) {
+          entry.shift.coworkers.forEach(function(cw) {
+            mergedCw[cw.name] = cw;
+          });
+        }
+      });
+      var cwList = Object.keys(mergedCw).map(function(k) { return mergedCw[k]; });
+      if (cwList.length > 0) shifts[hasEvening.idx].coworkers = cwList;
       removeSet[hasNight.idx] = true;
       if (morningEntry) removeSet[morningEntry.idx] = true;
     }
@@ -1294,7 +1353,11 @@ function renderCalendar(data) {
         var shortFac = shortenName(s.facility);
         var isStandardNight = (s.timeSlot.indexOf('17時～9時') >= 0);
         var pillLabel = isStandardNight ? shortFac : (getTimeAbbrev(s.timeSlot) + ' ' + shortFac);
-        html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(s.facility + ' ' + s.timeSlot) + '">' + escapeHtml(pillLabel) + '</div>';
+        var titleText = s.facility + ' ' + s.timeSlot;
+        if (s.coworkers && s.coworkers.length > 0) {
+          titleText += '\n同建物: ' + s.coworkers.map(function(cw) { return cw.name; }).join(', ');
+        }
+        html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(titleText) + '">' + escapeHtml(pillLabel) + '</div>';
       });
     }
 
@@ -1346,6 +1409,15 @@ function renderShiftList(data) {
     html += '<div class="shift-detail">';
     html += '<div class="shift-facility">' + escapeHtml(s.facility) + '</div>';
     html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
+    if (s.coworkers && s.coworkers.length > 0) {
+      html += '<div class="shift-coworkers"><span class="cw-label">同建物:</span>';
+      s.coworkers.forEach(function(cw) {
+        var cwColor = getEmployeeColor(cw.name);
+        var label = cw.name + '(' + shortenName(cw.facility) + ')';
+        html += '<span class="cw-pill" style="background:' + cwColor + ';">' + escapeHtml(label) + '</span>';
+      });
+      html += '</div>';
+    }
     html += '</div></div>';
   });
   if (!html) {
@@ -1373,10 +1445,13 @@ function shortenName(name) { return !name ? '' : (name.length > 5 ? name.substri
 
 function getTimeAbbrev(timeSlot) {
   if (!timeSlot) return '';
-  if (timeSlot.indexOf('6') === 0 || timeSlot.indexOf('6時') >= 0) return '早';
-  if (timeSlot.indexOf('9') === 0 || timeSlot.indexOf('9時') >= 0) return '日';
-  if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('17時') >= 0) return '夕';
-  if (timeSlot.indexOf('22') === 0 || timeSlot.indexOf('22時') >= 0) return '夜';
+  if (timeSlot.indexOf('6時～9時') >= 0) return '早';
+  if (timeSlot.indexOf('9時～') >= 0) return '日';
+  if (timeSlot.indexOf('17時～22時') >= 0) return '夕';
+  if (timeSlot.indexOf('22時～') >= 0) return '夜';
+  // 非標準: 開始時間を抽出して "21-" のように表示
+  var m = timeSlot.match(/(\d+)時/);
+  if (m) return m[1] + '-';
   return '';
 }
 

@@ -13,7 +13,8 @@ const SHEET_NAMES = {
   SHIFT_PREFERENCE: 'シフト希望',
   STAFFING_REQUIREMENT: '必要配置',
   LABOR_RULES: '労基ルール',
-  COMPLIANCE_RESULT: '労基チェック結果'
+  COMPLIANCE_RESULT: '労基チェック結果',
+  ATTENDANCE_CONFIRM: '出勤確認'
 };
 
 // ===== 従業員マスタ列定数 (1-indexed) =====
@@ -28,6 +29,7 @@ const MASTER_COLS = {
 };
 
 // ===== シフトデータ列定数 =====
+// シート: 年月,日付,エリア,施設名,時間帯,担当者名(原文),社員No,氏名(正式)
 const SHIFT_COLS = {
   YEAR_MONTH: 1,  // A: 年月
   DATE: 2,        // B: 日付
@@ -76,6 +78,16 @@ const STAFFING_COLS = {
   DAY_TYPE: 3,         // C: 平日/土曜/日祝
   MIN_STAFF: 4,        // D: 最低人数
   PREFERRED_STAFF: 5   // E: 推奨人数
+};
+
+// ===== 出勤確認列定数 =====
+const ATTEND_COLS = {
+  DATE: 1,            // A: 日付
+  EMPLOYEE_NO: 2,     // B: 社員No
+  NAME: 3,            // C: 氏名
+  STATUS: 4,          // D: ステータス (未確認/出勤/欠勤連絡)
+  CONFIRMED_AT: 5,    // E: 確認日時
+  NOTIFIED_AT: 6      // F: 通知日時
 };
 
 // ===== 希望種別 =====
@@ -145,6 +157,25 @@ const COMPLIANCE_COLS = {
   NAME: 6,          // F: 氏名
   DETAIL: 7,        // G: 詳細
   DATES: 8          // H: 対象日
+};
+
+// ===== 同一建物グループ (CSV施設名 → 建物グループID) =====
+// 同じ建物に入っている施設を同一グループとして定義
+const BUILDING_GROUPS = {
+  '春日町同一①': 'kasugacho',
+  '春日町２同一①': 'kasugacho',
+  '砧①107': 'kinuta',
+  '砧②207': 'kinuta',
+  '関町南2F同一②': 'sekimachi',
+  '関町南3F同一②': 'sekimachi',
+  '関町南4F同一②': 'sekimachi',
+  'レジオン': 'roka',
+  '江リーザ': 'roka',
+  'エリーザ': 'roka',
+  '芝久保1': 'shibakubo',
+  '芝久保2': 'shibakubo',
+  '芝久保１': 'shibakubo',
+  '芝久保２': 'shibakubo'
 };
 
 // ===== 施設マッピング (CSV施設名 → Firestore施設ID/正式名) =====

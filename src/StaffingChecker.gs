@@ -271,6 +271,80 @@ function getFacilityNameById_(facilityId) {
 }
 
 /**
+ * 配置比率（シフト配置 vs 希望）を計算
+ * @param {string} targetMonth - 対象年月 (YYYY-MM)
+ * @return {Object} { targetMonth, dailyCoverage: [...], summary: { totalDays, coveredDays, coverageRate, surplusDays, shortageDays } }
+ */
+function calculatePrefCoverage_(targetMonth) {
+  var shiftData = loadShiftDataForStaffing_(targetMonth);
+  var prefData = loadPreferenceDataForStaffing_(targetMonth);
+
+  var parts = targetMonth.split('-');
+  var year = parseInt(parts[0], 10);
+  var month = parseInt(parts[1], 10);
+  var daysInMonth = new Date(year, month, 0).getDate();
+
+  var dailyCoverage = [];
+  var totalDays = 0;
+  var coveredDays = 0;
+  var surplusDays = 0;
+  var shortageDays = 0;
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateStr = year + '/' + ('0' + month).slice(-2) + '/' + ('0' + d).slice(-2);
+
+    // 当日の希望数（全時間帯合計）
+    var prefCount = 0;
+    var prefKeys = Object.keys(prefData);
+    for (var pk = 0; pk < prefKeys.length; pk++) {
+      if (prefKeys[pk].indexOf(dateStr) === 0) {
+        prefCount += prefData[prefKeys[pk]];
+      }
+    }
+
+    // 当日の配置数（全施設・全時間帯合計）
+    var assignedCount = 0;
+    var shiftKeys = Object.keys(shiftData);
+    for (var sk = 0; sk < shiftKeys.length; sk++) {
+      if (shiftKeys[sk].indexOf(dateStr) >= 0) {
+        assignedCount += shiftData[shiftKeys[sk]];
+      }
+    }
+
+    var diff = assignedCount - prefCount;
+
+    dailyCoverage.push({
+      date: dateStr,
+      day: d,
+      prefCount: prefCount,
+      assignedCount: assignedCount,
+      diff: diff
+    });
+
+    if (prefCount > 0 || assignedCount > 0) {
+      totalDays++;
+      if (assignedCount >= prefCount && prefCount > 0) coveredDays++;
+      if (diff > 0) surplusDays++;
+      if (diff < 0) shortageDays++;
+    }
+  }
+
+  var coverageRate = totalDays > 0 ? Math.round(coveredDays / totalDays * 100) : 0;
+
+  return {
+    targetMonth: targetMonth,
+    dailyCoverage: dailyCoverage,
+    summary: {
+      totalDays: totalDays,
+      coveredDays: coveredDays,
+      coverageRate: coverageRate,
+      surplusDays: surplusDays,
+      shortageDays: shortageDays
+    }
+  };
+}
+
+/**
  * 施設IDからエリアを判定
  * @param {string} facilityId - 施設ID
  * @return {string} エリア名

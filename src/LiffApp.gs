@@ -111,6 +111,9 @@ function getMyShiftData(accessToken, targetMonth, overrideEmpNo, adminKey) {
       }
     }
 
+    // 4b. 同一建物の同僚情報を追加
+    myShifts = addCoworkerInfo_(myShifts, allAggregated, employee.employeeNo);
+
     // 5. 希望データ取得
     var preferences = getPreferencesForEmployee(targetMonth, employee.employeeNo);
 
@@ -512,6 +515,84 @@ function handleSavePrefBatch_(body) {
 }
 
 /**
+ * 全職員のシフト希望一覧 API エンドポイント (doGet から呼ばれる)
+ * ADMIN_API_KEY 認証済み前提
+ * ?action=allPreferences&month=YYYY-MM
+ * @param {Object} params - クエリパラメータ
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handleAllPreferencesApi_(params) {
+  try {
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // シフト希望データ取得
+    var prefSheet = ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE);
+    var preferences = [];
+    if (prefSheet && prefSheet.getLastRow() > 1) {
+      var prefData = prefSheet.getDataRange().getValues();
+      for (var i = 1; i < prefData.length; i++) {
+        var ym = formatYearMonth_(prefData[i][PREF_COLS.YEAR_MONTH - 1]);
+        if (ym !== targetMonth) continue;
+
+        preferences.push({
+          employeeNo: String(prefData[i][PREF_COLS.EMPLOYEE_NO - 1]).trim().padStart(3, '0'),
+          name: String(prefData[i][PREF_COLS.NAME - 1]).trim(),
+          date: formatDateValue_(prefData[i][PREF_COLS.DATE - 1]),
+          type: String(prefData[i][PREF_COLS.TYPE - 1]).trim(),
+          timeSlot: String(prefData[i][PREF_COLS.TIME_SLOT - 1]).trim(),
+          reason: String(prefData[i][PREF_COLS.REASON - 1] || '').trim()
+        });
+      }
+    }
+
+    // 日付×人でグループ化
+    var byDate = {};
+    for (var j = 0; j < preferences.length; j++) {
+      var p = preferences[j];
+      if (!byDate[p.date]) byDate[p.date] = [];
+      byDate[p.date].push(p);
+    }
+
+    // 提出状況を取得
+    var employees = loadEmployeeMaster();
+    var submittedSet = {};
+    preferences.forEach(function(p) { submittedSet[p.employeeNo] = true; });
+
+    var submitted = [];
+    var notSubmitted = [];
+    employees.forEach(function(emp) {
+      if (emp.status !== '在職') return;
+      if (submittedSet[emp.employeeNo]) {
+        submitted.push({ employeeNo: emp.employeeNo, name: emp.name });
+      } else {
+        notSubmitted.push({ employeeNo: emp.employeeNo, name: emp.name });
+      }
+    });
+
+    return jsonResponse_({
+      targetMonth: targetMonth,
+      preferences: preferences,
+      byDate: byDate,
+      submissionStatus: {
+        submitted: submitted,
+        notSubmitted: notSubmitted,
+        submittedCount: submitted.length,
+        notSubmittedCount: notSubmitted.length
+      }
+    });
+  } catch (e) {
+    Logger.log('handleAllPreferencesApi_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
  * コンプライアンスチェック API エンドポイント (doGet から呼ばれる)
  * ADMIN_API_KEY 認証済み前提
  * ?action=complianceCheck&month=YYYY-MM
@@ -561,6 +642,29 @@ function handleStaffingCheck_(params) {
 }
 
 /**
+ * 配置比率 API エンドポイント (doGet から呼ばれる)
+ * ADMIN_API_KEY 認証済み前提
+ * ?action=prefCoverage&month=YYYY-MM
+ * @param {Object} params - クエリパラメータ
+ * @return {ContentService.TextOutput} JSON レスポンス
+ */
+function handlePrefCoverage_(params) {
+  try {
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    var result = calculatePrefCoverage_(targetMonth);
+    return jsonResponse_(result);
+  } catch (e) {
+    Logger.log('handlePrefCoverage_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
  * LINE アクセストークンを検証し userId を返す
  * @param {string} accessToken - LIFF のアクセストークン
  * @return {string|null} LINE userId (検証失敗時は null)
@@ -600,4 +704,61 @@ function serveLiffPage() {
   return HtmlService.createHtmlOutputFromFile('LiffView')
     .setTitle('マイシフト')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * 同一建物の同僚情報をシフトデータに付与
+ * @param {Array} myShifts - 対象職員のシフト配列
+ * @param {Array} allAggregated - 全職員の集約データ
+ * @param {string} myEmpNo - 対象職員の社員番号
+ * @return {Array} coworkers プロパティを追加したシフト配列
+ * @private
+ */
+function addCoworkerInfo_(myShifts, allAggregated, myEmpNo) {
+  // 建物グループ+日付 → [{empNo, name, facility, timeSlot}] のルックアップを構築
+  var buildingShiftMap = {};
+
+  for (var a = 0; a < allAggregated.length; a++) {
+    var emp = allAggregated[a];
+    for (var s = 0; s < emp.shifts.length; s++) {
+      var shift = emp.shifts[s];
+      var group = BUILDING_GROUPS[shift.facility];
+      if (!group) continue;
+
+      var key = group + '|' + shift.date;
+      if (!buildingShiftMap[key]) buildingShiftMap[key] = [];
+      buildingShiftMap[key].push({
+        empNo: emp.employeeNo,
+        name: emp.name,
+        facility: shift.facility,
+        timeSlot: shift.timeSlot
+      });
+    }
+  }
+
+  // 自分のシフトに同僚情報を付与
+  for (var i = 0; i < myShifts.length; i++) {
+    var myGroup = BUILDING_GROUPS[myShifts[i].facility];
+    if (!myGroup) continue;
+
+    var lookupKey = myGroup + '|' + myShifts[i].date;
+    var workers = buildingShiftMap[lookupKey];
+    if (!workers) continue;
+
+    var coworkers = [];
+    for (var w = 0; w < workers.length; w++) {
+      if (workers[w].empNo === myEmpNo) continue;
+      coworkers.push({
+        name: workers[w].name,
+        facility: workers[w].facility,
+        timeSlot: workers[w].timeSlot
+      });
+    }
+
+    if (coworkers.length > 0) {
+      myShifts[i].coworkers = coworkers;
+    }
+  }
+
+  return myShifts;
 }

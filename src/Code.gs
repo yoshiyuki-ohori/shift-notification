@@ -8,40 +8,42 @@
  */
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
-  ui.createMenu('シフト通知')
-    .addItem('シフトデータ取込 (練馬)', 'importNerimaShifts')
-    .addItem('シフトデータ取込 (世田谷)', 'importSetagayaShifts')
-    .addItem('シフトデータ取込 (マスタExcel)', 'importMasterExcelShifts')
-    .addSeparator()
+
+  // メニュー1: シフト管理（取込・名寄せ・通知・カレンダー）
+  ui.createMenu('シフト管理')
+    .addItem('データ取込 (練馬)', 'importNerimaShifts')
+    .addItem('データ取込 (世田谷)', 'importSetagayaShifts')
+    .addItem('データ取込 (マスタExcel)', 'importMasterExcelShifts')
     .addItem('名寄せ実行', 'runNameMatching')
     .addItem('未マッチ確認', 'showUnmatchedReport')
     .addSeparator()
     .addItem('テスト送信 (管理者のみ)', 'sendTestNotification')
     .addItem('一括送信 (本番)', 'sendAllNotifications')
-    .addSeparator()
     .addItem('送信ログ確認', 'showSendLog')
     .addSeparator()
-    .addItem('Googleカレンダー一括登録', 'syncAllToGoogleCalendar')
+    .addItem('Googleカレンダー登録', 'syncAllToGoogleCalendar')
+    .addItem('一斉メッセージ送信', 'sendBroadcastMessage')
     .addSeparator()
-    .addItem('一斉メッセージ送信 (全友だち)', 'sendBroadcastMessage')
-    .addToUi();
-
-  ui.createMenu('社員マスタ')
-    .addItem('外部マスタから同期 (手動)', 'runManualSync')
+    .addItem('社員マスタ同期 (手動)', 'runManualSync')
     .addItem('毎日自動同期トリガー設定', 'setupDailySyncTrigger')
     .addToUi();
 
-  ui.createMenu('シフト希望')
+  // メニュー2: 希望・出勤（希望収集 + 出勤確認）
+  ui.createMenu('希望・出勤')
     .addItem('希望収集を開始', 'startPreferenceCollection')
     .addItem('希望収集を締切', 'closePreferenceCollection')
-    .addSeparator()
     .addItem('提出状況確認', 'showSubmissionStatus')
     .addItem('未提出者にリマインド送信', 'sendPreferenceReminders')
-    .addSeparator()
     .addItem('希望一覧シート表示', 'showPreferenceSheet')
+    .addSeparator()
+    .addItem('出勤確認テスト送信 (今日)', 'testSendAttendanceConfirm')
+    .addItem('未確認者チェック (手動)', 'testCheckUnconfirmed')
+    .addItem('出勤確認トリガー設定', 'setupAttendanceTriggers')
+    .addItem('出勤確認トリガー削除', 'deleteAttendanceTriggers')
     .addToUi();
 
-  ui.createMenu('労基チェック')
+  // メニュー3: チェック（労基 + 配置充足率）
+  ui.createMenu('チェック')
     .addItem('労基チェック実行', 'runComplianceCheckMenu')
     .addItem('配置充足率チェック', 'runStaffingCheckMenu')
     .addSeparator()
@@ -282,20 +284,18 @@ function writeShiftData(records) {
 
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAMES.SHIFT_DATA);
-    sheet.getRange(1, 1, 1, 9).setValues([[
-      '年月', '日付', 'エリア', '施設名(正式)', '施設コード', '時間帯', '担当者名(原文)', '社員No', '氏名(正式)'
+    sheet.getRange(1, 1, 1, 8).setValues([[
+      '年月', '日付', 'エリア', '施設名', '時間帯', '担当者名(原文)', '社員No', '氏名(正式)'
     ]]);
   }
 
   const rows = records.map(r => {
     const officialName = getOfficialFacilityName(r.facility);
-    const facilityId = getFacilityId(r.facility) || '';
     return [
       r.yearMonth,
       r.date,
       r.area,
       officialName,
-      facilityId,
       r.timeSlot,
       r.originalName,
       r.employeeNo || '',
@@ -304,7 +304,7 @@ function writeShiftData(records) {
   });
 
   const lastRow = sheet.getLastRow();
-  sheet.getRange(lastRow + 1, 1, rows.length, 9).setValues(rows);
+  sheet.getRange(lastRow + 1, 1, rows.length, 8).setValues(rows);
 }
 
 /**
@@ -582,6 +582,15 @@ function setupSheets() {
     const sheet = ss.insertSheet(SHEET_NAMES.STAFFING_REQUIREMENT);
     sheet.getRange(1, 1, 1, 5).setValues([[
       '施設ID', '時間帯', '曜日種別', '最低人数', '推奨人数'
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+
+  // 出勤確認
+  if (!ss.getSheetByName(SHEET_NAMES.ATTENDANCE_CONFIRM)) {
+    const sheet = ss.insertSheet(SHEET_NAMES.ATTENDANCE_CONFIRM);
+    sheet.getRange(1, 1, 1, 6).setValues([[
+      '日付', '社員No', '氏名', 'ステータス', '確認日時', '通知日時'
     ]]);
     sheet.setFrozenRows(1);
   }
@@ -1038,6 +1047,81 @@ function runAutoComplianceCheck_(targetMonth) {
                result.summary.totalWarnings + ' warnings');
   } catch (e) {
     Logger.log('runAutoComplianceCheck_ error: ' + e.toString());
+  }
+}
+
+// ===== 出勤確認関連 =====
+
+/**
+ * 出勤確認テスト送信（メニューから手動実行）
+ */
+function testSendAttendanceConfirm() {
+  var ui = SpreadsheetApp.getUi();
+  var confirm = ui.alert('出勤確認テスト',
+    '当日シフトのある職員に出勤確認メッセージを送信します。\n実行しますか？',
+    ui.ButtonSet.YES_NO);
+  if (confirm !== ui.Button.YES) return;
+
+  sendDailyAttendanceConfirm();
+  ui.alert('完了', '出勤確認メッセージの送信が完了しました。', ui.ButtonSet.OK);
+}
+
+/**
+ * 未確認者チェック手動実行（メニューから）
+ */
+function testCheckUnconfirmed() {
+  var ui = SpreadsheetApp.getUi();
+  var confirm = ui.alert('未確認者チェック',
+    '未確認者に再通知し、管理者にアラートを送信します。\n実行しますか？',
+    ui.ButtonSet.YES_NO);
+  if (confirm !== ui.Button.YES) return;
+
+  checkUnconfirmedAttendance();
+  ui.alert('完了', '未確認者チェックが完了しました。', ui.ButtonSet.OK);
+}
+
+/**
+ * 出勤確認の定期トリガーを設定
+ * 毎朝7:00 → sendDailyAttendanceConfirm
+ * 毎日12:00 → checkUnconfirmedAttendance
+ */
+function setupAttendanceTriggers() {
+  // 既存トリガーを削除
+  deleteAttendanceTriggers();
+
+  // 毎朝7時: 出勤確認送信
+  ScriptApp.newTrigger('sendDailyAttendanceConfirm')
+    .timeBased()
+    .everyDays(1)
+    .atHour(7)
+    .nearMinute(0)
+    .create();
+
+  // 毎日12時: 未確認チェック
+  ScriptApp.newTrigger('checkUnconfirmedAttendance')
+    .timeBased()
+    .everyDays(1)
+    .atHour(12)
+    .nearMinute(0)
+    .create();
+
+  SpreadsheetApp.getUi().alert('トリガー設定完了',
+    '出勤確認トリガーを設定しました。\n\n' +
+    '- 毎朝 7:00 出勤確認送信\n' +
+    '- 毎日 12:00 未確認者チェック',
+    SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+/**
+ * 出勤確認トリガーを削除
+ */
+function deleteAttendanceTriggers() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    var fn = triggers[i].getHandlerFunction();
+    if (fn === 'sendDailyAttendanceConfirm' || fn === 'checkUnconfirmedAttendance') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
   }
 }
 

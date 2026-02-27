@@ -1048,18 +1048,17 @@
   function buildShiftRows(fac, dt, timeSlot, empNo, empName) {
     var area = fac.area || '';
     var facName = fac.name || '';
-    var facId = fac.facilityId || fac.facId || '';
     if (timeSlot === '夜勤(17-9時)') {
       var nextDate = new Date(dt.year, dt.month - 1, dt.day + 1);
       var nextYM = nextDate.getFullYear() + '-' + ('0' + (nextDate.getMonth() + 1)).slice(-2);
       var nextDateStr = nextDate.getFullYear() + '/' + ('0' + (nextDate.getMonth() + 1)).slice(-2) + '/' + ('0' + nextDate.getDate()).slice(-2);
       return [
-        [dt.yearMonth, dt.dateStr, area, facName, facId, '17時～22時', empName, empNo, empName],
-        [dt.yearMonth, dt.dateStr, area, facName, facId, '22時～', empName, empNo, empName],
-        [nextYM, nextDateStr, area, facName, facId, '6時～9時', empName, empNo, empName]
+        [dt.yearMonth, dt.dateStr, area, facName, '17時～22時', empName, empNo, empName],
+        [dt.yearMonth, dt.dateStr, area, facName, '22時～', empName, empNo, empName],
+        [nextYM, nextDateStr, area, facName, '6時～9時', empName, empNo, empName]
       ];
     }
-    return [[dt.yearMonth, dt.dateStr, area, facName, facId, timeSlot, empName, empNo, empName]];
+    return [[dt.yearMonth, dt.dateStr, area, facName, timeSlot, empName, empNo, empName]];
   }
 
   function showToast(msg) {
