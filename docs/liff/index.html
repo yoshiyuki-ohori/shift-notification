@@ -181,7 +181,7 @@ body {
 }
 .cal-cell {
   background: #FFF;
-  min-height: 52px;
+  min-height: 64px;
   padding: 2px;
   position: relative;
 }
@@ -199,13 +199,13 @@ body {
 .cal-cell.sunday .cal-day { color: #E74C3C; }
 .cal-cell.saturday .cal-day { color: #2980B9; }
 .cal-pill {
-  font-size: 9px;
-  padding: 2px 3px;
+  font-size: 8px;
+  padding: 1px 2px;
   border-radius: 3px;
   color: #FFF;
   margin-top: 1px;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -216,6 +216,28 @@ body {
   right: 2px;
   font-size: 8px;
   line-height: 1;
+}
+
+/* ===== カラー凡例 ===== */
+.cal-legend {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 16px 2px;
+  font-size: 10px;
+  color: #888;
+  flex-wrap: wrap;
+}
+.cal-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.cal-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 /* ===== シフト一覧 ===== */
@@ -389,6 +411,122 @@ body {
   cursor: pointer; text-decoration: underline;
 }
 
+/* ===== 管理者タブ ===== */
+.admin-tabs {
+  display: flex;
+  padding: 0 16px;
+  gap: 0;
+  background: #FFF;
+  border-bottom: 2px solid #EEE;
+}
+.admin-tab {
+  flex: 1;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+.admin-tab.active {
+  color: #1976D2;
+  border-bottom-color: #1976D2;
+}
+.admin-tab:active { opacity: 0.7; }
+
+/* ===== 希望一覧カレンダー ===== */
+.pref-overview-cal {
+  margin: 8px 16px;
+  background: #FFF;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.pref-cal-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #F8F8F8;
+  border-bottom: 1px solid #EEE;
+}
+.pref-cal-header span {
+  text-align: center; font-size: 10px; font-weight: 600; padding: 6px 0; color: #666;
+}
+.pref-cal-header span:first-child { color: #E74C3C; }
+.pref-cal-header span:last-child { color: #2980B9; }
+.pref-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #F0F0F0;
+}
+.pref-cal-cell {
+  background: #FFF; min-height: 60px; padding: 2px; position: relative;
+}
+.pref-cal-cell.empty { background: #FAFAFA; }
+.pref-cal-cell .pref-day { font-size: 10px; font-weight: 600; text-align: center; color: #333; }
+.pref-cal-cell.sunday .pref-day { color: #E74C3C; }
+.pref-cal-cell.saturday .pref-day { color: #2980B9; }
+.pref-name-chip {
+  font-size: 8px; padding: 1px 2px; border-radius: 2px;
+  margin-top: 1px; text-align: center; color: #FFF; line-height: 1.2;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pref-name-chip.want { background: #27AE60; }
+.pref-name-chip.ng { background: #E74C3C; }
+.pref-name-chip.either { background: #F39C12; }
+.pref-cal-cell.highlight { background: #FFF9C4; }
+
+/* ===== 提出状況バー ===== */
+.submission-bar {
+  margin: 8px 16px;
+  background: #FFF;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.sub-item { text-align: center; }
+.sub-value { font-size: 20px; font-weight: 700; }
+.sub-value.submitted { color: #27AE60; }
+.sub-value.not-submitted { color: #E74C3C; }
+.sub-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+/* ===== サマリーカード ===== */
+.summary-cards {
+  display: flex; gap: 8px; padding: 8px 16px; flex-wrap: wrap;
+}
+.summary-card {
+  flex: 1; min-width: 100px;
+  background: #FFF; border-radius: 10px; padding: 12px;
+  text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.sc-value { font-size: 22px; font-weight: 700; }
+.sc-value.good { color: #27AE60; }
+.sc-value.warn { color: #F39C12; }
+.sc-value.bad { color: #E74C3C; }
+.sc-label { font-size: 10px; color: #888; margin-top: 2px; }
+
+/* ===== 労基サマリー ===== */
+.compliance-banner {
+  margin: 8px 16px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.compliance-banner.ok { background: #E8F5E9; color: #2E7D32; }
+.compliance-banner.warn { background: #FFF3E0; color: #E65100; }
+.compliance-banner.critical { background: #FFEBEE; color: #C62828; }
+.compliance-icon { font-size: 20px; }
+
 /* ===== フッター ===== */
 .footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
 </style>
@@ -428,6 +566,12 @@ body {
 
 <!-- 全体シフト一覧 -->
 <div id="overviewContent" style="display:none;">
+  <!-- 労基チェックサマリー -->
+  <div id="complianceBanner" class="compliance-banner ok" style="display:none;">
+    <span class="compliance-icon" id="complianceIcon"></span>
+    <span id="complianceText"></span>
+  </div>
+
   <div class="overview-summary">
     <div class="stat-card">
       <div class="stat-value" id="ovFacCount">0</div>
@@ -442,11 +586,44 @@ body {
       <div class="stat-label">職員数</div>
     </div>
   </div>
+
   <div style="padding:0 16px 8px;display:flex;justify-content:space-between;align-items:center;">
     <span class="back-to-my" onclick="backToMyShift()">← マイシフトに戻る</span>
     <input type="text" id="ovSearch" placeholder="施設名で検索" oninput="filterFacilities()" style="padding:6px 10px;border:1px solid #DDD;border-radius:8px;font-size:12px;width:140px;outline:none;">
   </div>
-  <div id="facilityList"></div>
+
+  <!-- タブ切替 -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchTab('facility')" id="tabFacility">施設一覧</button>
+    <button class="admin-tab" onclick="switchTab('pref')" id="tabPref">希望一覧</button>
+    <button class="admin-tab" onclick="switchTab('coverage')" id="tabCoverage">配置比率</button>
+  </div>
+
+  <!-- タブ: 施設一覧 -->
+  <div id="tabContentFacility">
+    <div id="facilityList"></div>
+  </div>
+
+  <!-- タブ: 希望一覧 -->
+  <div id="tabContentPref" style="display:none;">
+    <div class="submission-bar" id="submissionBar">
+      <div class="sub-item">
+        <div class="sub-value submitted" id="subSubmitted">0</div>
+        <div class="sub-label">提出済み</div>
+      </div>
+      <div class="sub-item">
+        <div class="sub-value not-submitted" id="subNotSubmitted">0</div>
+        <div class="sub-label">未提出</div>
+      </div>
+    </div>
+    <div id="prefOverviewContent"></div>
+  </div>
+
+  <!-- タブ: 配置比率 -->
+  <div id="tabContentCoverage" style="display:none;">
+    <div class="summary-cards" id="coverageCards"></div>
+    <div id="coverageDetail"></div>
+  </div>
 </div>
 
 <!-- ローディング -->
@@ -522,6 +699,14 @@ body {
       <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
     </div>
     <div class="cal-grid" id="calGrid"></div>
+  </div>
+  <div class="cal-legend">
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#4ECDC4;"></div>早(6-9)</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFD93D;"></div>日(9-17)</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FF6B6B;"></div>夕(17-22)</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#845EC2;"></div>夜(22-)</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#E8F5E9;border:1px solid #A5D6A7;"></div>シフトあり</div>
+    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#D4EDDA;border:2px solid #1DB446;"></div>今日</div>
   </div>
 
   <div class="shift-list" id="shiftList">
@@ -698,11 +883,69 @@ var TIME_COLORS = {
 
 function getTimeColor(timeSlot) {
   if (!timeSlot) return '#CCC';
+  if (timeSlot.indexOf('17時～9時') >= 0 || timeSlot.indexOf('17時～翌') >= 0) return TIME_COLORS.evening;
   if (timeSlot.indexOf('6') === 0 || timeSlot.indexOf('6時') >= 0) return TIME_COLORS.morning;
   if (timeSlot.indexOf('9') === 0 || timeSlot.indexOf('9時') >= 0) return TIME_COLORS.daytime;
   if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('17時') >= 0) return TIME_COLORS.evening;
   if (timeSlot.indexOf('22') === 0 || timeSlot.indexOf('22時') >= 0) return TIME_COLORS.night;
   return '#AAA';
+}
+
+// 夜勤まとめ: 17時～22時 + 22時～ + 翌6時～9時 → 入り日に「17時～9時」として1行表示
+function mergeUserNightShifts(shifts) {
+  if (!shifts || shifts.length === 0) return shifts;
+
+  // 日付+施設でグルーピング
+  var byDateFac = {};
+  for (var i = 0; i < shifts.length; i++) {
+    var s = shifts[i];
+    var key = s.date + '|' + s.facility;
+    if (!byDateFac[key]) byDateFac[key] = [];
+    byDateFac[key].push({ idx: i, shift: s });
+  }
+
+  var removeSet = {};
+
+  for (var key in byDateFac) {
+    var entries = byDateFac[key];
+    var hasEvening = null, hasNight = null;
+    for (var j = 0; j < entries.length; j++) {
+      var ts = entries[j].shift.timeSlot;
+      if (ts.indexOf('17') === 0) hasEvening = entries[j];
+      if (ts.indexOf('22') === 0 || ts.indexOf('21') === 0) hasNight = entries[j];
+    }
+
+    if (hasEvening && hasNight) {
+      // 翌日の6時～9時を探す
+      var parts = hasEvening.shift.date.split(/[\/\-]/);
+      var dt = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+      dt.setDate(dt.getDate() + 1);
+      var nextDate = dt.getFullYear() + '/' + ('0'+(dt.getMonth()+1)).slice(-2) + '/' + ('0'+dt.getDate()).slice(-2);
+      var nextKey = nextDate + '|' + hasEvening.shift.facility;
+      var morningEntry = null;
+
+      if (byDateFac[nextKey]) {
+        for (var m = 0; m < byDateFac[nextKey].length; m++) {
+          if (byDateFac[nextKey][m].shift.timeSlot.indexOf('6') === 0) {
+            morningEntry = byDateFac[nextKey][m];
+            break;
+          }
+        }
+      }
+
+      // まとめ
+      shifts[hasEvening.idx].timeSlot = morningEntry ? '17時～9時' : '17時～翌朝';
+      removeSet[hasNight.idx] = true;
+      if (morningEntry) removeSet[morningEntry.idx] = true;
+    }
+  }
+
+  // 削除対象を除外して返す
+  var result = [];
+  for (var k = 0; k < shifts.length; k++) {
+    if (!removeSet[k]) result.push(shifts[k]);
+  }
+  return result;
 }
 
 // ===== 初期化 =====
@@ -864,6 +1107,15 @@ function onDataLoaded(data) {
   }
   if (data.error) { showError(data.error); return; }
 
+  // 夜勤まとめ（17時～22時 + 22時～ + 翌6時～9時 → 入り日に「17時～9時」）
+  if (data.shifts) {
+    data.shifts = mergeUserNightShifts(data.shifts);
+    data.stats.totalShifts = data.shifts.length;
+    var facSet = {};
+    data.shifts.forEach(function(s) { facSet[s.facility] = true; });
+    data.stats.facilityCount = Object.keys(facSet).length;
+  }
+
   currentData = data;
   var suffix = t('regSuffix');
   document.getElementById('empName').textContent = data.employee.name + (suffix ? ' ' + suffix : '');
@@ -872,7 +1124,7 @@ function onDataLoaded(data) {
   // 管理者モード: 閲覧中の社員を表示
   if (isAdminMode && data.employee) {
     var viewEl = document.getElementById('adminViewing');
-    viewEl.textContent = '閲覧中: ' + data.employee.empNo + ' - ' + data.employee.name;
+    viewEl.textContent = '閲覧中: ' + data.employee.employeeNo + ' - ' + data.employee.name;
     viewEl.style.display = 'block';
   }
   renderPrefStatus(data);
@@ -919,9 +1171,9 @@ function renderPrefStatus(data) {
 }
 
 function openPreference() {
-  if (currentData && currentData.collectionPeriod) {
-    liff.sendMessages([{ type: 'text', text: 'シフト希望' }]).catch(function() {});
-  }
+  var prefUrl = './preference/';
+  if (currentMonth) prefUrl += '?month=' + encodeURIComponent(currentMonth);
+  window.location.href = prefUrl;
 }
 
 // ===== カレンダー描画 =====
@@ -971,8 +1223,10 @@ function renderCalendar(data) {
     if (dayShifts) {
       dayShifts.forEach(function(s) {
         var color = getTimeColor(s.timeSlot);
-        var label = shortenName(s.facility);
-        html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(s.facility + ' ' + s.timeSlot) + '">' + escapeHtml(label) + '</div>';
+        var abbrev = getTimeAbbrev(s.timeSlot);
+        var shortFac = shortenName(s.facility);
+        var pillLabel = abbrev ? abbrev + ' ' + shortFac : shortFac;
+        html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(s.facility + ' ' + s.timeSlot) + '">' + escapeHtml(pillLabel) + '</div>';
       });
     }
 
@@ -1049,6 +1303,15 @@ function parseShiftDate(dateStr) {
 
 function shortenName(name) { return !name ? '' : (name.length > 5 ? name.substring(0, 5) : name); }
 
+function getTimeAbbrev(timeSlot) {
+  if (!timeSlot) return '';
+  if (timeSlot.indexOf('6') === 0 || timeSlot.indexOf('6時') >= 0) return '早';
+  if (timeSlot.indexOf('9') === 0 || timeSlot.indexOf('9時') >= 0) return '日';
+  if (timeSlot.indexOf('17') === 0 || timeSlot.indexOf('17時') >= 0) return '夕';
+  if (timeSlot.indexOf('22') === 0 || timeSlot.indexOf('22時') >= 0) return '夜';
+  return '';
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1060,6 +1323,7 @@ function hideAll() {
   document.getElementById('mainContent').style.display = 'none';
   document.getElementById('registerView').style.display = 'none';
   document.getElementById('overviewContent').style.display = 'none';
+  document.getElementById('complianceBanner').style.display = 'none';
 }
 
 function showLoading() {
@@ -1173,6 +1437,17 @@ function loadOverview() {
       overviewData = data;
       document.getElementById('overviewContent').style.display = 'block';
       renderOverview(data);
+      // 労基サマリーを非同期ロード
+      loadComplianceSummary();
+      // タブデータをリセット（月切替時）
+      prefOverviewData = null;
+      coverageData = null;
+      currentTab = 'facility';
+      document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.getElementById('tabFacility').classList.add('active');
+      document.getElementById('tabContentFacility').style.display = 'block';
+      document.getElementById('tabContentPref').style.display = 'none';
+      document.getElementById('tabContentCoverage').style.display = 'none';
     })
     .catch(function(err) {
       document.getElementById('loadingView').style.display = 'none';
@@ -1377,6 +1652,218 @@ function escHtml(s) {
   var d = document.createElement('div');
   d.textContent = String(s);
   return d.innerHTML;
+}
+
+// ===== 管理者タブ切替 =====
+var currentTab = 'facility';
+var prefOverviewData = null;
+var coverageData = null;
+var complianceData = null;
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.admin-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tabFacility').classList.toggle('active', tab === 'facility');
+  document.getElementById('tabPref').classList.toggle('active', tab === 'pref');
+  document.getElementById('tabCoverage').classList.toggle('active', tab === 'coverage');
+
+  document.getElementById('tabContentFacility').style.display = tab === 'facility' ? 'block' : 'none';
+  document.getElementById('tabContentPref').style.display = tab === 'pref' ? 'block' : 'none';
+  document.getElementById('tabContentCoverage').style.display = tab === 'coverage' ? 'block' : 'none';
+
+  // 遅延ロード
+  if (tab === 'pref' && !prefOverviewData) loadPrefOverview();
+  if (tab === 'coverage' && !coverageData) loadCoverageData();
+}
+
+// ===== 希望一覧 =====
+function loadPrefOverview() {
+  var url = GAS_API_URL + '?action=allPreferences&key=' + encodeURIComponent(getAdminKey()) + '&month=' + encodeURIComponent(currentMonth);
+  document.getElementById('prefOverviewContent').innerHTML = '<div style="text-align:center;padding:20px;color:#888;">読み込み中...</div>';
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) {
+        document.getElementById('prefOverviewContent').innerHTML = '<div style="text-align:center;padding:20px;color:#E74C3C;">' + escHtml(data.error) + '</div>';
+        return;
+      }
+      prefOverviewData = data;
+      document.getElementById('subSubmitted').textContent = data.submissionStatus.submittedCount;
+      document.getElementById('subNotSubmitted').textContent = data.submissionStatus.notSubmittedCount;
+      renderPrefOverviewCalendar(data);
+    })
+    .catch(function(err) {
+      document.getElementById('prefOverviewContent').innerHTML = '<div style="text-align:center;padding:20px;color:#E74C3C;">読み込みエラー</div>';
+    });
+}
+
+function renderPrefOverviewCalendar(data) {
+  var parts = currentMonth.split('-');
+  var year = parseInt(parts[0], 10);
+  var month = parseInt(parts[1], 10);
+  var firstDay = new Date(year, month - 1, 1);
+  var lastDay = new Date(year, month, 0);
+  var startDow = firstDay.getDay();
+  var daysInMonth = lastDay.getDate();
+  var DOW = ['日','月','火','水','木','金','土'];
+
+  // 日付ごとの希望者をマップ
+  var byDate = data.byDate || {};
+
+  var html = '<div class="pref-overview-cal">';
+  html += '<div class="pref-cal-header">';
+  for (var h = 0; h < 7; h++) html += '<span>' + DOW[h] + '</span>';
+  html += '</div><div class="pref-cal-grid">';
+
+  for (var i = 0; i < startDow; i++) html += '<div class="pref-cal-cell empty"></div>';
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var dow = (startDow + day - 1) % 7;
+    var dateStr = year + '/' + String(month).padStart(2,'0') + '/' + String(day).padStart(2,'0');
+    var dayPrefs = byDate[dateStr] || [];
+    var hasMultiple = dayPrefs.length > 1;
+
+    var classes = 'pref-cal-cell';
+    if (dow === 0) classes += ' sunday';
+    if (dow === 6) classes += ' saturday';
+    if (hasMultiple) classes += ' highlight';
+
+    html += '<div class="' + classes + '">';
+    html += '<div class="pref-day">' + day + '</div>';
+
+    // 最大4名まで表示、それ以上は "+N"
+    var maxShow = 4;
+    for (var p = 0; p < Math.min(dayPrefs.length, maxShow); p++) {
+      var pref = dayPrefs[p];
+      var chipClass = 'pref-name-chip';
+      if (pref.type === '希望') chipClass += ' want';
+      else if (pref.type === 'NG') chipClass += ' ng';
+      else chipClass += ' either';
+      var shortName = pref.name.length > 3 ? pref.name.substring(0, 3) : pref.name;
+      html += '<div class="' + chipClass + '" title="' + escHtml(pref.name + ' ' + pref.type) + '">' + escHtml(shortName) + '</div>';
+    }
+    if (dayPrefs.length > maxShow) {
+      html += '<div style="font-size:8px;text-align:center;color:#888;">+' + (dayPrefs.length - maxShow) + '</div>';
+    }
+
+    html += '</div>';
+  }
+
+  var totalCells = startDow + daysInMonth;
+  var remainder = totalCells % 7;
+  if (remainder > 0) {
+    for (var k = 0; k < 7 - remainder; k++) html += '<div class="pref-cal-cell empty"></div>';
+  }
+
+  html += '</div></div>';
+
+  // 未提出者リスト
+  if (data.submissionStatus.notSubmitted.length > 0) {
+    html += '<div style="margin:8px 16px;background:#FFF;border-radius:10px;padding:12px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">';
+    html += '<div style="font-size:12px;font-weight:600;color:#E74C3C;margin-bottom:6px;">未提出者</div>';
+    html += '<div style="font-size:12px;color:#555;line-height:1.8;">';
+    data.submissionStatus.notSubmitted.forEach(function(emp) {
+      html += escHtml(emp.name) + '(' + emp.employeeNo + ') ';
+    });
+    html += '</div></div>';
+  }
+
+  document.getElementById('prefOverviewContent').innerHTML = html;
+}
+
+// ===== 配置比率 =====
+function loadCoverageData() {
+  var url = GAS_API_URL + '?action=prefCoverage&key=' + encodeURIComponent(getAdminKey()) + '&month=' + encodeURIComponent(currentMonth);
+  document.getElementById('coverageCards').innerHTML = '';
+  document.getElementById('coverageDetail').innerHTML = '<div style="text-align:center;padding:20px;color:#888;">読み込み中...</div>';
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) {
+        document.getElementById('coverageDetail').innerHTML = '<div style="text-align:center;padding:20px;color:#E74C3C;">' + escHtml(data.error) + '</div>';
+        return;
+      }
+      coverageData = data;
+      renderCoverage(data);
+    })
+    .catch(function(err) {
+      document.getElementById('coverageDetail').innerHTML = '<div style="text-align:center;padding:20px;color:#E74C3C;">読み込みエラー</div>';
+    });
+}
+
+function renderCoverage(data) {
+  var s = data.summary;
+  var rateClass = s.coverageRate >= 80 ? 'good' : (s.coverageRate >= 50 ? 'warn' : 'bad');
+
+  var cardsHtml = '';
+  cardsHtml += '<div class="summary-card"><div class="sc-value ' + rateClass + '">' + s.coverageRate + '%</div><div class="sc-label">希望充足率</div></div>';
+  cardsHtml += '<div class="summary-card"><div class="sc-value good">' + s.surplusDays + '</div><div class="sc-label">余剰日</div></div>';
+  cardsHtml += '<div class="summary-card"><div class="sc-value bad">' + s.shortageDays + '</div><div class="sc-label">不足日</div></div>';
+  document.getElementById('coverageCards').innerHTML = cardsHtml;
+
+  // 日ごとの詳細リスト（不足日のみ表示）
+  var detailHtml = '';
+  var DOW = ['日','月','火','水','木','金','土'];
+  var shortageEntries = data.dailyCoverage.filter(function(d) { return d.diff < 0; });
+
+  if (shortageEntries.length > 0) {
+    detailHtml += '<div style="margin:8px 16px;background:#FFF;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">';
+    detailHtml += '<div style="background:#FFEBEE;padding:10px 16px;font-size:12px;font-weight:600;color:#C62828;">希望不足日（配置 < 希望）</div>';
+    shortageEntries.forEach(function(entry) {
+      var parts = entry.date.split('/');
+      var dt = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+      var dow = DOW[dt.getDay()];
+      var dowClass = dt.getDay() === 0 ? 'color:#E74C3C;' : (dt.getDay() === 6 ? 'color:#2980B9;' : '');
+      detailHtml += '<div style="display:flex;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #F0F0F0;font-size:12px;">';
+      detailHtml += '<span style="' + dowClass + 'font-weight:600;">' + entry.day + '(' + dow + ')</span>';
+      detailHtml += '<span>配置 ' + entry.assignedCount + ' / 希望 ' + entry.prefCount + ' <span style="color:#E74C3C;font-weight:600;">' + entry.diff + '</span></span>';
+      detailHtml += '</div>';
+    });
+    detailHtml += '</div>';
+  } else {
+    detailHtml += '<div style="text-align:center;padding:20px;color:#27AE60;font-size:13px;">全ての日で希望以上の配置がされています</div>';
+  }
+
+  document.getElementById('coverageDetail').innerHTML = detailHtml;
+}
+
+// ===== 労基サマリー =====
+function loadComplianceSummary() {
+  var url = GAS_API_URL + '?action=complianceCheck&key=' + encodeURIComponent(getAdminKey()) + '&month=' + encodeURIComponent(currentMonth);
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.error) return;
+      complianceData = data;
+      renderComplianceBanner(data);
+    })
+    .catch(function() {});
+}
+
+function renderComplianceBanner(data) {
+  var banner = document.getElementById('complianceBanner');
+  if (!data.summary) return;
+
+  var violations = data.summary.totalViolations || 0;
+  var warnings = data.summary.totalWarnings || 0;
+
+  if (violations === 0 && warnings === 0) {
+    banner.className = 'compliance-banner ok';
+    document.getElementById('complianceIcon').textContent = '\u2705';
+    document.getElementById('complianceText').textContent = '労基チェック: 問題なし';
+  } else if (violations > 0) {
+    banner.className = 'compliance-banner critical';
+    document.getElementById('complianceIcon').textContent = '\u26A0\uFE0F';
+    document.getElementById('complianceText').textContent = '労基チェック: 違反 ' + violations + '件 / 警告 ' + warnings + '件';
+  } else {
+    banner.className = 'compliance-banner warn';
+    document.getElementById('complianceIcon').textContent = '\u26A0\uFE0F';
+    document.getElementById('complianceText').textContent = '労基チェック: 警告 ' + warnings + '件';
+  }
+
+  banner.style.display = 'flex';
 }
 
 function confirmRegister() {
