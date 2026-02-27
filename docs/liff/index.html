@@ -1044,27 +1044,58 @@ function initLiff() {
 }
 
 // ===== キャッシュ =====
-function getCacheKey() {
-  return 'myshift_' + currentMonth + '_' + overrideEmpNo;
+var shiftCache = {}; // メモリキャッシュ { "YYYY-MM_empNo": { ts, data } }
+var prefetchMonths = {}; // 先読み済みフラグ
+
+function getCacheKey(month) {
+  var m = month || currentMonth;
+  return m + '_' + (overrideEmpNo || '');
 }
 
-function getCache() {
+function getCache(month) {
   try {
-    var raw = sessionStorage.getItem(getCacheKey());
-    if (!raw) return null;
-    var cached = JSON.parse(raw);
+    var key = getCacheKey(month);
+    var cached = shiftCache[key];
+    if (!cached) return null;
     if (Date.now() - cached.ts > CACHE_TTL) {
-      sessionStorage.removeItem(getCacheKey());
+      delete shiftCache[key];
       return null;
     }
     return cached.data;
   } catch (e) { return null; }
 }
 
-function setCache(data) {
+function setCache(data, month) {
   try {
-    sessionStorage.setItem(getCacheKey(), JSON.stringify({ ts: Date.now(), data: data }));
+    var key = getCacheKey(month);
+    shiftCache[key] = { ts: Date.now(), data: data };
   } catch (e) {}
+}
+
+function getNextMonth(ym) {
+  var p = ym.split('-');
+  var y = parseInt(p[0], 10), m = parseInt(p[1], 10) + 1;
+  if (m > 12) { m = 1; y++; }
+  return y + '-' + ('0' + m).slice(-2);
+}
+
+// 翌月を先読み（バックグラウンド）
+function prefetchNextMonth() {
+  var next = getNextMonth(currentMonth);
+  var key = getCacheKey(next);
+  if (shiftCache[key] || prefetchMonths[key]) return;
+  prefetchMonths[key] = true;
+
+  var url = GAS_API_URL + '?action=myshift&token=' + encodeURIComponent(accessToken) + '&month=' + encodeURIComponent(next);
+  if (overrideEmpNo) url += '&empNo=' + encodeURIComponent(overrideEmpNo);
+  if (isAdminMode && getAdminKey()) url += '&key=' + encodeURIComponent(getAdminKey());
+
+  fetch(url)
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data && !data.error) setCache(data, next);
+    })
+    .catch(function() {});
 }
 
 // ===== データ読み込み =====
@@ -1134,6 +1165,9 @@ function onDataLoaded(data) {
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('errorView').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
+
+  // 翌月を先読み
+  prefetchNextMonth();
 }
 
 // ===== 月切替 =====
@@ -1412,7 +1446,9 @@ function adminSearch() {
   // 全体表示を閉じて個人表示に
   document.getElementById('overviewContent').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
-  try { sessionStorage.removeItem(getCacheKey()); } catch(e) {}
+  // 別の社員に切り替えるのでキャッシュをクリア
+  shiftCache = {};
+  prefetchMonths = {};
   loadShiftData();
 }
 
