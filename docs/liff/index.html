@@ -1405,8 +1405,9 @@ function cancelRegister() {
 
 // ===== 管理者モード =====
 function adminSearch() {
-  var empNo = document.getElementById('adminEmpNo').value.trim();
+  var empNo = toHalfWidth(document.getElementById('adminEmpNo').value).trim();
   if (!empNo) return;
+  document.getElementById('adminEmpNo').value = empNo;
   overrideEmpNo = empNo;
   // 全体表示を閉じて個人表示に
   document.getElementById('overviewContent').style.display = 'none';
