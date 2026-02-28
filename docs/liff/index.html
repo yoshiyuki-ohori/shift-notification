@@ -219,27 +219,6 @@ body {
 }
 
 /* ===== カラー凡例 ===== */
-.cal-legend {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding: 6px 16px 2px;
-  font-size: 10px;
-  color: #888;
-  flex-wrap: wrap;
-}
-.cal-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-.cal-legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
 /* ===== シフト一覧 ===== */
 .shift-list { margin: 0 16px 16px; }
 .shift-list h2 { font-size: 14px; color: #555; margin-bottom: 8px; padding-left: 4px; }
@@ -724,14 +703,6 @@ body {
       <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
     </div>
     <div class="cal-grid" id="calGrid"></div>
-  </div>
-  <div class="cal-legend">
-    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#4ECDC4;"></div>早(6-9)</div>
-    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFD93D;"></div>日(9-17)</div>
-    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FF6B6B;"></div>夕(17-22)</div>
-    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#845EC2;"></div>夜(22-)</div>
-    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#E8F5E9;border:1px solid #A5D6A7;"></div>シフトあり</div>
-    <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#D4EDDA;border:2px solid #1DB446;"></div>今日</div>
   </div>
 
   <div class="shift-list" id="shiftList">
