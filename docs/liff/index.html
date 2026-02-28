@@ -241,7 +241,9 @@ body {
 .shift-date-box.saturday .shift-date-day { color: #2980B9; }
 .shift-divider { width: 3px; height: 32px; border-radius: 2px; }
 .shift-detail { flex: 1; }
-.shift-facility { font-size: 14px; font-weight: 600; color: #333; }
+.shift-facility { font-size: 14px; font-weight: 600; color: #333; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.shift-facility a.fac-name { color: #333; text-decoration: none; border-bottom: 1px dashed #999; }
+.shift-facility a.fac-exterior { font-size: 10px; color: #1DB446; text-decoration: none; border: 1px solid #1DB446; border-radius: 10px; padding: 0 6px; line-height: 18px; white-space: nowrap; }
 .shift-time { font-size: 12px; color: #666; margin-top: 2px; }
 .shift-coworkers {
   margin-top: 4px;
@@ -895,6 +897,84 @@ var FACILITY_COLORS = {
   '芝久保2': '#FFBF69', '芝久保２': '#FFBF69'
 };
 
+// 施設リンク (マップURL + 外観画像URL)
+var FACILITY_LINKS = {
+  '大泉町':             { map: 'https://maps.app.goo.gl/GGYBEo2e4qzC5Y4g9', photo: 'https://photos.app.goo.gl/sxbe43AMSNapFeGv5' },
+  '東大泉':             { map: 'https://maps.app.goo.gl/mTHAiquFvXxTc7ri7', photo: 'https://photos.app.goo.gl/pjPJRUzdDdnxcRwg9' },
+  '南大泉':             { map: 'https://maps.app.goo.gl/yp85GzppHPV1rDbz8', photo: 'https://photos.app.goo.gl/xgmKvBDscusZ8ntr8' },
+  '南大泉３丁目':       { map: 'https://maps.app.goo.gl/PictCA2GvUFityoeA', photo: 'https://photos.app.goo.gl/qFKQe1jFEzosTKxx9' },
+  'グリーンビレッジＢ': { map: 'https://maps.app.goo.gl/D3hPxhukF1nToLtK6', photo: 'https://photos.app.goo.gl/7UhLM4KmGBbtKLSaA' },
+  'グリーンビレッジB':  { map: 'https://maps.app.goo.gl/D3hPxhukF1nToLtK6', photo: 'https://photos.app.goo.gl/7UhLM4KmGBbtKLSaA' },
+  'グリーンビレッジＥ': { map: 'https://maps.app.goo.gl/b7D2HoDREuDhFZTV6', photo: 'https://photos.app.goo.gl/288LWKg2z71mdiUQ7' },
+  'グリーンビレッジE':  { map: 'https://maps.app.goo.gl/b7D2HoDREuDhFZTV6', photo: 'https://photos.app.goo.gl/288LWKg2z71mdiUQ7' },
+  'グリーンビレッジE102': { map: 'https://maps.app.goo.gl/b7D2HoDREuDhFZTV6', photo: 'https://photos.app.goo.gl/FFsxgTvnUM6VqdvB6' },
+  '長久保':             { map: 'https://maps.app.goo.gl/hcFVxqL3TCStwjvbA', photo: 'https://photos.app.goo.gl/b223ZKkzjQyXACra7' },
+  '西長久保':           { map: 'https://maps.app.goo.gl/BfXjd5o5hjSaD3Ta6', photo: 'https://photos.app.goo.gl/BkRKaaBsKsBBmutGA' },
+  '練馬1 (203)':        { map: 'https://maps.app.goo.gl/VZxmKm5H6NAHWmKi9', photo: 'https://photos.app.goo.gl/Yyw8PpwqtRiHu98A6' },
+  '練馬2 (303)':        { map: 'https://maps.app.goo.gl/VZxmKm5H6NAHWmKi9', photo: 'https://photos.app.goo.gl/Yyw8PpwqtRiHu98A6' },
+  '練馬1': { map: 'https://maps.app.goo.gl/VZxmKm5H6NAHWmKi9', photo: 'https://photos.app.goo.gl/Yyw8PpwqtRiHu98A6' },
+  '練馬2': { map: 'https://maps.app.goo.gl/VZxmKm5H6NAHWmKi9', photo: 'https://photos.app.goo.gl/Yyw8PpwqtRiHu98A6' },
+  '春日町 (B103)':      { map: 'https://maps.app.goo.gl/F2HZ1H7pimSiLi119', photo: 'https://photos.app.goo.gl/WLMxqHtuXnvddRfC7' },
+  '春日町2 (B203)':     { map: 'https://maps.app.goo.gl/F2HZ1H7pimSiLi119', photo: 'https://photos.app.goo.gl/WLMxqHtuXnvddRfC7' },
+  '春日町同一①':        { map: 'https://maps.app.goo.gl/F2HZ1H7pimSiLi119', photo: 'https://photos.app.goo.gl/WLMxqHtuXnvddRfC7' },
+  '春日町２同一①':      { map: 'https://maps.app.goo.gl/F2HZ1H7pimSiLi119', photo: 'https://photos.app.goo.gl/WLMxqHtuXnvddRfC7' },
+  '江古田 (part1 201)': { map: 'https://maps.app.goo.gl/NXd2FeYynCXo1v6r5', photo: 'https://photos.app.goo.gl/mtjWfsdbHiXDvNKAA' },
+  '江古田2 (part2 205)': { map: 'https://maps.app.goo.gl/NXd2FeYynCXo1v6r5', photo: 'https://photos.app.goo.gl/mtjWfsdbHiXDvNKAA' },
+  '関町南1':            { map: 'https://maps.app.goo.gl/EVVv5SwdX5TrPe826', photo: 'https://photos.app.goo.gl/TLeB3zL1QJU7BX6R8' },
+  '関町南2':            { map: 'https://maps.app.goo.gl/EVVv5SwdX5TrPe826', photo: 'https://photos.app.goo.gl/TLeB3zL1QJU7BX6R8' },
+  '関町南3':            { map: 'https://maps.app.goo.gl/EVVv5SwdX5TrPe826', photo: 'https://photos.app.goo.gl/TLeB3zL1QJU7BX6R8' },
+  '関町南2F同一②':     { map: 'https://maps.app.goo.gl/EVVv5SwdX5TrPe826', photo: 'https://photos.app.goo.gl/TLeB3zL1QJU7BX6R8' },
+  '関町南3F同一②':     { map: 'https://maps.app.goo.gl/EVVv5SwdX5TrPe826', photo: 'https://photos.app.goo.gl/TLeB3zL1QJU7BX6R8' },
+  '都民農園':           { map: 'https://maps.app.goo.gl/sZUAZHSmMiLi8GVZ8', photo: 'https://photos.app.goo.gl/iTdZCU23CCMZHfFBA' },
+  '豊島園':             { map: 'https://maps.app.goo.gl/qqKEwrzK4eijeeUy7', photo: 'https://photos.app.goo.gl/sZ78T1xCvUYqrFBTA' },
+  '石神井公園':         { map: 'https://maps.app.goo.gl/gdXV2zquY5H985YA8', photo: 'https://photos.app.goo.gl/QqyHhj4hj6ArkLcx5' },
+  '西大泉':             { map: 'https://maps.app.goo.gl/DnmKnWDs6Nwjy9Jw5', photo: 'https://photos.app.goo.gl/VFrJH5Dm5yUkHqQ18' },
+  '中町':               { map: 'https://maps.app.goo.gl/hWhwQCTQ3jmN1cZT6', photo: 'https://photos.app.goo.gl/yAgky2WwgWH7sFwy7' },
+  '芝久保1':            { map: 'https://maps.app.goo.gl/3UJa5YSun7MKNCtq7', photo: 'https://photos.app.goo.gl/2ACvswBz2ZreX4MF9' },
+  '芝久保2':            { map: 'https://maps.app.goo.gl/3UJa5YSun7MKNCtq7', photo: 'https://photos.app.goo.gl/2ACvswBz2ZreX4MF9' },
+  '芝久保3':            { map: 'https://maps.app.goo.gl/3UJa5YSun7MKNCtq7', photo: 'https://photos.app.goo.gl/2ACvswBz2ZreX4MF9' },
+  '芝久保１':           { map: 'https://maps.app.goo.gl/3UJa5YSun7MKNCtq7', photo: 'https://photos.app.goo.gl/2ACvswBz2ZreX4MF9' },
+  '芝久保２':           { map: 'https://maps.app.goo.gl/3UJa5YSun7MKNCtq7', photo: 'https://photos.app.goo.gl/2ACvswBz2ZreX4MF9' },
+  '芝久保３':           { map: 'https://maps.app.goo.gl/3UJa5YSun7MKNCtq7', photo: 'https://photos.app.goo.gl/2ACvswBz2ZreX4MF9' },
+  '立川':               { map: 'https://maps.app.goo.gl/1mn52PVyqHCgDZfE8', photo: 'https://photos.app.goo.gl/xbuRVnpFM63rHVsR7' },
+  'エルウィング':       { map: 'https://maps.app.goo.gl/ETfYxMf9ekn984Yt5', photo: 'https://photos.app.goo.gl/9A1P83BsqSHBiuJHA' },
+  'SSエルウィング':     { map: 'https://maps.app.goo.gl/ETfYxMf9ekn984Yt5', photo: 'https://photos.app.goo.gl/9A1P83BsqSHBiuJHA' },
+  '若宮':               { map: 'https://maps.app.goo.gl/N4juxmFuB24nEfFm6', photo: 'https://photos.app.goo.gl/m1eAoUAp7HsWJ7WR9' },
+  '野方':               { map: 'https://maps.app.goo.gl/axqSpzvaFDPKofMk9', photo: 'https://photos.app.goo.gl/pipWi23YTv6rdpVa8' },
+  '沼袋':               { map: 'https://maps.app.goo.gl/FUaMCwAiTCEv2Bwf9', photo: 'https://photos.app.goo.gl/qmuiPotv4BSyXLz67' },
+  '成増3 (池ミュハイツ)': { map: 'https://maps.app.goo.gl/WsXX2ZoxFVqUMjGh7', photo: 'https://photos.app.goo.gl/y7hmTufxTH9VLHoH6' },
+  '赤塚2 (アーバン)':   { map: 'https://maps.app.goo.gl/MSBn1ZmmqpHG3cXf8', photo: 'https://photos.app.goo.gl/zMhhFZzTXX748UGJ6' },
+  '赤塚3 (第7)':        { map: 'https://maps.app.goo.gl/woy53txnFwTqk1H36', photo: 'https://photos.app.goo.gl/wMCVxt5TGAanbcP2A' },
+  '富士見町':           { map: 'https://maps.app.goo.gl/nb6QqSzRSz4LygEe6', photo: 'https://photos.app.goo.gl/sT7hnmSBvYpxbo2q9' },
+  '下井草':             { map: 'https://maps.app.goo.gl/oAcftAnfiMmgEsPh7', photo: 'https://photos.app.goo.gl/mnCqn8aofAiRLzoP9' },
+  '方南':               { map: 'https://maps.app.goo.gl/1PHgcH1y7LRrjPrh8', photo: 'https://photos.app.goo.gl/jwe5ne83JnPq7v4dA' },
+  '松原':               { map: 'https://maps.app.goo.gl/LXjNg3ZrxcreoF3G8', photo: 'https://photos.app.goo.gl/F4cDrB6EXGQJAwcU8' },
+  '砧 (107)':           { map: 'https://maps.app.goo.gl/pKoYVCp1N9eShxe29', photo: 'https://photos.app.goo.gl/Uof4um4HNeTHSe5y8' },
+  '砧2 (207)':          { map: 'https://maps.app.goo.gl/pKoYVCp1N9eShxe29', photo: 'https://photos.app.goo.gl/Uof4um4HNeTHSe5y8' },
+  '砧①107':             { map: 'https://maps.app.goo.gl/pKoYVCp1N9eShxe29', photo: 'https://photos.app.goo.gl/Uof4um4HNeTHSe5y8' },
+  '砧②207':             { map: 'https://maps.app.goo.gl/pKoYVCp1N9eShxe29', photo: 'https://photos.app.goo.gl/Uof4um4HNeTHSe5y8' },
+  '芦花公園':           { map: 'https://maps.app.goo.gl/CnSrLa2xdursxkTd6', photo: 'https://photos.app.goo.gl/vgP8WGGvSS1KzDFb7' },
+  '芦花公園2':          { map: 'https://maps.app.goo.gl/2U7MUNegbn82vrd4A', photo: 'https://photos.app.goo.gl/oFedWjHMj3y8kJL49' },
+  'レジオン':           { map: 'https://maps.app.goo.gl/CnSrLa2xdursxkTd6', photo: 'https://photos.app.goo.gl/vgP8WGGvSS1KzDFb7' },
+  '江リーザ':           { map: 'https://maps.app.goo.gl/2U7MUNegbn82vrd4A', photo: 'https://photos.app.goo.gl/oFedWjHMj3y8kJL49' },
+  '天満①':              { map: 'https://maps.app.goo.gl/Gy4m1oHVpM6gxwjF6', photo: 'https://photos.app.goo.gl/R89PoUx5uemXwFgk6' },
+  '天満②':              { map: 'https://maps.app.goo.gl/Gy4m1oHVpM6gxwjF6', photo: 'https://photos.app.goo.gl/R89PoUx5uemXwFgk6' },
+  '寿':                 { map: 'https://maps.app.goo.gl/76sVbr9wv4NVuovQ9', photo: 'https://photos.app.goo.gl/yomoaxvpJ5RD9uMd7' },
+  '淡路':               { map: 'https://maps.app.goo.gl/8wEfJi2C97YDsPsFA', photo: 'https://photos.app.goo.gl/6jHSXoCEYGdH9DQg7' },
+  '船橋':               { map: 'https://maps.app.goo.gl/dtDqmJXTA1WxCRaf6', photo: 'https://photos.app.goo.gl/9wMWMKPYzWFZrada6' },
+  '津田沼':             { map: 'https://maps.app.goo.gl/bkUBQaW58ZRHQoff9', photo: 'https://photos.app.goo.gl/qULJZR6evz4B1C5HA' },
+  '所沢':               { map: 'https://maps.app.goo.gl/ziG3BzksMuU9LwqNA', photo: 'https://photos.app.goo.gl/HyPZJCfMb571TF7X6' }
+};
+
+function getFacilityLink(facility) {
+  if (!facility) return null;
+  if (FACILITY_LINKS[facility]) return FACILITY_LINKS[facility];
+  for (var key in FACILITY_LINKS) {
+    if (facility.indexOf(key) >= 0 || key.indexOf(facility) >= 0) return FACILITY_LINKS[key];
+  }
+  return null;
+}
+
 function getFacilityColor(facility) {
   if (!facility) return '#AAA';
   if (FACILITY_COLORS[facility]) return FACILITY_COLORS[facility];
@@ -1366,7 +1446,17 @@ function renderShiftList(data) {
     html += '</div>';
     html += '<div class="shift-divider" style="background:' + color + ';"></div>';
     html += '<div class="shift-detail">';
-    html += '<div class="shift-facility">' + escapeHtml(s.facility) + '</div>';
+    var fLink = getFacilityLink(s.facility);
+    html += '<div class="shift-facility">';
+    if (fLink && fLink.map) {
+      html += '<a class="fac-name" href="' + fLink.map + '" target="_blank" rel="noopener">' + escapeHtml(s.facility) + '</a>';
+    } else {
+      html += '<span>' + escapeHtml(s.facility) + '</span>';
+    }
+    if (fLink && fLink.photo) {
+      html += '<a class="fac-exterior" href="' + fLink.photo + '" target="_blank" rel="noopener">施設の外観</a>';
+    }
+    html += '</div>';
     html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
     if (s.coworkers && s.coworkers.length > 0) {
       html += '<div class="shift-coworkers">';
