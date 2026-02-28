@@ -161,32 +161,39 @@ const COMPLIANCE_COLS = {
 
 // ===== 同一建物グループ (施設名 → 建物グループID) =====
 // CSV名と正式名（FACILITY_MAP変換後）の両方を登録
+// 住所ベース: 同一住所の施設を同一グループにまとめる
 const BUILDING_GROUPS = {
-  // 春日町 (CSV名 + 正式名)
-  '春日町同一①': 'kasugacho',
-  '春日町２同一①': 'kasugacho',
-  '春日町 (B103)': 'kasugacho',
-  '春日町2 (B203)': 'kasugacho',
-  // 砧 (CSV名 + 正式名)
-  '砧①107': 'kinuta',
-  '砧②207': 'kinuta',
-  '砧 (107)': 'kinuta',
-  '砧2 (207)': 'kinuta',
-  // 関町南 (CSV名 + 正式名)
-  '関町南2F同一②': 'sekimachi',
-  '関町南3F同一②': 'sekimachi',
-  '関町南4F同一②': 'sekimachi',
-  '関町南2': 'sekimachi',
-  '関町南3': 'sekimachi',
-  // 芦花公園
-  'レジオン': 'roka',
-  '江リーザ': 'roka',
-  'エリーザ': 'roka',
-  // 芝久保
-  '芝久保1': 'shibakubo',
-  '芝久保2': 'shibakubo',
-  '芝久保１': 'shibakubo',
-  '芝久保２': 'shibakubo'
+  // 春日町: 練馬区春日町2-15-8 ティーケー平和台
+  '春日町同一①': 'kasugacho', '春日町 (B103)': 'kasugacho',
+  '春日町２同一①': 'kasugacho', '春日町2 (B203)': 'kasugacho',
+  // 関町南: 練馬区関町南4-21-12 UPGレジデンス関町南
+  '関町南2F同一②': 'sekimachi', '関町南2階': 'sekimachi',
+  '関町南3F同一②': 'sekimachi', '関町南4F同一②': 'sekimachi',
+  '関町南1': 'sekimachi', '関町南2': 'sekimachi', '関町南3': 'sekimachi',
+  // 砧: 世田谷区砧2-10-10 ティーケー砧
+  '砧①107': 'kinuta', '砧 (107)': 'kinuta',
+  '砧②207': 'kinuta', '砧2 (207)': 'kinuta',
+  // 練馬: 練馬区練馬1-6-16 サンパレス練馬
+  '練馬203': 'nerima', '練馬1 (203)': 'nerima', '練馬1': 'nerima',
+  '練馬2 (303)': 'nerima', '練馬2': 'nerima',
+  // 芦花公園: 世田谷区北烏山1-12-8/9
+  'レジオン': 'roka', '芦花公園': 'roka',
+  '江リーザ': 'roka', 'エリーザ': 'roka', '芦花公園2': 'roka',
+  // 芝久保: 西東京市芝久保町3-4-29 センチュリー芝久保
+  '芝久保1': 'shibakubo', '芝久保２': 'shibakubo',
+  '芝久保2': 'shibakubo', '芝久保１': 'shibakubo',
+  '芝久保3': 'shibakubo', '芝久保３': 'shibakubo',
+  // 江古田: 練馬区旭丘2-22 ユエヴィ江古田
+  '江古田': 'ekoda', '江古田 (part1 201)': 'ekoda',
+  '江古田2': 'ekoda', '江古田2 (part2 205)': 'ekoda',
+  // 天満: 大阪市北区与力町4-4 ヴェルディオクト
+  '天満①': 'tenma', '天満①102': 'tenma',
+  '天満②': 'tenma', '天満②302': 'tenma',
+  // グリーンビレッジE棟: 練馬区大泉町3-26-47
+  'グリーンビレッジE': 'green_e', 'グリーンビレッジＥ': 'green_e',
+  'ビレッジE102': 'green_e', 'グリーンビレッジE102': 'green_e',
+  // エルウィング: 立川市錦町1-15-31
+  'エルウィング': 'elwing', 'SSエルウィング': 'elwing'
 };
 
 // ===== 施設マッピング (CSV施設名 → Firestore施設ID/正式名) =====
