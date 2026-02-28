@@ -1462,8 +1462,8 @@ function renderShiftList(data) {
       html += '<div class="shift-coworkers">';
       s.coworkers.forEach(function(cw) {
         var cwColor = getEmployeeColor(cw.name);
-        var cwTime = cw.timeSlot ? cw.timeSlot.replace(/時/g,'').replace(/～/g,'-') : '';
-        var label = cw.name + ' ' + cwTime + '(' + shortenName(cw.facility) + ')';
+        var cwTime = cw.timeSlot ? getTimeAbbrev(cw.timeSlot) : '';
+        var label = cwTime + ' ' + cw.facility + '(' + cw.name + ')';
         html += '<div class="cw-row"><span class="cw-pill" style="background:' + cwColor + ';">' + escapeHtml(label) + '</span></div>';
       });
       html += '</div>';
