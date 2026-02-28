@@ -1436,19 +1436,23 @@ function renderCalendar(data) {
   document.getElementById('calGrid').innerHTML = html;
 }
 
-// 同僚の夜勤まとめ: 同一人物+施設で夕(17時)+夜(22時)+早(6時)→「17時～9時」
+// 同僚の夜勤まとめ:
+// 1) 同一人物+施設で夕+夜+早→「17時～9時」
+// 2) 異なる人物でも同一施設の夕/夜/早は「夜勤帯」として統合表示
 function mergeCoworkerNightShifts(coworkers) {
-  if (!coworkers || coworkers.length <= 1) return coworkers;
-  var byKey = {};
+  if (!coworkers || coworkers.length === 0) return coworkers;
+
+  // Step1: 同一人物+施設の夕+夜+早を統合
+  var byPerson = {};
   coworkers.forEach(function(cw) {
     var k = cw.name + '|' + cw.facility;
-    if (!byKey[k]) byKey[k] = [];
-    byKey[k].push(cw);
+    if (!byPerson[k]) byPerson[k] = [];
+    byPerson[k].push(cw);
   });
-  var result = [];
-  for (var k in byKey) {
-    var entries = byKey[k];
-    if (entries.length < 2) { result.push(entries[0]); continue; }
+  var step1 = [];
+  for (var k in byPerson) {
+    var entries = byPerson[k];
+    if (entries.length < 2) { step1.push(entries[0]); continue; }
     var hasEvening = null, hasNight = null, hasMorning = null, others = [];
     entries.forEach(function(cw) {
       var ts = cw.timeSlot || '';
@@ -1458,14 +1462,34 @@ function mergeCoworkerNightShifts(coworkers) {
       else others.push(cw);
     });
     if (hasEvening && (hasNight || hasMorning)) {
-      var merged = { name: hasEvening.name, facility: hasEvening.facility, timeSlot: hasMorning ? '17時～9時' : '17時～翌朝' };
-      result.push(merged);
-      others.forEach(function(o) { result.push(o); });
+      step1.push({ name: hasEvening.name, facility: hasEvening.facility, timeSlot: hasMorning ? '17時～9時' : '17時～翌朝' });
+      others.forEach(function(o) { step1.push(o); });
     } else {
-      entries.forEach(function(e) { result.push(e); });
+      entries.forEach(function(e) { step1.push(e); });
     }
   }
-  return result;
+
+  // Step2: 同一施設の夕/夜/早を夜勤帯として統合（異なる人物）
+  var byFac = {};
+  var nonNight = [];
+  step1.forEach(function(cw) {
+    var ts = cw.timeSlot || '';
+    var isNightSlot = ts.indexOf('17時') >= 0 || ts.indexOf('22時') >= 0 || ts.indexOf('21時') >= 0 || ts.indexOf('6時～9時') >= 0;
+    if (isNightSlot) {
+      if (!byFac[cw.facility]) byFac[cw.facility] = [];
+      byFac[cw.facility].push(cw);
+    } else {
+      nonNight.push(cw);
+    }
+  });
+  var result = [];
+  for (var fac in byFac) {
+    var workers = byFac[fac];
+    workers.forEach(function(cw) {
+      result.push({ name: cw.name, facility: cw.facility, timeSlot: '17時～9時' });
+    });
+  }
+  return result.concat(nonNight);
 }
 
 // ===== シフト一覧描画 =====
