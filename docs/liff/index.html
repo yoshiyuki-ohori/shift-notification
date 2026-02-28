@@ -1079,17 +1079,18 @@ function mergeUserNightShifts(shifts) {
 
       // まとめ
       shifts[hasEvening.idx].timeSlot = morningEntry ? '17時～9時' : '17時～翌朝';
-      // 同僚情報もマージ
-      var mergedCw = {};
+      // 同僚情報もマージ（全時間帯エントリを保持、後でmergeCoworkerNightShiftsが統合）
+      var cwAll = [];
+      var cwSeen = {};
       [hasEvening, hasNight, morningEntry].forEach(function(entry) {
         if (entry && entry.shift.coworkers) {
           entry.shift.coworkers.forEach(function(cw) {
-            if (!mergedCw[cw.name]) mergedCw[cw.name] = cw; // 最初の出勤時間を保持
+            var key = cw.name + '|' + cw.facility + '|' + (cw.timeSlot || '');
+            if (!cwSeen[key]) { cwSeen[key] = true; cwAll.push(cw); }
           });
         }
       });
-      var cwList = Object.keys(mergedCw).map(function(k) { return mergedCw[k]; });
-      if (cwList.length > 0) shifts[hasEvening.idx].coworkers = cwList;
+      if (cwAll.length > 0) shifts[hasEvening.idx].coworkers = cwAll;
       removeSet[hasNight.idx] = true;
       if (morningEntry) removeSet[morningEntry.idx] = true;
     }
