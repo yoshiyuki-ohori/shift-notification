@@ -993,7 +993,7 @@ function mergeUserNightShifts(shifts) {
       [hasEvening, hasNight, morningEntry].forEach(function(entry) {
         if (entry && entry.shift.coworkers) {
           entry.shift.coworkers.forEach(function(cw) {
-            mergedCw[cw.name] = cw;
+            if (!mergedCw[cw.name]) mergedCw[cw.name] = cw; // 最初の出勤時間を保持
           });
         }
       });
@@ -1325,9 +1325,6 @@ function renderCalendar(data) {
         var isStandardNight = (s.timeSlot.indexOf('17時～9時') >= 0);
         var pillLabel = isStandardNight ? shortFac : (getTimeAbbrev(s.timeSlot) + ' ' + shortFac);
         var titleText = s.facility + ' ' + s.timeSlot;
-        if (s.coworkers && s.coworkers.length > 0) {
-          titleText += '\n同建物: ' + s.coworkers.map(function(cw) { return cw.name; }).join(', ');
-        }
         html += '<div class="cal-pill" style="background:' + color + ';" title="' + escapeHtml(titleText) + '">' + escapeHtml(pillLabel) + '</div>';
       });
     }
@@ -1384,7 +1381,8 @@ function renderShiftList(data) {
       html += '<div class="shift-coworkers"><span class="cw-label">同建物:</span>';
       s.coworkers.forEach(function(cw) {
         var cwColor = getEmployeeColor(cw.name);
-        var label = cw.name + '(' + shortenName(cw.facility) + ')';
+        var cwTime = cw.timeSlot ? cw.timeSlot.replace(/時/g,'').replace(/～/g,'-') : '';
+        var label = cw.name + ' ' + cwTime + '(' + shortenName(cw.facility) + ')';
         html += '<span class="cw-pill" style="background:' + cwColor + ';">' + escapeHtml(label) + '</span>';
       });
       html += '</div>';
