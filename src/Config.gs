@@ -159,19 +159,30 @@ const COMPLIANCE_COLS = {
   DATES: 8          // H: 対象日
 };
 
-// ===== 同一建物グループ (CSV施設名 → 建物グループID) =====
-// 同じ建物に入っている施設を同一グループとして定義
+// ===== 同一建物グループ (施設名 → 建物グループID) =====
+// CSV名と正式名（FACILITY_MAP変換後）の両方を登録
 const BUILDING_GROUPS = {
+  // 春日町 (CSV名 + 正式名)
   '春日町同一①': 'kasugacho',
   '春日町２同一①': 'kasugacho',
+  '春日町 (B103)': 'kasugacho',
+  '春日町2 (B203)': 'kasugacho',
+  // 砧 (CSV名 + 正式名)
   '砧①107': 'kinuta',
   '砧②207': 'kinuta',
+  '砧 (107)': 'kinuta',
+  '砧2 (207)': 'kinuta',
+  // 関町南 (CSV名 + 正式名)
   '関町南2F同一②': 'sekimachi',
   '関町南3F同一②': 'sekimachi',
   '関町南4F同一②': 'sekimachi',
+  '関町南2': 'sekimachi',
+  '関町南3': 'sekimachi',
+  // 芦花公園
   'レジオン': 'roka',
   '江リーザ': 'roka',
   'エリーザ': 'roka',
+  // 芝久保
   '芝久保1': 'shibakubo',
   '芝久保2': 'shibakubo',
   '芝久保１': 'shibakubo',
