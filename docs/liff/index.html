@@ -1435,6 +1435,38 @@ function renderCalendar(data) {
   document.getElementById('calGrid').innerHTML = html;
 }
 
+// 同僚の夜勤まとめ: 同一人物+施設で夕(17時)+夜(22時)+早(6時)→「17時～9時」
+function mergeCoworkerNightShifts(coworkers) {
+  if (!coworkers || coworkers.length <= 1) return coworkers;
+  var byKey = {};
+  coworkers.forEach(function(cw) {
+    var k = cw.name + '|' + cw.facility;
+    if (!byKey[k]) byKey[k] = [];
+    byKey[k].push(cw);
+  });
+  var result = [];
+  for (var k in byKey) {
+    var entries = byKey[k];
+    if (entries.length < 2) { result.push(entries[0]); continue; }
+    var hasEvening = null, hasNight = null, hasMorning = null, others = [];
+    entries.forEach(function(cw) {
+      var ts = cw.timeSlot || '';
+      if (ts.indexOf('17時') >= 0) hasEvening = cw;
+      else if (ts.indexOf('22時') >= 0 || ts.indexOf('21時') >= 0) hasNight = cw;
+      else if (ts.indexOf('6時') >= 0) hasMorning = cw;
+      else others.push(cw);
+    });
+    if (hasEvening && (hasNight || hasMorning)) {
+      var merged = { name: hasEvening.name, facility: hasEvening.facility, timeSlot: hasMorning ? '17時～9時' : '17時～翌朝' };
+      result.push(merged);
+      others.forEach(function(o) { result.push(o); });
+    } else {
+      entries.forEach(function(e) { result.push(e); });
+    }
+  }
+  return result;
+}
+
 // ===== シフト一覧描画 =====
 function renderShiftList(data) {
   var container = document.getElementById('shiftItems');
@@ -1479,8 +1511,10 @@ function renderShiftList(data) {
     html += '</div>';
     html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
     if (s.coworkers && s.coworkers.length > 0) {
+      // 同一人物+施設の夕(17時)+早(6時)を夜勤まとめ
+      var cwMerged = mergeCoworkerNightShifts(s.coworkers);
       html += '<div class="shift-coworkers">';
-      s.coworkers.forEach(function(cw) {
+      cwMerged.forEach(function(cw) {
         var cwColor = getEmployeeColor(cw.name);
         var cwTime = cw.timeSlot ? getTimeAbbrev(cw.timeSlot) : '';
         var label = cwTime + ' ' + cw.facility + '(' + cw.name + ')';
@@ -1515,6 +1549,7 @@ function shortenName(name) { return !name ? '' : (name.length > 5 ? name.substri
 
 function getTimeAbbrev(timeSlot) {
   if (!timeSlot) return '';
+  if (timeSlot.indexOf('17時～9時') >= 0 || timeSlot.indexOf('17時～翌') >= 0) return '夜勤';
   if (timeSlot.indexOf('6時～9時') >= 0) return '早';
   if (timeSlot.indexOf('9時～') >= 0) return '日';
   if (timeSlot.indexOf('17時～22時') >= 0) return '夕';
