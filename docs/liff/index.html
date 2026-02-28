@@ -244,19 +244,10 @@ body {
 .shift-facility { font-size: 14px; font-weight: 600; color: #333; }
 .shift-time { font-size: 12px; color: #666; margin-top: 2px; }
 .shift-coworkers {
-  font-size: 11px;
-  color: #888;
   margin-top: 4px;
-  line-height: 1.6;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 3px;
-}
-.shift-coworkers .cw-label {
-  font-weight: 600;
-  color: #666;
-  margin-right: 2px;
+  flex-direction: column;
+  gap: 2px;
 }
 .cw-pill {
   display: inline-block;
@@ -1378,12 +1369,12 @@ function renderShiftList(data) {
     html += '<div class="shift-facility">' + escapeHtml(s.facility) + '</div>';
     html += '<div class="shift-time">' + escapeHtml(s.timeSlot) + '</div>';
     if (s.coworkers && s.coworkers.length > 0) {
-      html += '<div class="shift-coworkers"><span class="cw-label">同建物:</span>';
+      html += '<div class="shift-coworkers">';
       s.coworkers.forEach(function(cw) {
         var cwColor = getEmployeeColor(cw.name);
         var cwTime = cw.timeSlot ? cw.timeSlot.replace(/時/g,'').replace(/～/g,'-') : '';
         var label = cw.name + ' ' + cwTime + '(' + shortenName(cw.facility) + ')';
-        html += '<span class="cw-pill" style="background:' + cwColor + ';">' + escapeHtml(label) + '</span>';
+        html += '<div class="cw-row"><span class="cw-pill" style="background:' + cwColor + ';">' + escapeHtml(label) + '</span></div>';
       });
       html += '</div>';
     }
