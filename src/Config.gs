@@ -189,9 +189,10 @@ const BUILDING_GROUPS = {
   // 天満: 大阪市北区与力町4-4 ヴェルディオクト
   '天満①': 'tenma', '天満①102': 'tenma',
   '天満②': 'tenma', '天満②302': 'tenma',
-  // グリーンビレッジE棟: 練馬区大泉町3-26-47
-  'グリーンビレッジE': 'green_e', 'グリーンビレッジＥ': 'green_e',
-  'ビレッジE102': 'green_e', 'グリーンビレッジE102': 'green_e',
+  // グリーンビレッジ: 練馬区大泉町3-26 (B棟14, E棟47)
+  'グリーンビレッジB': 'green_village', 'グリーンビレッジＢ': 'green_village',
+  'グリーンビレッジE': 'green_village', 'グリーンビレッジＥ': 'green_village',
+  'ビレッジE102': 'green_village', 'グリーンビレッジE102': 'green_village',
   // エルウィング: 立川市錦町1-15-31
   'エルウィング': 'elwing', 'SSエルウィング': 'elwing'
 };
