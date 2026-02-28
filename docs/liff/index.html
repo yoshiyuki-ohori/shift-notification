@@ -222,13 +222,16 @@ body {
 .time-legend {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  margin: 4px 16px 8px;
+  gap: 6px;
+  margin: 6px 16px 8px;
   flex-wrap: wrap;
 }
 .time-legend span {
-  font-size: 10px;
-  color: #888;
+  font-size: 12px;
+  font-weight: 600;
+  color: #FFF;
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 /* ===== シフト一覧 ===== */
 .shift-list { margin: 0 16px 16px; }
@@ -708,10 +711,10 @@ body {
     </div>
     <div class="cal-grid" id="calGrid"></div>
     <div class="time-legend">
-      <span>早=6時～9時</span>
-      <span>日=9時～17時</span>
-      <span>夕=17時～22時</span>
-      <span>夜=22時～</span>
+      <span style="background:#4ECDC4;">早 6-9時</span>
+      <span style="background:#FFD93D;color:#333;">日 9-17時</span>
+      <span style="background:#FF6B6B;">夕 17-22時</span>
+      <span style="background:#845EC2;">夜 22時～</span>
     </div>
   </div>
 
