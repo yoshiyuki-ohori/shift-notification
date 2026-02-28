@@ -1079,10 +1079,10 @@ function mergeUserNightShifts(shifts) {
 
       // まとめ
       shifts[hasEvening.idx].timeSlot = morningEntry ? '17時～9時' : '17時～翌朝';
-      // 同僚情報もマージ（全時間帯エントリを保持、後でmergeCoworkerNightShiftsが統合）
+      // 同僚情報: 入り側（夕・夜）のみ表示、明け側（翌朝早番）は除外
       var cwAll = [];
       var cwSeen = {};
-      [hasEvening, hasNight, morningEntry].forEach(function(entry) {
+      [hasEvening, hasNight].forEach(function(entry) {
         if (entry && entry.shift.coworkers) {
           entry.shift.coworkers.forEach(function(cw) {
             var key = cw.name + '|' + cw.facility + '|' + (cw.timeSlot || '');
