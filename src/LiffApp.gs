@@ -414,6 +414,15 @@ function handlePrefDataApi_(params) {
     var collectionOpen = isCollectionOpen();
     var submittedAt = getSubmittedAt(employee.employeeNo, month);
 
+    // 期間区分と日付範囲を算出
+    var periodLabel = collectionPeriod ? (collectionPeriod.periodLabel || '全日') : '全日';
+    var monthParts = month.split('-');
+    var daysInMonth = new Date(parseInt(monthParts[0], 10), parseInt(monthParts[1], 10), 0).getDate();
+    var dateRange = {
+      startDay: periodLabel === '後半' ? 16 : 1,
+      endDay: periodLabel === '前半' ? 15 : daysInMonth
+    };
+
     var result = {
       employee: {
         name: employee.name,
@@ -423,7 +432,9 @@ function handlePrefDataApi_(params) {
       preferences: preferences,
       collectionPeriod: collectionPeriod,
       collectionOpen: collectionOpen,
-      submittedAt: submittedAt
+      submittedAt: submittedAt,
+      periodLabel: periodLabel,
+      dateRange: dateRange
     };
 
     return ContentService.createTextOutput(JSON.stringify(result))

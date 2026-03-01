@@ -189,23 +189,34 @@ function getSubmissionStatus(yearMonth) {
  * @param {string} targetMonth - 対象年月 (2026-03)
  * @param {string} startDate - 開始日 (YYYY-MM-DD)
  * @param {string} endDate - 締切日 (YYYY-MM-DD)
+ * @param {string} [periodLabel] - 期間区分 ('全日' | '前半' | '後半')
  */
-function setCollectionPeriod(targetMonth, startDate, endDate) {
+function setCollectionPeriod(targetMonth, startDate, endDate, periodLabel) {
   setSettingValue(SETTING_KEYS.PREF_TARGET_MONTH, targetMonth);
   setSettingValue(SETTING_KEYS.PREF_COLLECTION_START, startDate);
   setSettingValue(SETTING_KEYS.PREF_COLLECTION_END, endDate);
+  if (periodLabel) {
+    setSettingValue(SETTING_KEYS.PREF_PERIOD_LABEL, periodLabel);
+  }
 }
 
 /**
  * 希望収集期間を取得
- * @return {Object|null} {targetMonth, startDate, endDate} or null
+ * @return {Object|null} {targetMonth, startDate, endDate, periodLabel} or null
  */
 function getCollectionPeriod() {
   try {
+    var periodLabel = '全日';
+    try {
+      periodLabel = getSettingValue(SETTING_KEYS.PREF_PERIOD_LABEL) || '全日';
+    } catch (e) {
+      // キーが未設定の場合はデフォルト値
+    }
     return {
       targetMonth: getSettingValue(SETTING_KEYS.PREF_TARGET_MONTH),
       startDate: getSettingValue(SETTING_KEYS.PREF_COLLECTION_START),
-      endDate: getSettingValue(SETTING_KEYS.PREF_COLLECTION_END)
+      endDate: getSettingValue(SETTING_KEYS.PREF_COLLECTION_END),
+      periodLabel: periodLabel
     };
   } catch (e) {
     return null;

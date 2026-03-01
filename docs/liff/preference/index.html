@@ -111,6 +111,8 @@ body {
 .cal-cell:active { background: #F0F0F0; }
 .cal-cell.empty { background: #FAFAFA; cursor: default; }
 .cal-cell.empty:active { background: #FAFAFA; }
+.cal-cell.disabled { background: #F0F0F0; cursor: default; opacity: 0.4; }
+.cal-cell.disabled:active { background: #F0F0F0; }
 .cal-cell.selected { background: #E3F2FD; border: 2px solid #2980B9; }
 .cal-cell.want { background: #D5F5E3; }
 .cal-cell.ng { background: #FADBD8; }
@@ -472,6 +474,8 @@ var selectedDate = null;
 var selectedType = null;
 var employeeInfo = null;
 var collectionOpen = true;
+var dateRange = { startDay: 1, endDay: 31 };
+var periodLabel = '全日';
 
 var TIME_SLOT_COLORS = {
   '6時～9時': '#4ECDC4',
@@ -532,6 +536,14 @@ function onDataLoaded(data) {
   targetMonth = data.targetMonth;
   collectionOpen = data.collectionOpen;
 
+  // 期間区分と日付範囲を設定
+  if (data.periodLabel) {
+    periodLabel = data.periodLabel;
+  }
+  if (data.dateRange) {
+    dateRange = data.dateRange;
+  }
+
   // 受付期間外チェック
   if (!collectionOpen) {
     document.getElementById('loadingView').style.display = 'none';
@@ -540,8 +552,9 @@ function onDataLoaded(data) {
     return;
   }
 
-  // Header
-  document.getElementById('empName').textContent = data.employee.name + ' さん | ' + formatMonth(targetMonth);
+  // Header（期間区分表示付き）
+  var periodDisplay = (periodLabel && periodLabel !== '全日') ? ' ' + periodLabel + '(' + dateRange.startDay + '-' + dateRange.endDay + '日)' : '';
+  document.getElementById('empName').textContent = data.employee.name + ' さん | ' + formatMonth(targetMonth) + periodDisplay;
   if (data.collectionPeriod && data.collectionPeriod.endDate) {
     var parts = data.collectionPeriod.endDate.split('-');
     document.getElementById('deadline').textContent = '締切: ' + parseInt(parts[1],10) + '/' + parseInt(parts[2],10);
@@ -602,10 +615,20 @@ function renderCalendar() {
     var dow = (startDow + day - 1) % 7;
     var dateStr = year + '/' + String(month).padStart(2, '0') + '/' + String(day).padStart(2, '0');
     var pref = prefData[dateStr];
+    var isOutOfRange = (day < dateRange.startDay || day > dateRange.endDay);
 
     var classes = 'cal-cell';
     if (dow === 0) classes += ' sunday';
     if (dow === 6) classes += ' saturday';
+
+    if (isOutOfRange) {
+      classes += ' disabled';
+      html += '<div class="' + classes + '">';
+      html += '<div class="cal-day">' + day + '</div>';
+      html += '</div>';
+      continue;
+    }
+
     if (selectedDate === dateStr) classes += ' selected';
     if (pref) {
       if (pref.type === '希望') classes += ' want';

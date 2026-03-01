@@ -34,6 +34,7 @@ function onOpen() {
     .addItem('希望収集を締切', 'closePreferenceCollection')
     .addItem('提出状況確認', 'showSubmissionStatus')
     .addItem('未提出者にリマインド送信', 'sendPreferenceReminders')
+    .addItem('テスト用リンク生成', 'generatePreferenceTestLink')
     .addItem('希望一覧シート表示', 'showPreferenceSheet')
     .addSeparator()
     .addItem('出勤確認テスト送信 (今日)', 'testSendAttendanceConfirm')
@@ -655,6 +656,22 @@ function startPreferenceCollection() {
     return;
   }
 
+  // 期間区分を選択
+  var periodResult = ui.prompt('期間区分の選択',
+    '収集する期間区分を入力してください:\n\n' +
+    '  全日 → 1日～末日\n' +
+    '  前半 → 1日～15日\n' +
+    '  後半 → 16日～末日\n\n' +
+    '「全日」「前半」「後半」のいずれかを入力:',
+    ui.ButtonSet.OK_CANCEL);
+  if (periodResult.getSelectedButton() !== ui.Button.OK) return;
+  var periodLabel = periodResult.getResponseText().trim();
+
+  if (['全日', '前半', '後半'].indexOf(periodLabel) === -1) {
+    ui.alert('エラー', '期間区分は「全日」「前半」「後半」のいずれかで入力してください。', ui.ButtonSet.OK);
+    return;
+  }
+
   // 締切日を入力
   const deadlineResult = ui.prompt('締切日設定',
     '希望提出の締切日を入力してください (例: 2026-03-20)',
@@ -669,26 +686,36 @@ function startPreferenceCollection() {
 
   var today = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy-MM-dd');
 
-  // 収集期間を設定
-  setCollectionPeriod(targetMonth, today, deadline);
+  // 収集期間を設定（periodLabel付き）
+  setCollectionPeriod(targetMonth, today, deadline, periodLabel);
 
   // リマインドトリガー設定（締切2日前に自動リマインド）
   setupPreferenceReminderTrigger_(deadline);
 
+  // 期間表示テキスト生成
+  var periodDisplay = periodLabel === '全日' ? '' : ' ' + periodLabel;
+
   // 全職員に希望入力開始通知を送信
   var confirm = ui.alert('通知送信',
-    targetMonth + 'のシフト希望収集を開始します。\n' +
+    targetMonth + periodDisplay + 'のシフト希望収集を開始します。\n' +
     '締切: ' + deadline + '\n\n' +
     '全職員にLINE通知を送信しますか？',
     ui.ButtonSet.YES_NO);
 
   if (confirm === ui.Button.YES) {
-    sendPreferenceStartNotification_(targetMonth, deadline);
+    var sendResults = sendPreferenceStartNotification_(targetMonth, deadline, periodLabel);
+
+    // 送信結果を表示
+    ui.alert('送信結果',
+      '送信成功: ' + sendResults.sent + '人\n' +
+      '送信失敗: ' + sendResults.failed + '人\n' +
+      'LINE未登録: ' + sendResults.noLine + '人',
+      ui.ButtonSet.OK);
   }
 
   ui.alert('開始完了',
     'シフト希望収集を開始しました。\n\n' +
-    '対象月: ' + targetMonth + '\n' +
+    '対象月: ' + targetMonth + periodDisplay + '\n' +
     '締切: ' + deadline + '\n' +
     'リマインド: 締切2日前に自動送信',
     ui.ButtonSet.OK);
@@ -803,18 +830,29 @@ function showPreferenceSheet() {
 
 /**
  * 希望入力開始通知を全職員に送信
+ * @param {string} targetMonth - 対象年月
+ * @param {string} deadline - 締切日
+ * @param {string} [periodLabel] - 期間区分 ('全日' | '前半' | '後半')
+ * @return {Object} { sent, failed, noLine, details }
  */
-function sendPreferenceStartNotification_(targetMonth, deadline) {
+function sendPreferenceStartNotification_(targetMonth, deadline, periodLabel) {
   var employees = loadEmployeeMaster();
   var parts = targetMonth.split('-');
   var displayMonth = parts[0] + '年' + parseInt(parts[1], 10) + '月';
+  var periodDisplay = (periodLabel && periodLabel !== '全日') ? ' ' + periodLabel : '';
+  var results = { sent: 0, failed: 0, noLine: 0, details: [] };
 
   employees.forEach(function(emp) {
-    if (emp.status !== '在職' || !emp.lineUserId) return;
+    if (emp.status !== '在職') return;
+    if (!emp.lineUserId) {
+      results.noLine++;
+      results.details.push({ name: emp.name, status: 'LINE未登録' });
+      return;
+    }
 
     var message = {
       type: 'flex',
-      altText: displayMonth + ' シフト希望入力のお知らせ',
+      altText: displayMonth + periodDisplay + ' シフト希望入力のお知らせ',
       contents: {
         type: 'bubble',
         size: 'kilo',
@@ -843,7 +881,7 @@ function sendPreferenceStartNotification_(targetMonth, deadline) {
             },
             {
               type: 'text',
-              text: displayMonth + 'のシフト希望入力を受付中です。',
+              text: displayMonth + periodDisplay + 'のシフト希望入力を受付中です。',
               wrap: true,
               size: 'sm',
               margin: 'md',
@@ -880,9 +918,60 @@ function sendPreferenceStartNotification_(targetMonth, deadline) {
       }
     };
 
-    pushMessage(emp.lineUserId, [message]);
+    var result = pushMessage(emp.lineUserId, [message]);
+    if (result.success) {
+      results.sent++;
+      results.details.push({ name: emp.name, status: '送信成功' });
+    } else {
+      results.failed++;
+      results.details.push({ name: emp.name, status: '送信失敗', error: result.error });
+    }
     Utilities.sleep(LINE_API.RATE_LIMIT_DELAY_MS);
   });
+
+  return results;
+}
+
+/**
+ * テスト用LIFF希望入力リンクを生成
+ */
+function generatePreferenceTestLink() {
+  var ui = SpreadsheetApp.getUi();
+  var period = getCollectionPeriod();
+  var targetMonth = period ? period.targetMonth : '';
+
+  if (!targetMonth) {
+    var result = ui.prompt('テスト用リンク生成',
+      '対象年月を入力してください (例: 2026-04)',
+      ui.ButtonSet.OK_CANCEL);
+    if (result.getSelectedButton() !== ui.Button.OK) return;
+    targetMonth = result.getResponseText().trim();
+
+    if (!targetMonth.match(/^\d{4}-\d{2}$/)) {
+      ui.alert('エラー', '年月の形式が正しくありません。例: 2026-04', ui.ButtonSet.OK);
+      return;
+    }
+  }
+
+  var liffId;
+  try {
+    liffId = getSettingValue(SETTING_KEYS.LIFF_ID);
+  } catch (e) {
+    ui.alert('エラー', 'LIFF_IDが設定シートに登録されていません。', ui.ButtonSet.OK);
+    return;
+  }
+
+  var liffUrl = 'https://liff.line.me/' + liffId + '/preference/?month=' + targetMonth;
+  var periodLabel = period ? (period.periodLabel || '全日') : '全日';
+
+  ui.alert('テスト用リンク',
+    '以下のURLをLINEアプリで開いてください:\n\n' +
+    liffUrl + '\n\n' +
+    '対象月: ' + targetMonth + '\n' +
+    '期間区分: ' + periodLabel + '\n\n' +
+    '※ LINE連携済みのアカウントでアクセスしてください\n' +
+    '※ LINEアプリ内ブラウザで開く必要があります',
+    ui.ButtonSet.OK);
 }
 
 /**
