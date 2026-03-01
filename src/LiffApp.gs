@@ -762,3 +762,198 @@ function addCoworkerInfo_(myShifts, allAggregated, myEmpNo) {
 
   return myShifts;
 }
+
+// ===== 配置管理 API ハンドラー =====
+
+/**
+ * 仮配置データ取得 (GET)
+ * ?action=tentativeData&month=YYYY-MM
+ */
+function handleTentativeData_(params) {
+  try {
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    var assignments = loadTentativeAssignments(targetMonth);
+    var stats = getTentativeStats(targetMonth);
+
+    // 施設×日付×時間帯でグループ化
+    var byFacility = {};
+    for (var i = 0; i < assignments.length; i++) {
+      var a = assignments[i];
+      var key = a.facilityId || a.facility;
+      if (!byFacility[key]) {
+        byFacility[key] = { facility: a.facility, facilityId: a.facilityId, area: a.area, slots: {} };
+      }
+      var slotKey = a.date + '|' + a.timeSlot;
+      if (!byFacility[key].slots[slotKey]) {
+        byFacility[key].slots[slotKey] = [];
+      }
+      byFacility[key].slots[slotKey].push({
+        empNo: a.empNo,
+        name: a.name,
+        prefMatch: a.prefMatch,
+        source: a.source
+      });
+    }
+
+    return jsonResponse_({
+      targetMonth: targetMonth,
+      assignments: assignments,
+      byFacility: byFacility,
+      stats: stats
+    });
+  } catch (e) {
+    Logger.log('handleTentativeData_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 配置可能職員リスト取得 (GET)
+ * ?action=availableStaff&month=YYYY-MM&date=YYYY/MM/DD&timeSlot=...
+ */
+function handleAvailableStaff_(params) {
+  try {
+    var targetMonth = params.month || '';
+    var date = params.date || '';
+    var timeSlot = params.timeSlot || '';
+    var facilityId = params.facilityId || '';
+
+    if (!targetMonth || !date || !timeSlot) {
+      return jsonResponse_({ error: 'month, date, timeSlot パラメータが必要です。' });
+    }
+
+    var candidates = getAvailableStaff(targetMonth, date, timeSlot, facilityId);
+
+    return jsonResponse_({
+      targetMonth: targetMonth,
+      date: date,
+      timeSlot: timeSlot,
+      candidates: candidates
+    });
+  } catch (e) {
+    Logger.log('handleAvailableStaff_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 配置統計サマリー取得 (GET)
+ * ?action=allocationSummary&month=YYYY-MM
+ */
+function handleAllocationSummary_(params) {
+  try {
+    var targetMonth = params.month || '';
+    if (!targetMonth) {
+      var now = new Date();
+      targetMonth = now.getFullYear() + '-' + ('0' + (now.getMonth() + 1)).slice(-2);
+    }
+
+    var stats = getTentativeStats(targetMonth);
+    var requirements = loadStaffingRequirements_();
+
+    // 施設ごとの必要配置情報
+    var facReqs = {};
+    for (var r = 0; r < requirements.length; r++) {
+      var req = requirements[r];
+      var key = req.facilityId + '|' + req.timeSlot + '|' + req.dayType;
+      facReqs[key] = { minStaff: req.minStaff, preferredStaff: req.preferredStaff };
+    }
+
+    return jsonResponse_({
+      targetMonth: targetMonth,
+      stats: stats,
+      requirements: facReqs
+    });
+  } catch (e) {
+    Logger.log('handleAllocationSummary_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 配置追加 (POST)
+ * body: { action: 'addAssignment', key, month, date, facility, facilityId, area, timeSlot, empNo, name }
+ */
+function handleAddAssignment_(body) {
+  try {
+    var result = addTentativeAssignment({
+      yearMonth: body.month || '',
+      date: body.date || '',
+      area: body.area || '',
+      facility: body.facility || '',
+      facilityId: body.facilityId || '',
+      timeSlot: body.timeSlot || '',
+      empNo: body.empNo || '',
+      name: body.name || '',
+      assignedBy: '管理者'
+    });
+
+    return jsonResponse_(result);
+  } catch (e) {
+    Logger.log('handleAddAssignment_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 配置削除 (POST)
+ * body: { action: 'removeAssignment', key, month, date, facilityId, timeSlot, empNo }
+ */
+function handleRemoveAssignment_(body) {
+  try {
+    var success = removeTentativeAssignment(
+      body.month || '',
+      body.date || '',
+      body.facilityId || '',
+      body.timeSlot || '',
+      body.empNo || ''
+    );
+    return jsonResponse_({ success: success });
+  } catch (e) {
+    Logger.log('handleRemoveAssignment_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 配置確定 (POST)
+ * body: { action: 'confirmAllocations', key, month }
+ */
+function handleConfirmAllocations_(body) {
+  try {
+    var targetMonth = body.month || '';
+    if (!targetMonth) {
+      return jsonResponse_({ error: '対象年月が指定されていません。' });
+    }
+
+    var result = confirmAllocations(targetMonth);
+    return jsonResponse_(result);
+  } catch (e) {
+    Logger.log('handleConfirmAllocations_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
+ * 仮配置クリア (POST)
+ * body: { action: 'clearAllocations', key, month }
+ */
+function handleClearAllocations_(body) {
+  try {
+    var targetMonth = body.month || '';
+    if (!targetMonth) {
+      return jsonResponse_({ error: '対象年月が指定されていません。' });
+    }
+
+    var count = clearTentativeAssignments(targetMonth);
+    return jsonResponse_({ success: true, clearedCount: count });
+  } catch (e) {
+    Logger.log('handleClearAllocations_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}

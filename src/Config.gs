@@ -14,7 +14,8 @@ const SHEET_NAMES = {
   STAFFING_REQUIREMENT: '必要配置',
   LABOR_RULES: '労基ルール',
   COMPLIANCE_RESULT: '労基チェック結果',
-  ATTENDANCE_CONFIRM: '出勤確認'
+  ATTENDANCE_CONFIRM: '出勤確認',
+  TENTATIVE_ASSIGNMENT: '仮配置'
 };
 
 // ===== 従業員マスタ列定数 (1-indexed) =====
@@ -88,6 +89,31 @@ const ATTEND_COLS = {
   STATUS: 4,          // D: ステータス (未確認/出勤/欠勤連絡)
   CONFIRMED_AT: 5,    // E: 確認日時
   NOTIFIED_AT: 6      // F: 通知日時
+};
+
+// ===== 仮配置シート名・列定数 =====
+// SHEET_NAMES に追加
+// (下記 SHEET_NAMES オブジェクトの末尾に TENTATIVE_ASSIGNMENT を追加済み)
+
+const TENTATIVE_COLS = {
+  YEAR_MONTH: 1,     // A: 年月
+  DATE: 2,           // B: 日付
+  AREA: 3,           // C: エリア
+  FACILITY: 4,       // D: 施設名
+  FACILITY_ID: 5,    // E: 施設ID
+  TIME_SLOT: 6,      // F: 時間帯
+  EMPLOYEE_NO: 7,    // G: 社員No
+  NAME: 8,           // H: 氏名
+  STATUS: 9,         // I: ステータス (仮配置/確定)
+  SOURCE: 10,        // J: 配置理由 (manual)
+  PREF_MATCH: 11,    // K: 希望一致
+  ASSIGNED_AT: 12,   // L: 配置日時
+  ASSIGNED_BY: 13    // M: 配置者
+};
+
+const ASSIGN_STATUS = {
+  TENTATIVE: '仮配置',
+  CONFIRMED: '確定'
 };
 
 // ===== 希望種別 =====

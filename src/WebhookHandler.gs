@@ -122,6 +122,12 @@ function doGet(e) {
         return handleAllPreferencesApi_(params);
       case 'prefCoverage':
         return handlePrefCoverage_(params);
+      case 'tentativeData':
+        return handleTentativeData_(params);
+      case 'availableStaff':
+        return handleAvailableStaff_(params);
+      case 'allocationSummary':
+        return handleAllocationSummary_(params);
       case 'lineWebhook':
         return handleLineWebhookViaGet_(params);
       default:
@@ -425,6 +431,14 @@ function handlePostAction_(body) {
       return handlePostWrite_(body);
     case 'append':
       return handlePostAppend_(body);
+    case 'addAssignment':
+      return handleAddAssignment_(body);
+    case 'removeAssignment':
+      return handleRemoveAssignment_(body);
+    case 'confirmAllocations':
+      return handleConfirmAllocations_(body);
+    case 'clearAllocations':
+      return handleClearAllocations_(body);
     default:
       return jsonResponse_({ error: 'Unknown action: ' + body.action });
   }

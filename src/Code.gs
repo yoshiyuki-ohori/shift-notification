@@ -50,6 +50,14 @@ function onOpen() {
     .addItem('労基チェック結果表示', 'showComplianceResults')
     .addItem('労基ルール設定表示', 'showLaborRulesSheet')
     .addToUi();
+
+  // メニュー4: 配置管理（仮配置→確定ワークフロー）
+  ui.createMenu('配置管理')
+    .addItem('仮配置を確定', 'confirmAllocationsMenu')
+    .addItem('仮配置をクリア', 'clearTentativeMenu')
+    .addSeparator()
+    .addItem('仮配置シート表示', 'showTentativeSheet')
+    .addToUi();
 }
 
 /**
@@ -595,6 +603,16 @@ function setupSheets() {
     sheet.setFrozenRows(1);
   }
 
+  // 仮配置
+  if (!ss.getSheetByName(SHEET_NAMES.TENTATIVE_ASSIGNMENT)) {
+    const sheet = ss.insertSheet(SHEET_NAMES.TENTATIVE_ASSIGNMENT);
+    sheet.getRange(1, 1, 1, 13).setValues([[
+      '年月', '日付', 'エリア', '施設名', '施設ID', '時間帯',
+      '社員No', '氏名', 'ステータス', '配置理由', '希望一致', '配置日時', '配置者'
+    ]]);
+    sheet.setFrozenRows(1);
+  }
+
   // 労基ルール
   setupLaborRulesSheet();
 
@@ -602,6 +620,19 @@ function setupSheets() {
   setupComplianceResultSheet();
 
   SpreadsheetApp.getUi().alert('セットアップ完了', '全シートの初期設定が完了しました。', SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+/**
+ * 仮配置シート表示
+ */
+function showTentativeSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAMES.TENTATIVE_ASSIGNMENT);
+  if (sheet) {
+    ss.setActiveSheet(sheet);
+  } else {
+    SpreadsheetApp.getUi().alert('情報', '仮配置データはまだありません。', SpreadsheetApp.getUi().ButtonSet.OK);
+  }
 }
 
 // ===== シフト希望管理 =====
