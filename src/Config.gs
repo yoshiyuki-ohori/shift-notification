@@ -126,8 +126,6 @@ const PREF_TYPE = {
 // ===== 設定キー =====
 const SETTING_KEYS = {
   TARGET_MONTH: '対象年月',
-  NERIMA_SS_ID: '練馬シフトSS_ID',
-  SETAGAYA_SS_ID: '世田谷シフトSS_ID',
   SEND_MODE: '送信モード',
   TEST_USER_ID: 'テスト送信先UserId',
   PREF_COLLECTION_START: '希望収集開始日',
@@ -162,9 +160,6 @@ const SEND_STATUS = {
   NO_LINE_ID: 'LINE未登録',
   INACTIVE: '無効'
 };
-
-// ===== 練馬エリア 時間帯定数 =====
-const NERIMA_TIME_SLOTS = ['6時～9時', '17時～22時', '22時～'];
 
 // ===== 時間帯→労働時間マッピング =====
 const TIME_SLOT_HOURS = {
@@ -377,6 +372,20 @@ function getLineChannelSecret(channel) {
   const secret = props.getProperty('LINE_CHANNEL_SECRET');
   if (!secret) throw new Error('LINE_CHANNEL_SECRETが設定されていません。');
   return secret;
+}
+
+/**
+ * 日付文字列を短い形式に変換
+ * @param {string} dateStr - "YYYY/MM/DD"
+ * @return {string} "M/D"
+ */
+function formatShortDate_(dateStr) {
+  if (!dateStr) return '';
+  var parts = String(dateStr).split('/');
+  if (parts.length >= 3) {
+    return parseInt(parts[1], 10) + '/' + parseInt(parts[2], 10);
+  }
+  return dateStr;
 }
 
 /**

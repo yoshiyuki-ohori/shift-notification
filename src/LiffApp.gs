@@ -10,6 +10,35 @@
  */
 
 /**
+ * 管理者キー認証で社員情報を取得する共通ヘルパー
+ * @param {string} adminKey - 管理者APIキー
+ * @param {string} empNo - 社員番号
+ * @return {Object|null} { employeeNo, name } または null（認証失敗/社員未発見）
+ * @private
+ */
+function authenticateByAdminKey_(adminKey, empNo) {
+  var expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
+  if (!expectedKey || adminKey !== expectedKey) {
+    return null;
+  }
+  var targetEmpNo = empNo.padStart(3, '0');
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var masterSheet = ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
+  if (!masterSheet) return null;
+
+  var data = masterSheet.getDataRange().getValues();
+  for (var idx = 1; idx < data.length; idx++) {
+    if (String(data[idx][MASTER_COLS.NO - 1]).trim().padStart(3, '0') === targetEmpNo) {
+      return {
+        employeeNo: targetEmpNo,
+        name: String(data[idx][MASTER_COLS.NAME - 1]).trim()
+      };
+    }
+  }
+  return null;
+}
+
+/**
  * マイシフト JSON API エンドポイント (doGet から呼ばれる)
  * @param {Object} params - クエリパラメータ { token, month }
  * @return {ContentService.TextOutput} JSON レスポンス
@@ -38,27 +67,9 @@ function getMyShiftData(accessToken, targetMonth, overrideEmpNo, adminKey) {
 
     // 管理者キー認証: LINE トークン不要で社員番号指定のデータを返す
     if (adminKey && overrideEmpNo) {
-      var expectedKey = PropertiesService.getScriptProperties().getProperty('ADMIN_API_KEY') || '';
-      if (!expectedKey || adminKey !== expectedKey) {
-        return { error: '管理者認証に失敗しました。' };
-      }
-      var targetEmpNo = overrideEmpNo.padStart(3, '0');
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
-      var masterSheet = ss.getSheetByName(SHEET_NAMES.EMPLOYEE_MASTER);
-      if (masterSheet) {
-        var data = masterSheet.getDataRange().getValues();
-        for (var idx = 1; idx < data.length; idx++) {
-          if (String(data[idx][MASTER_COLS.NO - 1]).trim().padStart(3, '0') === targetEmpNo) {
-            employee = {
-              employeeNo: targetEmpNo,
-              name: String(data[idx][MASTER_COLS.NAME - 1]).trim()
-            };
-            break;
-          }
-        }
-      }
+      employee = authenticateByAdminKey_(adminKey, overrideEmpNo);
       if (!employee) {
-        return { error: '社員番号「' + overrideEmpNo + '」が見つかりません。' };
+        return { error: '管理者認証に失敗、または社員番号「' + overrideEmpNo + '」が見つかりません。' };
       }
     } else {
       // 1. アクセストークンからLINE userId を取得（サーバー側検証）
@@ -385,17 +396,30 @@ function handleFacilityOverview_(params) {
 function handlePrefDataApi_(params) {
   var token = params.token || '';
   var month = params.month || '';
+  var adminKey = params.key || '';
+  var empNo = params.empNo || '';
 
-  var userId = verifyLineAccessToken_(token);
-  if (!userId) {
-    return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  var employee = null;
 
-  var employee = findEmployeeByLineUserId_(userId);
-  if (!employee) {
-    return ContentService.createTextOutput(JSON.stringify({ needsRegistration: true }))
-      .setMimeType(ContentService.MimeType.JSON);
+  // 管理者キー認証: LIFF不要で社員番号指定
+  if (adminKey && empNo) {
+    employee = authenticateByAdminKey_(adminKey, empNo);
+    if (!employee) {
+      return ContentService.createTextOutput(JSON.stringify({ error: '管理者認証に失敗、または社員番号「' + empNo + '」が見つかりません。' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  } else {
+    var userId = verifyLineAccessToken_(token);
+    if (!userId) {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    employee = findEmployeeByLineUserId_(userId);
+    if (!employee) {
+      return ContentService.createTextOutput(JSON.stringify({ needsRegistration: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
   }
 
   // 対象年月の決定
@@ -455,17 +479,30 @@ function handleSavePrefBatch_(body) {
   var token = body.token || '';
   var month = body.month || '';
   var preferences = body.preferences || [];
+  var adminKey = body.key || '';
+  var empNo = body.empNo || '';
 
-  var userId = verifyLineAccessToken_(token);
-  if (!userId) {
-    return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  var employee = null;
 
-  var employee = findEmployeeByLineUserId_(userId);
-  if (!employee) {
-    return ContentService.createTextOutput(JSON.stringify({ error: '従業員情報が見つかりません。' }))
-      .setMimeType(ContentService.MimeType.JSON);
+  // 管理者キー認証: LIFF不要で社員番号指定
+  if (adminKey && empNo) {
+    employee = authenticateByAdminKey_(adminKey, empNo);
+    if (!employee) {
+      return ContentService.createTextOutput(JSON.stringify({ error: '管理者認証に失敗、または社員番号「' + empNo + '」が見つかりません。' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  } else {
+    var userId = verifyLineAccessToken_(token);
+    if (!userId) {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'LINE認証に失敗しました。' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    employee = findEmployeeByLineUserId_(userId);
+    if (!employee) {
+      return ContentService.createTextOutput(JSON.stringify({ error: '従業員情報が見つかりません。' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
   }
 
   if (!month) {

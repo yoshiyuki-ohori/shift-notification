@@ -528,17 +528,3 @@ function writeComplianceResults(targetMonth, result) {
   }
 }
 
-/**
- * 日付文字列を短い形式に変換
- * @param {string} dateStr - "YYYY/MM/DD"
- * @return {string} "M/D"
- * @private
- */
-function formatShortDate_(dateStr) {
-  if (!dateStr) return '';
-  var parts = dateStr.split('/');
-  if (parts.length >= 3) {
-    return parseInt(parts[1], 10) + '/' + parseInt(parts[2], 10);
-  }
-  return dateStr;
-}

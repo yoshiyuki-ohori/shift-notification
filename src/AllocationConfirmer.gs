@@ -83,17 +83,108 @@ function confirmAllocations(targetMonth) {
 
 /**
  * 確定後にLINE通知を送信
+ * loadEmployeeMaster() + pushMessage() でシンプルにFlex通知
  * @param {string} targetMonth - 対象年月
- * @return {Object} 送信結果
+ * @return {Object} 送信結果 { success, sent, failed, noLine }
  */
 function sendConfirmationNotifications(targetMonth) {
+  var employees = loadEmployeeMaster();
+  var parts = targetMonth.split('-');
+  var displayMonth = parts[0] + '年' + parseInt(parts[1], 10) + '月';
+  var results = { success: true, sent: 0, failed: 0, noLine: 0 };
+
+  // LIFF URL構築
+  var liffId = null;
   try {
-    setSettingValue(SETTING_KEYS.SEND_MODE, '本番');
-    startBatchSend();
-    return { success: true };
+    liffId = getSettingValue(SETTING_KEYS.LIFF_ID);
   } catch (e) {
-    return { success: false, error: e.toString() };
+    Logger.log('LIFF_ID not set for confirmation notification');
   }
+  var liffUrl = liffId ? 'https://liff.line.me/' + liffId + '/?action=myshift&month=' + targetMonth : '';
+
+  employees.forEach(function(emp) {
+    if (emp.status !== '在職') return;
+    if (!emp.lineUserId) {
+      results.noLine++;
+      return;
+    }
+
+    var bodyContents = [
+      {
+        type: 'text',
+        text: emp.name + 'さん',
+        weight: 'bold',
+        size: 'md'
+      },
+      {
+        type: 'text',
+        text: displayMonth + 'のシフトが確定しました。',
+        wrap: true,
+        size: 'sm',
+        margin: 'md',
+        color: '#555555'
+      }
+    ];
+
+    var footerContents = [];
+    if (liffUrl) {
+      footerContents.push({
+        type: 'button',
+        action: { type: 'uri', label: 'シフトを確認する', uri: liffUrl },
+        style: 'primary',
+        color: '#1DB446',
+        height: 'sm'
+      });
+    }
+
+    var message = {
+      type: 'flex',
+      altText: displayMonth + ' シフト確定のお知らせ',
+      contents: {
+        type: 'bubble',
+        size: 'kilo',
+        header: {
+          type: 'box',
+          layout: 'vertical',
+          contents: [{
+            type: 'text',
+            text: 'シフト確定のお知らせ',
+            weight: 'bold',
+            size: 'md',
+            color: '#FFFFFF'
+          }],
+          backgroundColor: '#2196F3',
+          paddingAll: '12px'
+        },
+        body: {
+          type: 'box',
+          layout: 'vertical',
+          contents: bodyContents,
+          paddingAll: '15px'
+        }
+      }
+    };
+
+    if (footerContents.length > 0) {
+      message.contents.footer = {
+        type: 'box',
+        layout: 'vertical',
+        contents: footerContents,
+        paddingAll: '12px'
+      };
+    }
+
+    var result = pushMessage(emp.lineUserId, [message]);
+    if (result.success) {
+      results.sent++;
+    } else {
+      results.failed++;
+      Logger.log('Confirmation notification failed for ' + emp.name + ': ' + result.error);
+    }
+    Utilities.sleep(LINE_API.RATE_LIMIT_DELAY_MS);
+  });
+
+  return results;
 }
 
 /**

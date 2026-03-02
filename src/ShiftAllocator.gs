@@ -427,15 +427,3 @@ function checkPreferenceMatch_(yearMonth, date, timeSlot, empNo) {
   return 'none';
 }
 
-/**
- * 短縮日付フォーマット
- * @private
- */
-function formatShortDate_(dateStr) {
-  if (!dateStr) return '';
-  var parts = String(dateStr).split('/');
-  if (parts.length >= 3) {
-    return parseInt(parts[1], 10) + '/' + parseInt(parts[2], 10);
-  }
-  return dateStr;
-}
