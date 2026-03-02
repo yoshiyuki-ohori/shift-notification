@@ -281,8 +281,8 @@ function setupSheets() {
   // シフト希望
   if (!ss.getSheetByName(SHEET_NAMES.SHIFT_PREFERENCE)) {
     const sheet = ss.insertSheet(SHEET_NAMES.SHIFT_PREFERENCE);
-    sheet.getRange(1, 1, 1, 8).setValues([[
-      '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時'
+    sheet.getRange(1, 1, 1, 9).setValues([[
+      '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時', '希望施設'
     ]]);
     sheet.setFrozenRows(1);
   }

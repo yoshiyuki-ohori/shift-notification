@@ -598,7 +598,8 @@ function handleAllPreferencesApi_(params) {
           date: formatDateValue_(prefData[i][PREF_COLS.DATE - 1]),
           type: String(prefData[i][PREF_COLS.TYPE - 1]).trim(),
           timeSlot: String(prefData[i][PREF_COLS.TIME_SLOT - 1]).trim(),
-          reason: String(prefData[i][PREF_COLS.REASON - 1] || '').trim()
+          reason: String(prefData[i][PREF_COLS.REASON - 1] || '').trim(),
+          facility: String(prefData[i][PREF_COLS.FACILITY - 1] || '').trim()
         });
       }
     }
