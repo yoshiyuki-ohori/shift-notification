@@ -235,6 +235,24 @@ body {
 .ts-chip:active { transform: scale(0.97); }
 .ts-chip.active { background: #2980B9; color: #FFF; border-color: #2980B9; }
 
+/* Facility checkboxes */
+.facility-section { margin-bottom: 12px; }
+.facility-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+.facility-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.fac-chip {
+  padding: 6px 12px;
+  border: 1.5px solid #DDD;
+  border-radius: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  background: #FFF;
+  color: #555;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fac-chip:active { transform: scale(0.97); }
+.fac-chip.active { background: #8E44AD; color: #FFF; border-color: #8E44AD; }
+
 /* Memo */
 .memo-section { margin-bottom: 8px; }
 .memo-label { font-size: 12px; color: #888; margin-bottom: 4px; }
@@ -340,6 +358,42 @@ body {
   display: none;
 }
 
+/* ===== Multi-select toolbar ===== */
+.multi-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 16px 0;
+  gap: 8px;
+}
+.multi-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1.5px solid #2980B9;
+  border-radius: 20px;
+  background: #FFF;
+  color: #2980B9;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.15s;
+}
+.multi-toggle.active { background: #2980B9; color: #FFF; }
+.multi-count {
+  font-size: 12px;
+  color: #888;
+  min-width: 60px;
+  text-align: right;
+}
+.multi-count.has-selection { color: #2980B9; font-weight: 600; }
+.cal-cell.multi-selected { background: #D6EAF8; border: 2px solid #2980B9; }
+.cal-cell.multi-selected.want { background: #B2DFDB; }
+.cal-cell.multi-selected.ng { background: #F5B7B1; }
+.cal-cell.multi-selected.either { background: #FAD7A0; }
+
 .footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
 </style>
 </head>
@@ -387,6 +441,14 @@ body {
   <!-- Submitted info -->
   <div class="submitted-info" id="submittedInfo"></div>
 
+  <!-- Multi-select toolbar -->
+  <div class="multi-toolbar">
+    <button class="multi-toggle" id="multiToggle" onclick="toggleMultiSelect()">
+      <span id="multiIcon">&#9744;</span> 複数選択
+    </button>
+    <span class="multi-count" id="multiCount"></span>
+  </div>
+
   <!-- Calendar -->
   <div class="calendar-section">
     <div class="cal-header">
@@ -414,13 +476,18 @@ body {
         <button class="type-btn ng" onclick="selectType('NG')">NG</button>
         <button class="type-btn either" onclick="selectType('どちらでも')">どちらでも</button>
       </div>
+      <div class="facility-section">
+        <div class="facility-label">希望施設（任意・複数可）</div>
+        <div class="facility-grid" id="facilityGrid"></div>
+      </div>
       <div class="timeslot-section">
         <div class="timeslot-label">時間帯（任意）</div>
         <div class="timeslot-grid">
           <span class="ts-chip" data-slot="6時～9時" onclick="toggleSlot(this)">6時～9時</span>
+          <span class="ts-chip" data-slot="9時～17時" onclick="toggleSlot(this)">9時～17時</span>
           <span class="ts-chip" data-slot="17時～22時" onclick="toggleSlot(this)">17時～22時</span>
           <span class="ts-chip" data-slot="22時～" onclick="toggleSlot(this)">22時～</span>
-          <span class="ts-chip" data-slot="指定なし" onclick="toggleSlot(this)">指定なし</span>
+          <span class="ts-chip" data-slot="17時～翌9時" onclick="toggleSlot(this)">17時～翌9時</span>
         </div>
       </div>
       <div class="memo-section">
@@ -469,8 +536,10 @@ var GAS_API_URL = '/api/gas';
 
 var accessToken = null;
 var targetMonth = null;
-var prefData = {};    // { "YYYY/MM/DD": { type, timeSlot, reason } }
+var prefData = {};    // { "YYYY/MM/DD": { type, timeSlot, reason, facility } }
 var selectedDate = null;
+var selectedDates = {};  // 複数選択モード用: { "YYYY/MM/DD": true }
+var multiSelectMode = false;
 var selectedType = null;
 var employeeInfo = null;
 var collectionOpen = true;
@@ -481,11 +550,14 @@ var periodLabel = '全日';
 var adminKey = null;
 var adminEmpNo = null;
 
+var facilityList = [];  // APIから取得する施設リスト
+
 var TIME_SLOT_COLORS = {
   '6時～9時': '#4ECDC4',
+  '9時～17時': '#3498DB',
   '17時～22時': '#FF6B6B',
   '22時～': '#845EC2',
-  '指定なし': '#AAA'
+  '17時～翌9時': '#E67E22'
 };
 
 // ===== Initialization =====
@@ -576,6 +648,12 @@ function onDataLoaded(data) {
     document.getElementById('deadline').textContent = '締切: ' + parseInt(parts[1],10) + '/' + parseInt(parts[2],10);
   }
 
+  // 施設リストを保存・レンダリング
+  if (data.facilities) {
+    facilityList = data.facilities;
+  }
+  renderFacilityChips();
+
   // Populate existing preferences
   prefData = {};
   if (data.preferences) {
@@ -583,7 +661,7 @@ function onDataLoaded(data) {
       var dateKey = p.date;
       // If multiple rows per date (different timeSlots), use the first one's type
       if (!prefData[dateKey]) {
-        prefData[dateKey] = { type: p.type, timeSlot: p.timeSlot || '', reason: p.reason || '' };
+        prefData[dateKey] = { type: p.type, timeSlot: p.timeSlot || '', reason: p.reason || '', facility: p.facility || '' };
       } else {
         // Append timeSlot if different
         if (p.timeSlot && prefData[dateKey].timeSlot.indexOf(p.timeSlot) === -1) {
@@ -645,7 +723,8 @@ function renderCalendar() {
       continue;
     }
 
-    if (selectedDate === dateStr) classes += ' selected';
+    if (multiSelectMode && selectedDates[dateStr]) classes += ' multi-selected';
+    else if (!multiSelectMode && selectedDate === dateStr) classes += ' selected';
     if (pref) {
       if (pref.type === '希望') classes += ' want';
       else if (pref.type === 'NG') classes += ' ng';
@@ -687,8 +766,62 @@ function renderCalendar() {
   document.getElementById('calGrid').innerHTML = html;
 }
 
+// ===== Multi-select =====
+function toggleMultiSelect() {
+  multiSelectMode = !multiSelectMode;
+  var btn = document.getElementById('multiToggle');
+  var icon = document.getElementById('multiIcon');
+  if (multiSelectMode) {
+    btn.classList.add('active');
+    icon.innerHTML = '&#9745;';
+    // 単一選択パネルを閉じる
+    selectedDate = null;
+    document.getElementById('inputPanel').classList.remove('show');
+  } else {
+    btn.classList.remove('active');
+    icon.innerHTML = '&#9744;';
+    selectedDates = {};
+    document.getElementById('inputPanel').classList.remove('show');
+  }
+  updateMultiCount();
+  renderCalendar();
+}
+
+function updateMultiCount() {
+  var count = Object.keys(selectedDates).length;
+  var el = document.getElementById('multiCount');
+  if (multiSelectMode && count > 0) {
+    el.textContent = count + '日選択中';
+    el.classList.add('has-selection');
+  } else {
+    el.textContent = '';
+    el.classList.remove('has-selection');
+  }
+}
+
 // ===== Date Click =====
 function onDateClick(dateStr) {
+  if (multiSelectMode) {
+    // 複数選択モード: 日付をトグル
+    if (selectedDates[dateStr]) {
+      delete selectedDates[dateStr];
+    } else {
+      selectedDates[dateStr] = true;
+    }
+    updateMultiCount();
+    renderCalendar();
+
+    // 1つ以上選択されたらパネルを表示
+    var count = Object.keys(selectedDates).length;
+    if (count > 0) {
+      openMultiPanel();
+    } else {
+      document.getElementById('inputPanel').classList.remove('show');
+    }
+    return;
+  }
+
+  // 単一選択モード
   selectedDate = dateStr;
   var pref = prefData[dateStr];
 
@@ -703,6 +836,12 @@ function onDateClick(dateStr) {
   // Reset panel state
   selectedType = pref ? pref.type : null;
   updateTypeButtons();
+
+  // Facilities
+  var currentFacilities = pref && pref.facility ? pref.facility.split(',').map(function(s) { return s.trim(); }) : [];
+  document.querySelectorAll('.fac-chip').forEach(function(chip) {
+    chip.classList.toggle('active', currentFacilities.indexOf(chip.dataset.facility) !== -1);
+  });
 
   // Time slots
   var currentSlots = pref && pref.timeSlot ? pref.timeSlot.split(', ') : [];
@@ -723,8 +862,35 @@ function onDateClick(dateStr) {
   }, 100);
 }
 
+function openMultiPanel() {
+  var dates = Object.keys(selectedDates).sort();
+  // ヘッダーに選択日数を表示
+  var shortDates = dates.map(function(d) {
+    return parseInt(d.split('/')[2], 10) + '日';
+  });
+  var label = shortDates.length <= 5 ? shortDates.join(', ') : shortDates.length + '日分';
+  document.getElementById('panelDate').textContent = label + ' 一括入力';
+
+  // パネルの状態をリセット（複数選択時は空状態から）
+  selectedType = null;
+  updateTypeButtons();
+  document.querySelectorAll('.fac-chip').forEach(function(chip) { chip.classList.remove('active'); });
+  document.querySelectorAll('.ts-chip').forEach(function(chip) { chip.classList.remove('active'); });
+  document.getElementById('memoInput').value = '';
+
+  document.getElementById('inputPanel').classList.add('show');
+
+  setTimeout(function() {
+    document.getElementById('inputPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
+}
+
 function closePanel() {
   selectedDate = null;
+  if (multiSelectMode) {
+    selectedDates = {};
+    updateMultiCount();
+  }
   document.getElementById('inputPanel').classList.remove('show');
   renderCalendar();
 }
@@ -746,18 +912,30 @@ function updateTypeButtons() {
 
 // ===== Time Slot Toggle =====
 function toggleSlot(el) {
-  var slot = el.dataset.slot;
-  if (slot === '指定なし') {
-    // Deselect all others, toggle this one
-    document.querySelectorAll('.ts-chip').forEach(function(chip) {
-      if (chip.dataset.slot !== '指定なし') chip.classList.remove('active');
-    });
-    el.classList.toggle('active');
-  } else {
-    // Deselect "指定なし"
-    document.querySelector('.ts-chip[data-slot="指定なし"]').classList.remove('active');
-    el.classList.toggle('active');
-  }
+  el.classList.toggle('active');
+}
+
+// ===== Facility Toggle =====
+function toggleFacility(el) {
+  el.classList.toggle('active');
+}
+
+function renderFacilityChips() {
+  var grid = document.getElementById('facilityGrid');
+  if (!grid) return;
+  var html = '';
+  facilityList.forEach(function(name) {
+    html += '<span class="fac-chip" data-facility="' + escapeHtml(name) + '" onclick="toggleFacility(this)">' + escapeHtml(name) + '</span>';
+  });
+  grid.innerHTML = html;
+}
+
+function getSelectedFacilities() {
+  var selected = [];
+  document.querySelectorAll('.fac-chip.active').forEach(function(chip) {
+    selected.push(chip.dataset.facility);
+  });
+  return selected;
 }
 
 function getSelectedSlots() {
@@ -770,31 +948,59 @@ function getSelectedSlots() {
 
 // ===== Save / Delete Date =====
 function saveDate() {
-  if (!selectedDate) return;
   if (!selectedType) {
     showToast('種別を選択してください');
     return;
   }
 
   var slots = getSelectedSlots();
+  var facilities = getSelectedFacilities();
   var reason = document.getElementById('memoInput').value.trim();
 
-  prefData[selectedDate] = {
+  var entry = {
     type: selectedType,
     timeSlot: slots.join(', '),
+    facility: facilities.join(','),
     reason: reason
   };
 
-  showToast('保存しました');
+  if (multiSelectMode) {
+    var dates = Object.keys(selectedDates);
+    if (dates.length === 0) return;
+    dates.forEach(function(dateStr) {
+      prefData[dateStr] = {
+        type: entry.type,
+        timeSlot: entry.timeSlot,
+        facility: entry.facility,
+        reason: entry.reason
+      };
+    });
+    showToast(dates.length + '日分を保存しました');
+  } else {
+    if (!selectedDate) return;
+    prefData[selectedDate] = entry;
+    showToast('保存しました');
+  }
+
   closePanel();
   renderCalendar();
   updateSummary();
 }
 
 function deleteDate() {
-  if (!selectedDate) return;
-  delete prefData[selectedDate];
-  showToast('削除しました');
+  if (multiSelectMode) {
+    var dates = Object.keys(selectedDates);
+    if (dates.length === 0) return;
+    dates.forEach(function(dateStr) {
+      delete prefData[dateStr];
+    });
+    showToast(dates.length + '日分を削除しました');
+  } else {
+    if (!selectedDate) return;
+    delete prefData[selectedDate];
+    showToast('削除しました');
+  }
+
   closePanel();
   renderCalendar();
   updateSummary();
@@ -825,16 +1031,14 @@ function submitPreferences() {
   var prefs = [];
   Object.keys(prefData).forEach(function(date) {
     var p = prefData[date];
+    var facility = p.facility || '';
     var slots = p.timeSlot ? p.timeSlot.split(', ').filter(function(s) { return s; }) : [''];
 
     if (slots.length === 0 || (slots.length === 1 && slots[0] === '')) {
-      prefs.push({ date: date, type: p.type, timeSlot: '', reason: p.reason || '' });
-    } else if (slots.length === 1 && slots[0] === '指定なし') {
-      prefs.push({ date: date, type: p.type, timeSlot: '', reason: p.reason || '' });
+      prefs.push({ date: date, type: p.type, timeSlot: '', reason: p.reason || '', facility: facility });
     } else {
       slots.forEach(function(slot) {
-        if (slot === '指定なし') slot = '';
-        prefs.push({ date: date, type: p.type, timeSlot: slot, reason: p.reason || '' });
+        prefs.push({ date: date, type: p.type, timeSlot: slot, reason: p.reason || '', facility: facility });
       });
     }
   });

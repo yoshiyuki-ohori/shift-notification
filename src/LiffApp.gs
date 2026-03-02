@@ -447,6 +447,8 @@ function handlePrefDataApi_(params) {
       endDay: periodLabel === '前半' ? 15 : daysInMonth
     };
 
+    var facilities = getFacilityList_();
+
     var result = {
       employee: {
         name: employee.name,
@@ -458,7 +460,8 @@ function handlePrefDataApi_(params) {
       collectionOpen: collectionOpen,
       submittedAt: submittedAt,
       periodLabel: periodLabel,
-      dateRange: dateRange
+      dateRange: dateRange,
+      facilities: facilities
     };
 
     return ContentService.createTextOutput(JSON.stringify(result))
@@ -520,7 +523,8 @@ function handleSavePrefBatch_(body) {
         date: p.date,
         type: p.type,
         timeSlot: p.timeSlot || '',
-        reason: p.reason || ''
+        reason: p.reason || '',
+        facility: p.facility || ''
       };
     });
 
@@ -752,6 +756,21 @@ function serveLiffPage() {
   return HtmlService.createHtmlOutputFromFile('LiffView')
     .setTitle('マイシフト')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * FACILITY_MAPからユニークな正式施設名リストを取得
+ * @return {Array<string>} ソート済み施設名リスト
+ * @private
+ */
+function getFacilityList_() {
+  var nameSet = {};
+  var keys = Object.keys(FACILITY_MAP);
+  for (var i = 0; i < keys.length; i++) {
+    var name = FACILITY_MAP[keys[i]].name;
+    nameSet[name] = true;
+  }
+  return Object.keys(nameSet).sort();
 }
 
 /**

@@ -69,7 +69,8 @@ const PREF_COLS = {
   TYPE: 5,          // E: 希望/NG/どちらでも
   TIME_SLOT: 6,     // F: 希望時間帯
   REASON: 7,        // G: 理由
-  SUBMITTED_AT: 8   // H: 提出日時
+  SUBMITTED_AT: 8,  // H: 提出日時
+  FACILITY: 9       // I: 希望施設（カンマ区切り）
 };
 
 // ===== 必要配置列定数 =====
@@ -166,7 +167,8 @@ const TIME_SLOT_HOURS = {
   '6時～9時':   { start: 6, end: 9, hours: 3 },
   '9時～17時':  { start: 9, end: 17, hours: 8 },
   '17時～22時': { start: 17, end: 22, hours: 5 },
-  '22時～':     { start: 22, end: 30, hours: 8 }  // 翌06:00 = 30時
+  '22時～':     { start: 22, end: 30, hours: 8 },  // 翌06:00 = 30時
+  '17時～翌9時': { start: 17, end: 33, hours: 16 }  // 夜勤通し
 };
 
 // ===== 労基チェック結果列定数 =====
@@ -277,7 +279,15 @@ function getSettingValue(key) {
   const data = sheet.getDataRange().getValues();
   for (let i = 0; i < data.length; i++) {
     if (data[i][0] === key) {
-      return String(data[i][1]).trim();
+      var val = data[i][1];
+      // Date型はYYYY-MM-DD形式に変換（Sheetsが自動変換するため）
+      if (val instanceof Date) {
+        var y = val.getFullYear();
+        var m = ('0' + (val.getMonth() + 1)).slice(-2);
+        var d = ('0' + val.getDate()).slice(-2);
+        return y + '-' + m + '-' + d;
+      }
+      return String(val).trim();
     }
   }
   throw new Error('設定キーが見つかりません: ' + key);

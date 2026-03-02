@@ -530,14 +530,19 @@ function showPreferenceSheet() {
 }
 
 /**
- * 希望入力開始通知を全職員に送信
+ * 希望入力開始通知を送信
  * @param {string} targetMonth - 対象年月
  * @param {string} deadline - 締切日
  * @param {string} [periodLabel] - 期間区分 ('全日' | '前半' | '後半')
+ * @param {string} [targetEmpNo] - 指定時はこの社員番号のみに送信（テスト用）
  * @return {Object} { sent, failed, noLine, details }
  */
-function sendPreferenceStartNotification_(targetMonth, deadline, periodLabel) {
+function sendPreferenceStartNotification_(targetMonth, deadline, periodLabel, targetEmpNo) {
   var employees = loadEmployeeMaster();
+  if (targetEmpNo) {
+    targetEmpNo = targetEmpNo.padStart(3, '0');
+    employees = employees.filter(function(emp) { return emp.employeeNo === targetEmpNo; });
+  }
   var parts = targetMonth.split('-');
   var displayMonth = parts[0] + '年' + parseInt(parts[1], 10) + '月';
   var periodDisplay = (periodLabel && periodLabel !== '全日') ? ' ' + periodLabel : '';

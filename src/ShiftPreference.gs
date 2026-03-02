@@ -13,6 +13,7 @@
  * @param {string} pref.type - 希望/NG/どちらでも
  * @param {string} [pref.timeSlot] - 時間帯
  * @param {string} [pref.reason] - 理由
+ * @param {string} [pref.facility] - 希望施設（カンマ区切り）
  * @return {boolean} 成功/失敗
  */
 function savePreference(pref) {
@@ -22,8 +23,8 @@ function savePreference(pref) {
 
     if (!sheet) {
       sheet = ss.insertSheet(SHEET_NAMES.SHIFT_PREFERENCE);
-      sheet.getRange(1, 1, 1, 8).setValues([[
-        '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時'
+      sheet.getRange(1, 1, 1, 9).setValues([[
+        '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時', '希望施設'
       ]]);
       sheet.setFrozenRows(1);
     }
@@ -32,7 +33,7 @@ function savePreference(pref) {
     deletePrefIfExists_(sheet, pref.yearMonth, pref.employeeNo, pref.date, pref.type);
 
     const lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow + 1, 1, 1, 8).setValues([[
+    sheet.getRange(lastRow + 1, 1, 1, 9).setValues([[
       pref.yearMonth,
       pref.employeeNo,
       pref.name,
@@ -40,7 +41,8 @@ function savePreference(pref) {
       pref.type,
       pref.timeSlot || '',
       pref.reason || '',
-      new Date()
+      new Date(),
+      pref.facility || ''
     ]]);
 
     return true;
@@ -64,8 +66,8 @@ function savePreferences(prefs) {
 
     if (!sheet) {
       sheet = ss.insertSheet(SHEET_NAMES.SHIFT_PREFERENCE);
-      sheet.getRange(1, 1, 1, 8).setValues([[
-        '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時'
+      sheet.getRange(1, 1, 1, 9).setValues([[
+        '対象年月', '社員No', '氏名', '日付', '種別', '時間帯', '理由', '提出日時', '希望施設'
       ]]);
       sheet.setFrozenRows(1);
     }
@@ -83,12 +85,13 @@ function savePreferences(prefs) {
         p.type,
         p.timeSlot || '',
         p.reason || '',
-        now
+        now,
+        p.facility || ''
       ];
     });
 
     const lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow + 1, 1, rows.length, 8).setValues(rows);
+    sheet.getRange(lastRow + 1, 1, rows.length, 9).setValues(rows);
 
     return rows.length;
   } catch (e) {
@@ -118,7 +121,8 @@ function getPreferencesForEmployee(yearMonth, employeeNo) {
         date: formatDateValue_(data[i][PREF_COLS.DATE - 1]),
         type: String(data[i][PREF_COLS.TYPE - 1]).trim(),
         timeSlot: String(data[i][PREF_COLS.TIME_SLOT - 1] || '').trim(),
-        reason: String(data[i][PREF_COLS.REASON - 1] || '').trim()
+        reason: String(data[i][PREF_COLS.REASON - 1] || '').trim(),
+        facility: String(data[i][PREF_COLS.FACILITY - 1] || '').trim()
       });
     }
   }

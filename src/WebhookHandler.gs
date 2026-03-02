@@ -277,6 +277,16 @@ function handleRunFunction_(params) {
       var d = new Date(timeStr);
       scheduleBroadcast_(d);
       return 'Scheduled at ' + d.toString();
+    },
+    'sendPrefTestToOne': function(argJson) {
+      var args = JSON.parse(argJson);
+      var period = getCollectionPeriod();
+      var targetMonth = args.month || (period ? period.targetMonth : '');
+      var deadline = args.deadline || (period ? period.endDate : '');
+      var periodLabel = args.periodLabel || (period ? (period.periodLabel || '全日') : '全日');
+      var empNo = args.empNo || '001';
+      if (!targetMonth) return { error: '対象年月が不明です' };
+      return sendPreferenceStartNotification_(targetMonth, String(deadline), periodLabel, empNo);
     }
   };
 
