@@ -759,18 +759,12 @@ function serveLiffPage() {
 }
 
 /**
- * FACILITY_MAPからユニークな正式施設名リストを取得
- * @return {Array<string>} ソート済み施設名リスト
+ * エリア別施設リストを取得（PREF_FACILITY_LIST をそのまま返す）
+ * @return {Object} { "練馬区": ["施設A", ...], "世田谷区": [...], ... }
  * @private
  */
 function getFacilityList_() {
-  var nameSet = {};
-  var keys = Object.keys(FACILITY_MAP);
-  for (var i = 0; i < keys.length; i++) {
-    var name = FACILITY_MAP[keys[i]].name;
-    nameSet[name] = true;
-  }
-  return Object.keys(nameSet).sort();
+  return PREF_FACILITY_LIST;
 }
 
 /**

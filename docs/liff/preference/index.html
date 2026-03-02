@@ -235,9 +235,25 @@ body {
 .ts-chip:active { transform: scale(0.97); }
 .ts-chip.active { background: #2980B9; color: #FFF; border-color: #2980B9; }
 
-/* Facility checkboxes */
+/* Facility area tabs + chips */
 .facility-section { margin-bottom: 12px; }
 .facility-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+.area-tabs { display: flex; gap: 4px; margin-bottom: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.area-tab {
+  padding: 5px 10px;
+  border: 1.5px solid #DDD;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #FFF;
+  color: #666;
+  white-space: nowrap;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.area-tab:active { transform: scale(0.97); }
+.area-tab.active { background: #8E44AD; color: #FFF; border-color: #8E44AD; }
 .facility-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .fac-chip {
   padding: 6px 12px;
@@ -252,6 +268,7 @@ body {
 }
 .fac-chip:active { transform: scale(0.97); }
 .fac-chip.active { background: #8E44AD; color: #FFF; border-color: #8E44AD; }
+.fac-selected-summary { font-size: 11px; color: #8E44AD; margin-top: 4px; }
 
 /* Memo */
 .memo-section { margin-bottom: 8px; }
@@ -478,7 +495,9 @@ body {
       </div>
       <div class="facility-section">
         <div class="facility-label">希望施設（任意・複数可）</div>
+        <div class="area-tabs" id="areaTabs"></div>
         <div class="facility-grid" id="facilityGrid"></div>
+        <div class="fac-selected-summary" id="facSelectedSummary"></div>
       </div>
       <div class="timeslot-section">
         <div class="timeslot-label">時間帯（任意）</div>
@@ -550,7 +569,8 @@ var periodLabel = '全日';
 var adminKey = null;
 var adminEmpNo = null;
 
-var facilityList = [];  // APIから取得する施設リスト
+var facilityByArea = {};  // APIから取得するエリア別施設: { "練馬区": [...], ... }
+var currentArea = null;   // 現在表示中のエリア
 
 var TIME_SLOT_COLORS = {
   '6時～9時': '#4ECDC4',
@@ -650,9 +670,9 @@ function onDataLoaded(data) {
 
   // 施設リストを保存・レンダリング
   if (data.facilities) {
-    facilityList = data.facilities;
+    facilityByArea = data.facilities;
   }
-  renderFacilityChips();
+  renderAreaTabs();
 
   // Populate existing preferences
   prefData = {};
@@ -839,9 +859,7 @@ function onDateClick(dateStr) {
 
   // Facilities
   var currentFacilities = pref && pref.facility ? pref.facility.split(',').map(function(s) { return s.trim(); }) : [];
-  document.querySelectorAll('.fac-chip').forEach(function(chip) {
-    chip.classList.toggle('active', currentFacilities.indexOf(chip.dataset.facility) !== -1);
-  });
+  setSelectedFacilities(currentFacilities);
 
   // Time slots
   var currentSlots = pref && pref.timeSlot ? pref.timeSlot.split(', ') : [];
@@ -874,7 +892,7 @@ function openMultiPanel() {
   // パネルの状態をリセット（複数選択時は空状態から）
   selectedType = null;
   updateTypeButtons();
-  document.querySelectorAll('.fac-chip').forEach(function(chip) { chip.classList.remove('active'); });
+  setSelectedFacilities([]);
   document.querySelectorAll('.ts-chip').forEach(function(chip) { chip.classList.remove('active'); });
   document.getElementById('memoInput').value = '';
 
@@ -915,27 +933,82 @@ function toggleSlot(el) {
   el.classList.toggle('active');
 }
 
-// ===== Facility Toggle =====
-function toggleFacility(el) {
-  el.classList.toggle('active');
+// ===== Facility Area Tabs + Chips =====
+function renderAreaTabs() {
+  var tabs = document.getElementById('areaTabs');
+  if (!tabs) return;
+  var areas = Object.keys(facilityByArea);
+  if (areas.length === 0) {
+    tabs.innerHTML = '';
+    document.getElementById('facilityGrid').innerHTML = '';
+    return;
+  }
+  var html = '';
+  areas.forEach(function(area) {
+    var cls = (area === currentArea) ? 'area-tab active' : 'area-tab';
+    html += '<span class="' + cls + '" onclick="selectArea(\'' + escapeHtml(area) + '\')">' + escapeHtml(area) + '</span>';
+  });
+  tabs.innerHTML = html;
+  renderFacilityChips();
+}
+
+function selectArea(area) {
+  currentArea = (currentArea === area) ? null : area;
+  renderAreaTabs();
 }
 
 function renderFacilityChips() {
   var grid = document.getElementById('facilityGrid');
   if (!grid) return;
+  if (!currentArea || !facilityByArea[currentArea]) {
+    grid.innerHTML = '';
+    return;
+  }
   var html = '';
-  facilityList.forEach(function(name) {
-    html += '<span class="fac-chip" data-facility="' + escapeHtml(name) + '" onclick="toggleFacility(this)">' + escapeHtml(name) + '</span>';
+  facilityByArea[currentArea].forEach(function(name) {
+    var isActive = isChipSelected_(name) ? ' active' : '';
+    html += '<span class="fac-chip' + isActive + '" data-facility="' + escapeHtml(name) + '" onclick="toggleFacility(this)">' + escapeHtml(name) + '</span>';
   });
   grid.innerHTML = html;
 }
 
+function isChipSelected_(name) {
+  // 全エリアのチップ選択状態を保持するために hidden な状態を管理
+  return !!_selectedFacilities[name];
+}
+var _selectedFacilities = {};  // { "施設名": true }
+
+function toggleFacility(el) {
+  var name = el.dataset.facility;
+  if (_selectedFacilities[name]) {
+    delete _selectedFacilities[name];
+    el.classList.remove('active');
+  } else {
+    _selectedFacilities[name] = true;
+    el.classList.add('active');
+  }
+  updateFacSelectedSummary();
+}
+
+function updateFacSelectedSummary() {
+  var names = Object.keys(_selectedFacilities);
+  var el = document.getElementById('facSelectedSummary');
+  if (names.length === 0) {
+    el.textContent = '';
+  } else {
+    el.textContent = names.join(', ');
+  }
+}
+
 function getSelectedFacilities() {
-  var selected = [];
-  document.querySelectorAll('.fac-chip.active').forEach(function(chip) {
-    selected.push(chip.dataset.facility);
-  });
-  return selected;
+  return Object.keys(_selectedFacilities);
+}
+
+function setSelectedFacilities(names) {
+  _selectedFacilities = {};
+  names.forEach(function(n) { if (n) _selectedFacilities[n] = true; });
+  renderFacilityChips();
+  updateFacSelectedSummary();
 }
 
 function getSelectedSlots() {
