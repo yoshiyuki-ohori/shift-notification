@@ -477,6 +477,10 @@ var collectionOpen = true;
 var dateRange = { startDay: 1, endDay: 31 };
 var periodLabel = '全日';
 
+// 管理者キー認証用
+var adminKey = null;
+var adminEmpNo = null;
+
 var TIME_SLOT_COLORS = {
   '6時～9時': '#4ECDC4',
   '17時～22時': '#FF6B6B',
@@ -486,7 +490,17 @@ var TIME_SLOT_COLORS = {
 
 // ===== Initialization =====
 window.onload = function() {
-  initLiff();
+  var params = new URLSearchParams(window.location.search);
+  adminKey = params.get('key') || null;
+  adminEmpNo = params.get('empNo') || null;
+  targetMonth = params.get('month') || null;
+
+  if (adminKey && adminEmpNo) {
+    // 管理者キー認証モード: LIFF不要
+    loadPrefData();
+  } else {
+    initLiff();
+  }
 };
 
 function initLiff() {
@@ -501,9 +515,6 @@ function initLiff() {
         showError('アクセストークンを取得できませんでした。\nLINEアプリから再度開いてください。');
         return;
       }
-      // URL param: month
-      var params = new URLSearchParams(window.location.search);
-      targetMonth = params.get('month') || null;
       loadPrefData();
     })
     .catch(function(err) {
@@ -513,7 +524,12 @@ function initLiff() {
 
 // ===== Data Loading =====
 function loadPrefData() {
-  var url = GAS_API_URL + '?action=prefData&token=' + encodeURIComponent(accessToken);
+  var url;
+  if (adminKey && adminEmpNo) {
+    url = GAS_API_URL + '?action=prefData&key=' + encodeURIComponent(adminKey) + '&empNo=' + encodeURIComponent(adminEmpNo);
+  } else {
+    url = GAS_API_URL + '?action=prefData&token=' + encodeURIComponent(accessToken);
+  }
   if (targetMonth) url += '&month=' + encodeURIComponent(targetMonth);
 
   fetch(url)
@@ -825,10 +841,15 @@ function submitPreferences() {
 
   var payload = {
     action: 'savePrefBatch',
-    token: accessToken,
     month: targetMonth,
     preferences: prefs
   };
+  if (adminKey && adminEmpNo) {
+    payload.key = adminKey;
+    payload.empNo = adminEmpNo;
+  } else {
+    payload.token = accessToken;
+  }
 
   fetch(GAS_API_URL, {
     method: 'POST',
@@ -856,12 +877,14 @@ function submitPreferences() {
         info.style.display = 'block';
       }
 
-      // Optional: close LIFF after delay
-      setTimeout(function() {
-        if (liff.isInClient()) {
-          liff.closeWindow();
-        }
-      }, 2000);
+      // Optional: close LIFF after delay (not in admin mode)
+      if (!adminKey) {
+        setTimeout(function() {
+          if (liff.isInClient()) {
+            liff.closeWindow();
+          }
+        }, 2000);
+      }
     })
     .catch(function(err) {
       btn.disabled = false;
