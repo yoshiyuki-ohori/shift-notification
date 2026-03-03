@@ -889,7 +889,12 @@ function openMultiPanel() {
   var label = shortDates.length <= 5 ? shortDates.join(', ') : shortDates.length + '日分';
   document.getElementById('panelDate').textContent = label + ' 一括入力';
 
-  // パネルの状態をリセット（複数選択時は空状態から）
+  // パネルが既に開いている場合はヘッダーだけ更新（入力状態を保持）
+  if (document.getElementById('inputPanel').classList.contains('show')) {
+    return;
+  }
+
+  // 初回表示時のみリセット
   selectedType = null;
   updateTypeButtons();
   setSelectedFacilities([]);
