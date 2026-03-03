@@ -1353,6 +1353,46 @@ function updateSummary() {
 
 // ===== Submit =====
 function submitPreferences() {
+  // パネルが開いていれば自動保存
+  if (document.getElementById('inputPanel').classList.contains('show')) {
+    var slots = getSelectedSlots();
+    if (slots.length === 0) {
+      showToast('時間帯を選択してからパネルを保存してください');
+      return;
+    }
+    var otherChip = document.querySelector('.ts-chip[data-slot="その他"]');
+    if (otherChip && otherChip.classList.contains('active')) {
+      var customVal = getCustomSlotValue();
+      if (!customVal) {
+        showToast('その他の時間帯を入力してください');
+        return;
+      }
+    }
+    var facilities = getSelectedFacilities();
+    var reason = document.getElementById('memoInput').value.trim();
+    var entry = {
+      type: '出勤可能',
+      timeSlot: slots.join(', '),
+      facility: facilities.join(','),
+      reason: reason
+    };
+    if (multiSelectMode) {
+      Object.keys(selectedDates).forEach(function(dateStr) {
+        prefData[dateStr] = { type: entry.type, timeSlot: entry.timeSlot, facility: entry.facility, reason: entry.reason };
+      });
+    } else if (selectedDate) {
+      prefData[selectedDate] = entry;
+    }
+    closePanel();
+    renderCalendar();
+    updateSummary();
+  }
+
+  if (Object.keys(prefData).length === 0) {
+    showToast('出勤可能日が入力されていません');
+    return;
+  }
+
   var btn = document.getElementById('submitBtn');
   btn.disabled = true;
   btn.textContent = '送信中...';
