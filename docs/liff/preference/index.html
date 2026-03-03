@@ -1372,14 +1372,10 @@ function submitPreferences() {
         info.style.display = 'block';
       }
 
-      // Optional: close LIFF after delay (not in admin mode)
-      if (!adminKey) {
-        setTimeout(function() {
-          if (liff.isInClient()) {
-            liff.closeWindow();
-          }
-        }, 2000);
-      }
+      // 提出後も画面を維持し、提出済み一覧を更新・展開
+      renderSubmittedList();
+      document.getElementById('slBody').classList.add('open');
+      document.getElementById('slToggle').classList.add('open');
     })
     .catch(function(err) {
       btn.disabled = false;
