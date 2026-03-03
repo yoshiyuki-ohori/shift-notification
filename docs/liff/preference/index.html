@@ -855,6 +855,11 @@ function onDataLoaded(data) {
     document.getElementById('slToggle').classList.add('open');
   }
 
+  // 提出済みならボタン文言を変更
+  if (data.submittedAt) {
+    document.getElementById('submitBtn').textContent = '提出を修正する';
+  }
+
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('submitArea').style.display = 'block';
@@ -1389,13 +1394,14 @@ function submitPreferences() {
     .then(function(res) { return res.json(); })
     .then(function(data) {
       btn.disabled = false;
-      btn.textContent = '出勤可能日を提出する';
 
       if (data.error) {
+        btn.textContent = '提出を修正する';
         showToast('エラー: ' + data.error);
         return;
       }
 
+      btn.textContent = '提出を修正する';
       showToast('提出しました！');
 
       // Update submitted info
@@ -1417,7 +1423,7 @@ function submitPreferences() {
     })
     .catch(function(err) {
       btn.disabled = false;
-      btn.textContent = '出勤可能日を提出する';
+      btn.textContent = '提出を修正する';
       showToast('送信に失敗しました');
     });
 }
