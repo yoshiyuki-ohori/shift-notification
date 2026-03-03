@@ -405,6 +405,96 @@ body {
   display: none;
 }
 
+/* ===== Submitted list (collapsible) ===== */
+.submitted-list {
+  margin: 8px 16px;
+  background: #FFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: none;
+}
+.submitted-list.show { display: block; }
+.sl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background: #F0F4F8;
+  border-bottom: 1px solid #E8ECF0;
+}
+.sl-header:active { background: #E4E9EE; }
+.sl-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2C3E50;
+}
+.sl-badge {
+  background: #2980B9;
+  color: #FFF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+.sl-toggle {
+  font-size: 12px;
+  color: #888;
+  transition: transform 0.2s;
+}
+.sl-toggle.open { transform: rotate(180deg); }
+.sl-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.sl-body.open { max-height: 2000px; }
+.sl-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #F0F0F0;
+  font-size: 12px;
+}
+.sl-item:last-child { border-bottom: none; }
+.sl-date {
+  font-weight: 700;
+  color: #333;
+  min-width: 52px;
+  white-space: nowrap;
+}
+.sl-date.sunday { color: #E74C3C; }
+.sl-date.saturday { color: #2980B9; }
+.sl-type-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #FFF;
+  white-space: nowrap;
+}
+.sl-type-badge.want { background: #27AE60; }
+.sl-type-badge.ng { background: #E74C3C; }
+.sl-type-badge.either { background: #F39C12; }
+.sl-detail {
+  flex: 1;
+  color: #555;
+  line-height: 1.5;
+}
+.sl-detail-slot { color: #2980B9; font-weight: 600; }
+.sl-detail-fac { color: #8E44AD; font-size: 11px; }
+.sl-detail-memo { color: #999; font-size: 11px; font-style: italic; }
+.sl-empty {
+  padding: 16px;
+  text-align: center;
+  color: #BBB;
+  font-size: 13px;
+}
+
 /* ===== Multi-select toolbar ===== */
 .multi-toolbar {
   display: flex;
@@ -487,6 +577,18 @@ body {
 
   <!-- Submitted info -->
   <div class="submitted-info" id="submittedInfo"></div>
+
+  <!-- Submitted preferences list -->
+  <div class="submitted-list" id="submittedList">
+    <div class="sl-header" onclick="toggleSubmittedList()">
+      <div>
+        <span class="sl-title">提出済みシフト希望</span>
+        <span class="sl-badge" id="slCount">0</span>
+      </div>
+      <span class="sl-toggle" id="slToggle">&#9660;</span>
+    </div>
+    <div class="sl-body" id="slBody"></div>
+  </div>
 
   <!-- Multi-select toolbar -->
   <div class="multi-toolbar">
@@ -742,6 +844,13 @@ function onDataLoaded(data) {
 
   renderCalendar();
   updateSummary();
+  renderSubmittedList();
+
+  // 提出済みデータがあれば一覧を自動展開
+  if (Object.keys(prefData).length > 0) {
+    document.getElementById('slBody').classList.add('open');
+    document.getElementById('slToggle').classList.add('open');
+  }
 
   document.getElementById('loadingView').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
@@ -1237,6 +1346,9 @@ function updateSummary() {
   document.getElementById('sumWant').textContent = want;
   document.getElementById('sumNg').textContent = ng;
   document.getElementById('sumEither').textContent = either;
+
+  // 提出済み一覧も更新
+  renderSubmittedList();
 }
 
 // ===== Submit =====
@@ -1314,6 +1426,67 @@ function submitPreferences() {
       btn.textContent = 'この内容で提出する';
       showToast('送信に失敗しました');
     });
+}
+
+// ===== Submitted List =====
+function renderSubmittedList() {
+  var container = document.getElementById('submittedList');
+  var body = document.getElementById('slBody');
+  var countBadge = document.getElementById('slCount');
+  var dates = Object.keys(prefData).sort();
+
+  if (dates.length === 0) {
+    container.classList.remove('show');
+    return;
+  }
+
+  container.classList.add('show');
+  countBadge.textContent = dates.length + '件';
+
+  var dows = ['日','月','火','水','木','金','土'];
+  var html = '';
+  dates.forEach(function(dateStr) {
+    var p = prefData[dateStr];
+    var parts = dateStr.split('/');
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    var dow = d.getDay();
+    var dowClass = dow === 0 ? ' sunday' : (dow === 6 ? ' saturday' : '');
+
+    var typeClass = p.type === '希望' ? 'want' : (p.type === 'NG' ? 'ng' : 'either');
+    var typeLabel = p.type === '希望' ? '希望' : (p.type === 'NG' ? 'NG' : 'どちらでも');
+
+    html += '<div class="sl-item" onclick="onSubmittedItemClick(\'' + dateStr + '\')">';
+    html += '<span class="sl-date' + dowClass + '">' + parseInt(parts[1],10) + '/' + parseInt(parts[2],10) + '(' + dows[dow] + ')</span>';
+    html += '<span class="sl-type-badge ' + typeClass + '">' + typeLabel + '</span>';
+    html += '<div class="sl-detail">';
+    if (p.timeSlot) {
+      html += '<div class="sl-detail-slot">' + escapeHtml(p.timeSlot) + '</div>';
+    }
+    if (p.facility) {
+      html += '<div class="sl-detail-fac">' + escapeHtml(p.facility) + '</div>';
+    }
+    if (p.reason) {
+      html += '<div class="sl-detail-memo">' + escapeHtml(p.reason) + '</div>';
+    }
+    html += '</div></div>';
+  });
+
+  body.innerHTML = html;
+}
+
+function onSubmittedItemClick(dateStr) {
+  // 複数選択モードなら解除してから単一日付を開く
+  if (multiSelectMode) {
+    toggleMultiSelect();
+  }
+  onDateClick(dateStr);
+}
+
+function toggleSubmittedList() {
+  var body = document.getElementById('slBody');
+  var toggle = document.getElementById('slToggle');
+  body.classList.toggle('open');
+  toggle.classList.toggle('open');
 }
 
 // ===== Utilities =====
