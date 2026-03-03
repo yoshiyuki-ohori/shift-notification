@@ -763,8 +763,43 @@ function onDataLoaded(data) {
     dateRange = data.dateRange;
   }
 
-  // 受付期間外チェック
+  // 受付期間外チェック（提出済みデータがあれば閲覧モードで表示）
   if (!collectionOpen) {
+    prefData = {};
+    if (data.preferences) {
+      data.preferences.forEach(function(p) {
+        var dateKey = p.date;
+        if (!prefData[dateKey]) {
+          prefData[dateKey] = { type: '出勤可能', timeSlot: p.timeSlot || '', reason: p.reason || '', facility: p.facility || '' };
+        } else {
+          if (p.timeSlot && prefData[dateKey].timeSlot.indexOf(p.timeSlot) === -1) {
+            prefData[dateKey].timeSlot += (prefData[dateKey].timeSlot ? ', ' : '') + p.timeSlot;
+          }
+        }
+      });
+    }
+    if (Object.keys(prefData).length > 0) {
+      // 閲覧モード: 提出済みデータを表示
+      document.getElementById('loadingView').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      document.getElementById('submitArea').style.display = 'none';
+      document.getElementById('empName').textContent = data.employee.name + ' さん | ' + formatMonth(targetMonth) + '（受付終了）';
+      if (data.facilities) { facilityByArea = data.facilities; }
+      renderAreaTabs();
+      renderCalendar();
+      updateSummary();
+      renderSubmittedList();
+      document.getElementById('slBody').classList.add('open');
+      document.getElementById('slToggle').classList.add('open');
+      if (data.submittedAt) {
+        var d = new Date(data.submittedAt);
+        var info = document.getElementById('submittedInfo');
+        info.textContent = '最終提出: ' + d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + ' ' +
+          ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+        info.style.display = 'block';
+      }
+      return;
+    }
     document.getElementById('loadingView').style.display = 'none';
     document.getElementById('closedView').style.display = 'block';
     document.getElementById('submitArea').style.display = 'none';
@@ -1372,10 +1407,13 @@ function submitPreferences() {
         info.style.display = 'block';
       }
 
-      // 提出後も画面を維持し、提出済み一覧を更新・展開
+      // 提出後も画面を維持し、提出済み一覧を更新・展開・スクロール
       renderSubmittedList();
       document.getElementById('slBody').classList.add('open');
       document.getElementById('slToggle').classList.add('open');
+      setTimeout(function() {
+        document.getElementById('submittedList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
     })
     .catch(function(err) {
       btn.disabled = false;
