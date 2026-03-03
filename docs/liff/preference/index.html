@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>シフト希望入力</title>
+<title>出勤可能日入力</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -114,9 +114,7 @@ body {
 .cal-cell.disabled { background: #F0F0F0; cursor: default; opacity: 0.4; }
 .cal-cell.disabled:active { background: #F0F0F0; }
 .cal-cell.selected { background: #E3F2FD; border: 2px solid #2980B9; }
-.cal-cell.want { background: #D5F5E3; }
-.cal-cell.ng { background: #FADBD8; }
-.cal-cell.either { background: #FDEBD0; }
+.cal-cell.entered { background: #D5F5E3; }
 .cal-day {
   font-size: 11px;
   font-weight: 600;
@@ -161,8 +159,6 @@ body {
   vertical-align: middle;
 }
 .legend .l-want::before { background: #D5F5E3; border: 1px solid #27AE60; }
-.legend .l-ng::before { background: #FADBD8; border: 1px solid #E74C3C; }
-.legend .l-either::before { background: #FDEBD0; border: 1px solid #F39C12; }
 
 /* ===== Input Panel ===== */
 .input-panel {
@@ -193,29 +189,6 @@ body {
   padding: 0 4px;
 }
 .panel-body { padding: 12px 16px; }
-
-/* Type buttons */
-.type-buttons { display: flex; gap: 8px; margin-bottom: 12px; }
-.type-btn {
-  flex: 1;
-  padding: 10px 4px;
-  border: 2px solid #DDD;
-  border-radius: 8px;
-  background: #FFF;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.type-btn:active { transform: scale(0.97); }
-.type-btn.want { border-color: #27AE60; color: #27AE60; }
-.type-btn.want.active { background: #27AE60; color: #FFF; }
-.type-btn.ng { border-color: #E74C3C; color: #E74C3C; }
-.type-btn.ng.active { background: #E74C3C; color: #FFF; }
-.type-btn.either { border-color: #F39C12; color: #F39C12; }
-.type-btn.either.active { background: #F39C12; color: #FFF; }
 
 /* Time slot checkboxes */
 .timeslot-section { margin-bottom: 12px; }
@@ -298,6 +271,22 @@ body {
 }
 .fac-chip:active { transform: scale(0.97); }
 .fac-chip.active { background: #8E44AD; color: #FFF; border-color: #8E44AD; }
+.fac-any {
+  padding: 8px 16px;
+  border: 2px solid #27AE60;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #FFF;
+  color: #27AE60;
+  text-align: center;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fac-any:active { transform: scale(0.97); }
+.fac-any.active { background: #27AE60; color: #FFF; }
 .fac-selected-summary { font-size: 11px; color: #8E44AD; margin-top: 4px; }
 
 /* Memo */
@@ -341,9 +330,7 @@ body {
 }
 .summary-item { text-align: center; }
 .summary-value { font-size: 20px; font-weight: 700; }
-.summary-value.want { color: #27AE60; }
-.summary-value.ng { color: #E74C3C; }
-.summary-value.either { color: #F39C12; }
+.summary-value.total { color: #27AE60; }
 .summary-label { font-size: 10px; color: #888; margin-top: 2px; }
 
 /* ===== Submit Button ===== */
@@ -477,9 +464,7 @@ body {
   color: #FFF;
   white-space: nowrap;
 }
-.sl-type-badge.want { background: #27AE60; }
-.sl-type-badge.ng { background: #E74C3C; }
-.sl-type-badge.either { background: #F39C12; }
+.sl-type-badge.entered { background: #27AE60; }
 .sl-detail {
   flex: 1;
   color: #555;
@@ -527,9 +512,7 @@ body {
 }
 .multi-count.has-selection { color: #2980B9; font-weight: 600; }
 .cal-cell.multi-selected { background: #D6EAF8; border: 2px solid #2980B9; }
-.cal-cell.multi-selected.want { background: #B2DFDB; }
-.cal-cell.multi-selected.ng { background: #F5B7B1; }
-.cal-cell.multi-selected.either { background: #FAD7A0; }
+.cal-cell.multi-selected.entered { background: #B2DFDB; }
 
 .footer { text-align: center; padding: 16px; color: #CCC; font-size: 11px; }
 </style>
@@ -539,7 +522,7 @@ body {
 <!-- Header -->
 <div class="header" id="header">
   <div style="display:flex;justify-content:space-between;align-items:center;">
-    <h1>シフト希望入力</h1>
+    <h1>出勤可能日入力</h1>
     <a href="../" style="color:rgba(255,255,255,0.8);font-size:12px;text-decoration:none;">← マイシフト</a>
   </div>
   <div class="header-info">
@@ -582,7 +565,7 @@ body {
   <div class="submitted-list" id="submittedList">
     <div class="sl-header" onclick="toggleSubmittedList()">
       <div>
-        <span class="sl-title">提出済みシフト希望</span>
+        <span class="sl-title">提出済み出勤可能日</span>
         <span class="sl-badge" id="slCount">0</span>
       </div>
       <span class="sl-toggle" id="slToggle">&#9660;</span>
@@ -608,9 +591,7 @@ body {
 
   <!-- Legend -->
   <div class="legend">
-    <span class="l-want">希望</span>
-    <span class="l-ng">NG</span>
-    <span class="l-either">どちらでも</span>
+    <span class="l-want">出勤可能</span>
   </div>
 
   <!-- Input Panel -->
@@ -620,13 +601,9 @@ body {
       <button class="panel-close" onclick="closePanel()">&times;</button>
     </div>
     <div class="panel-body">
-      <div class="type-buttons">
-        <button class="type-btn want" onclick="selectType('希望')">出勤希望</button>
-        <button class="type-btn ng" onclick="selectType('NG')">NG</button>
-        <button class="type-btn either" onclick="selectType('どちらでも')">どちらでも</button>
-      </div>
       <div class="facility-section">
         <div class="facility-label">希望施設（任意・複数可）</div>
+        <div class="fac-any" id="facAnyBtn" onclick="toggleFacilityAny()">どの施設でも可</div>
         <div class="area-tabs" id="areaTabs"></div>
         <div class="facility-grid" id="facilityGrid"></div>
         <div class="fac-selected-summary" id="facSelectedSummary"></div>
@@ -665,16 +642,8 @@ body {
   <!-- Summary Bar -->
   <div class="summary-bar" id="summaryBar">
     <div class="summary-item">
-      <div class="summary-value want" id="sumWant">0</div>
-      <div class="summary-label">希望</div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-value ng" id="sumNg">0</div>
-      <div class="summary-label">NG</div>
-    </div>
-    <div class="summary-item">
-      <div class="summary-value either" id="sumEither">0</div>
-      <div class="summary-label">どちらでも</div>
+      <div class="summary-value total" id="sumTotal">0</div>
+      <div class="summary-label">出勤可能日</div>
     </div>
   </div>
 
@@ -682,7 +651,7 @@ body {
 
 <!-- Submit Button (fixed bottom) -->
 <div class="submit-area" id="submitArea" style="display:none;">
-  <button class="submit-btn" id="submitBtn" onclick="submitPreferences()">この内容で提出する</button>
+  <button class="submit-btn" id="submitBtn" onclick="submitPreferences()">出勤可能日を提出する</button>
 </div>
 
 <!-- Toast -->
@@ -701,7 +670,7 @@ var prefData = {};    // { "YYYY/MM/DD": { type, timeSlot, reason, facility } }
 var selectedDate = null;
 var selectedDates = {};  // 複数選択モード用: { "YYYY/MM/DD": true }
 var multiSelectMode = false;
-var selectedType = null;
+var _facilityAny = false;  // 「どの施設でも可」フラグ
 var employeeInfo = null;
 var collectionOpen = true;
 var dateRange = { startDay: 1, endDay: 31 };
@@ -821,9 +790,8 @@ function onDataLoaded(data) {
   if (data.preferences) {
     data.preferences.forEach(function(p) {
       var dateKey = p.date;
-      // If multiple rows per date (different timeSlots), use the first one's type
       if (!prefData[dateKey]) {
-        prefData[dateKey] = { type: p.type, timeSlot: p.timeSlot || '', reason: p.reason || '', facility: p.facility || '' };
+        prefData[dateKey] = { type: '出勤可能', timeSlot: p.timeSlot || '', reason: p.reason || '', facility: p.facility || '' };
       } else {
         // Append timeSlot if different
         if (p.timeSlot && prefData[dateKey].timeSlot.indexOf(p.timeSlot) === -1) {
@@ -894,20 +862,14 @@ function renderCalendar() {
 
     if (multiSelectMode && selectedDates[dateStr]) classes += ' multi-selected';
     else if (!multiSelectMode && selectedDate === dateStr) classes += ' selected';
-    if (pref) {
-      if (pref.type === '希望') classes += ' want';
-      else if (pref.type === 'NG') classes += ' ng';
-      else if (pref.type === 'どちらでも') classes += ' either';
-    }
+    if (pref) classes += ' entered';
 
     html += '<div class="' + classes + '" onclick="onDateClick(\'' + dateStr + '\')">';
     html += '<div class="cal-day">' + day + '</div>';
 
-    // Type icon
+    // Available icon
     if (pref) {
-      var iconColor = pref.type === 'NG' ? '#E74C3C' : (pref.type === '希望' ? '#27AE60' : '#F39C12');
-      var icon = pref.type === 'NG' ? '&#10005;' : '&#9679;';
-      html += '<span class="cal-type-icon" style="color:' + iconColor + ';">' + icon + '</span>';
+      html += '<span class="cal-type-icon" style="color:#27AE60;">&#9679;</span>';
     }
 
     // Time slot badges
@@ -1002,13 +964,14 @@ function onDateClick(dateStr) {
   document.getElementById('panelDate').textContent =
     parseInt(dateParts[1],10) + '月' + dayNum + '日(' + dows[d.getDay()] + ')';
 
-  // Reset panel state
-  selectedType = pref ? pref.type : null;
-  updateTypeButtons();
-
   // Facilities
   var currentFacilities = pref && pref.facility ? pref.facility.split(',').map(function(s) { return s.trim(); }) : [];
-  setSelectedFacilities(currentFacilities);
+  if (currentFacilities.length === 1 && currentFacilities[0] === 'どの施設でも可') {
+    setFacilityAny(true);
+  } else {
+    setFacilityAny(false);
+    setSelectedFacilities(currentFacilities);
+  }
 
   // Time slots
   var currentSlots = pref && pref.timeSlot ? pref.timeSlot.split(', ') : [];
@@ -1063,8 +1026,7 @@ function openMultiPanel() {
   }
 
   // 初回表示時のみリセット
-  selectedType = null;
-  updateTypeButtons();
+  setFacilityAny(false);
   setSelectedFacilities([]);
   document.querySelectorAll('.ts-chip').forEach(function(chip) { chip.classList.remove('active'); });
   document.getElementById('customSlotArea').classList.remove('show');
@@ -1091,19 +1053,24 @@ function closePanel() {
   renderCalendar();
 }
 
-// ===== Type Selection =====
-function selectType(type) {
-  selectedType = type;
-  updateTypeButtons();
+// ===== Facility Any Toggle =====
+function toggleFacilityAny() {
+  setFacilityAny(!_facilityAny);
 }
 
-function updateTypeButtons() {
-  document.querySelectorAll('.type-btn').forEach(function(btn) {
+function setFacilityAny(flag) {
+  _facilityAny = flag;
+  var btn = document.getElementById('facAnyBtn');
+  if (_facilityAny) {
+    btn.classList.add('active');
+    // 個別施設を全解除
+    _selectedFacilities = {};
+    currentArea = null;
+    renderAreaTabs();
+    updateFacSelectedSummary();
+  } else {
     btn.classList.remove('active');
-  });
-  if (selectedType === '希望') document.querySelector('.type-btn.want').classList.add('active');
-  else if (selectedType === 'NG') document.querySelector('.type-btn.ng').classList.add('active');
-  else if (selectedType === 'どちらでも') document.querySelector('.type-btn.either').classList.add('active');
+  }
 }
 
 // ===== Time Slot Toggle =====
@@ -1223,6 +1190,11 @@ function toggleFacility(el) {
   } else {
     _selectedFacilities[name] = true;
     el.classList.add('active');
+    // 個別施設を選んだら「どの施設でも可」を解除
+    if (_facilityAny) {
+      _facilityAny = false;
+      document.getElementById('facAnyBtn').classList.remove('active');
+    }
   }
   updateFacSelectedSummary();
 }
@@ -1238,6 +1210,7 @@ function updateFacSelectedSummary() {
 }
 
 function getSelectedFacilities() {
+  if (_facilityAny) return ['どの施設でも可'];
   return Object.keys(_selectedFacilities);
 }
 
@@ -1263,11 +1236,6 @@ function getSelectedSlots() {
 
 // ===== Save / Delete Date =====
 function saveDate() {
-  if (!selectedType) {
-    showToast('種別を選択してください');
-    return;
-  }
-
   var slots = getSelectedSlots();
   if (slots.length === 0) {
     showToast('時間帯を選択してください');
@@ -1286,7 +1254,7 @@ function saveDate() {
   var reason = document.getElementById('memoInput').value.trim();
 
   var entry = {
-    type: selectedType,
+    type: '出勤可能',
     timeSlot: slots.join(', '),
     facility: facilities.join(','),
     reason: reason
@@ -1336,16 +1304,8 @@ function deleteDate() {
 
 // ===== Summary =====
 function updateSummary() {
-  var want = 0, ng = 0, either = 0;
-  Object.keys(prefData).forEach(function(date) {
-    var p = prefData[date];
-    if (p.type === '希望') want++;
-    else if (p.type === 'NG') ng++;
-    else if (p.type === 'どちらでも') either++;
-  });
-  document.getElementById('sumWant').textContent = want;
-  document.getElementById('sumNg').textContent = ng;
-  document.getElementById('sumEither').textContent = either;
+  var total = Object.keys(prefData).length;
+  document.getElementById('sumTotal').textContent = total;
 
   // 提出済み一覧も更新
   renderSubmittedList();
@@ -1394,7 +1354,7 @@ function submitPreferences() {
     .then(function(res) { return res.json(); })
     .then(function(data) {
       btn.disabled = false;
-      btn.textContent = 'この内容で提出する';
+      btn.textContent = '出勤可能日を提出する';
 
       if (data.error) {
         showToast('エラー: ' + data.error);
@@ -1423,7 +1383,7 @@ function submitPreferences() {
     })
     .catch(function(err) {
       btn.disabled = false;
-      btn.textContent = 'この内容で提出する';
+      btn.textContent = '出勤可能日を提出する';
       showToast('送信に失敗しました');
     });
 }
@@ -1452,12 +1412,9 @@ function renderSubmittedList() {
     var dow = d.getDay();
     var dowClass = dow === 0 ? ' sunday' : (dow === 6 ? ' saturday' : '');
 
-    var typeClass = p.type === '希望' ? 'want' : (p.type === 'NG' ? 'ng' : 'either');
-    var typeLabel = p.type === '希望' ? '希望' : (p.type === 'NG' ? 'NG' : 'どちらでも');
-
     html += '<div class="sl-item" onclick="onSubmittedItemClick(\'' + dateStr + '\')">';
     html += '<span class="sl-date' + dowClass + '">' + parseInt(parts[1],10) + '/' + parseInt(parts[2],10) + '(' + dows[dow] + ')</span>';
-    html += '<span class="sl-type-badge ' + typeClass + '">' + typeLabel + '</span>';
+    html += '<span class="sl-type-badge entered">可</span>';
     html += '<div class="sl-detail">';
     if (p.timeSlot) {
       html += '<div class="sl-detail-slot">' + escapeHtml(p.timeSlot) + '</div>';
