@@ -234,6 +234,36 @@ body {
 }
 .ts-chip:active { transform: scale(0.97); }
 .ts-chip.active { background: #2980B9; color: #FFF; border-color: #2980B9; }
+.ts-custom-area {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #F8F8F8;
+  border-radius: 8px;
+}
+.ts-custom-area.show { display: block; }
+.ts-custom-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+.ts-custom-row label { font-size: 12px; color: #666; white-space: nowrap; }
+.ts-time-input {
+  width: 70px;
+  padding: 6px 8px;
+  border: 1.5px solid #DDD;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+}
+.ts-time-input:focus { border-color: #2980B9; }
+.ts-custom-text {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1.5px solid #DDD;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+}
+.ts-custom-text:focus { border-color: #2980B9; }
+.ts-required { color: #E74C3C; font-weight: 600; }
 
 /* Facility area tabs + chips */
 .facility-section { margin-bottom: 12px; }
@@ -500,13 +530,23 @@ body {
         <div class="fac-selected-summary" id="facSelectedSummary"></div>
       </div>
       <div class="timeslot-section">
-        <div class="timeslot-label">時間帯（任意）</div>
+        <div class="timeslot-label">時間帯 <span class="ts-required">※必須</span></div>
         <div class="timeslot-grid">
           <span class="ts-chip" data-slot="6時～9時" onclick="toggleSlot(this)">6時～9時</span>
           <span class="ts-chip" data-slot="9時～17時" onclick="toggleSlot(this)">9時～17時</span>
           <span class="ts-chip" data-slot="17時～22時" onclick="toggleSlot(this)">17時～22時</span>
           <span class="ts-chip" data-slot="22時～" onclick="toggleSlot(this)">22時～</span>
           <span class="ts-chip" data-slot="17時～翌9時" onclick="toggleSlot(this)">17時～翌9時</span>
+          <span class="ts-chip" data-slot="その他" onclick="toggleCustomSlot(this)">その他</span>
+        </div>
+        <div class="ts-custom-area" id="customSlotArea">
+          <input type="text" class="ts-custom-text" id="customSlotText" placeholder="例: 10時～15時" oninput="onCustomSlotInput()">
+          <div class="ts-custom-row" id="customTimeRow" style="display:none;">
+            <label>開始</label>
+            <input type="time" class="ts-time-input" id="customStartTime">
+            <label>～ 終了</label>
+            <input type="time" class="ts-time-input" id="customEndTime">
+          </div>
         </div>
       </div>
       <div class="memo-section">
@@ -863,9 +903,28 @@ function onDateClick(dateStr) {
 
   // Time slots
   var currentSlots = pref && pref.timeSlot ? pref.timeSlot.split(', ') : [];
+  var knownSlots = ['6時～9時', '9時～17時', '17時～22時', '22時～', '17時～翌9時'];
+  var customSlots = currentSlots.filter(function(s) { return s && knownSlots.indexOf(s) === -1; });
   document.querySelectorAll('.ts-chip').forEach(function(chip) {
-    chip.classList.toggle('active', currentSlots.indexOf(chip.dataset.slot) !== -1);
+    if (chip.dataset.slot === 'その他') {
+      chip.classList.toggle('active', customSlots.length > 0);
+    } else {
+      chip.classList.toggle('active', currentSlots.indexOf(chip.dataset.slot) !== -1);
+    }
   });
+  // その他の復元
+  var customArea = document.getElementById('customSlotArea');
+  if (customSlots.length > 0) {
+    customArea.classList.add('show');
+    document.getElementById('customSlotText').value = customSlots.join(', ');
+    document.getElementById('customTimeRow').style.display = 'none';
+  } else {
+    customArea.classList.remove('show');
+    document.getElementById('customSlotText').value = '';
+    document.getElementById('customStartTime').value = '';
+    document.getElementById('customEndTime').value = '';
+    document.getElementById('customTimeRow').style.display = 'none';
+  }
 
   // Memo
   document.getElementById('memoInput').value = pref ? (pref.reason || '') : '';
@@ -899,6 +958,11 @@ function openMultiPanel() {
   updateTypeButtons();
   setSelectedFacilities([]);
   document.querySelectorAll('.ts-chip').forEach(function(chip) { chip.classList.remove('active'); });
+  document.getElementById('customSlotArea').classList.remove('show');
+  document.getElementById('customSlotText').value = '';
+  document.getElementById('customStartTime').value = '';
+  document.getElementById('customEndTime').value = '';
+  document.getElementById('customTimeRow').style.display = 'none';
   document.getElementById('memoInput').value = '';
 
   document.getElementById('inputPanel').classList.add('show');
@@ -936,6 +1000,65 @@ function updateTypeButtons() {
 // ===== Time Slot Toggle =====
 function toggleSlot(el) {
   el.classList.toggle('active');
+  // 「その他」以外を選んだら、その他チップを解除
+  var otherChip = document.querySelector('.ts-chip[data-slot="その他"]');
+  if (otherChip && otherChip.classList.contains('active')) {
+    otherChip.classList.remove('active');
+    document.getElementById('customSlotArea').classList.remove('show');
+  }
+}
+
+function toggleCustomSlot(el) {
+  var isActive = el.classList.toggle('active');
+  // その他を選んだら他のチップを解除
+  if (isActive) {
+    document.querySelectorAll('.ts-chip').forEach(function(chip) {
+      if (chip.dataset.slot !== 'その他') chip.classList.remove('active');
+    });
+    document.getElementById('customSlotArea').classList.add('show');
+    document.getElementById('customSlotText').focus();
+  } else {
+    document.getElementById('customSlotArea').classList.remove('show');
+  }
+}
+
+function onCustomSlotInput() {
+  var text = document.getElementById('customSlotText').value;
+  var timeRow = document.getElementById('customTimeRow');
+  // 「XX時～XX時」「XX:XX～XX:XX」などの時間パターンを検出
+  var hasTime = /\d{1,2}[\s]*[時:：]\s*[～〜~ー－\-]\s*(翌)?\s*\d{1,2}[\s]*[時:：]?/.test(text) ||
+                /\d{1,2}:\d{2}\s*[～〜~ー－\-]\s*\d{1,2}:\d{2}/.test(text);
+  timeRow.style.display = hasTime ? 'none' : 'flex';
+}
+
+function getCustomSlotValue() {
+  var text = document.getElementById('customSlotText').value.trim();
+  var startTime = document.getElementById('customStartTime').value;
+  var endTime = document.getElementById('customEndTime').value;
+  var timeRow = document.getElementById('customTimeRow');
+
+  if (text) {
+    // テキストに時間が含まれていればそのまま使う
+    var hasTime = /\d{1,2}[\s]*[時:：]\s*[～〜~ー－\-]\s*(翌)?\s*\d{1,2}[\s]*[時:：]?/.test(text) ||
+                  /\d{1,2}:\d{2}\s*[～〜~ー－\-]\s*\d{1,2}:\d{2}/.test(text);
+    if (hasTime) return text;
+  }
+
+  // 時間入力フィールドから組み立て
+  if (startTime && endTime) {
+    var sh = parseInt(startTime.split(':')[0], 10);
+    var eh = parseInt(endTime.split(':')[0], 10);
+    var sm = startTime.split(':')[1];
+    var em = endTime.split(':')[1];
+    var startLabel = sh + '時' + (sm !== '00' ? sm + '分' : '');
+    var endLabel = eh + '時' + (em !== '00' ? em + '分' : '');
+    return startLabel + '～' + endLabel;
+  }
+
+  // テキストだけあれば返す
+  if (text) return text;
+
+  return '';
 }
 
 // ===== Facility Area Tabs + Chips =====
@@ -1019,7 +1142,12 @@ function setSelectedFacilities(names) {
 function getSelectedSlots() {
   var slots = [];
   document.querySelectorAll('.ts-chip.active').forEach(function(chip) {
-    slots.push(chip.dataset.slot);
+    if (chip.dataset.slot === 'その他') {
+      var custom = getCustomSlotValue();
+      if (custom) slots.push(custom);
+    } else {
+      slots.push(chip.dataset.slot);
+    }
   });
   return slots;
 }
@@ -1032,6 +1160,19 @@ function saveDate() {
   }
 
   var slots = getSelectedSlots();
+  if (slots.length === 0) {
+    showToast('時間帯を選択してください');
+    return;
+  }
+  // その他選択時に開始・終了時間が入力されているか確認
+  var otherChip = document.querySelector('.ts-chip[data-slot="その他"]');
+  if (otherChip && otherChip.classList.contains('active')) {
+    var customVal = getCustomSlotValue();
+    if (!customVal) {
+      showToast('その他の時間帯を入力してください');
+      return;
+    }
+  }
   var facilities = getSelectedFacilities();
   var reason = document.getElementById('memoInput').value.trim();
 
