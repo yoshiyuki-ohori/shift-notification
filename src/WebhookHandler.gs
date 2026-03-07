@@ -449,6 +449,8 @@ function handlePostAction_(body) {
       return handleConfirmAllocations_(body);
     case 'clearAllocations':
       return handleClearAllocations_(body);
+    case 'bulkAddAssignments':
+      return handleBulkAddAssignments_(body);
     default:
       return jsonResponse_({ error: 'Unknown action: ' + body.action });
   }

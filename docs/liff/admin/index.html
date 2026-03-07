@@ -285,6 +285,62 @@
   .help-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
   .help-legend-item .swatch { width: 16px; height: 12px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.1); }
 
+  /* Preferences tab */
+  .pref-summary { display: flex; gap: 16px; padding: 20px 24px; flex-wrap: wrap; }
+  .pref-summary-card { background: #fff; border-radius: 12px; padding: 16px 24px; flex: 1; min-width: 140px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); text-align: center; }
+  .pref-summary-card .pref-label { font-size: 12px; color: #888; font-weight: 600; text-transform: uppercase; }
+  .pref-summary-card .pref-value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+  .pref-summary-card .pref-value.submitted { color: #4ECDC4; }
+  .pref-summary-card .pref-value.not-submitted { color: #FF6B6B; }
+  .pref-summary-card .pref-value.total-days { color: #1a1a2e; }
+  .pref-not-submitted-list { background: #fff; border-radius: 12px; margin: 0 24px 16px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .pref-not-submitted-list h4 { font-size: 14px; font-weight: 700; color: #FF6B6B; margin-bottom: 8px; }
+  .pref-not-submitted-list .names { font-size: 13px; color: #555; line-height: 1.8; }
+  .pref-not-submitted-list .names span { display: inline-block; background: #FFF0F0; padding: 2px 10px; border-radius: 6px; margin: 2px 4px 2px 0; white-space: nowrap; }
+
+  .pref-grid-wrap { padding: 0 24px 24px; overflow-x: auto; }
+  .pref-grid { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
+  .pref-grid th, .pref-grid td { border: 1px solid #e0e0e0; padding: 4px 6px; text-align: center; min-width: 44px; vertical-align: top; }
+  .pref-grid thead th { background: #1a1a2e; color: #fff; font-weight: 600; position: sticky; top: 0; z-index: 2; }
+  .pref-grid thead th.sun { background: #c0392b; }
+  .pref-grid thead th.sat { background: #2980b9; }
+  .pref-grid .staff-name-cell { position: sticky; left: 0; background: #fff; z-index: 1; font-weight: 600; text-align: left; min-width: 80px; white-space: nowrap; }
+  .pref-grid tbody tr:nth-child(even) .staff-name-cell { background: #fafafa; }
+  .pref-grid tbody tr:nth-child(even) td { background: #fafafa; }
+  .pref-grid td.available { background: #e8f8f6; }
+  .pref-grid tbody tr:nth-child(even) td.available { background: #d0f0ec; }
+  .pref-grid .time-chip { display: block; font-size: 10px; color: #2a9d8f; font-weight: 600; white-space: nowrap; }
+  .pref-grid .facility-chip { display: block; font-size: 9px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+  .pref-grid tfoot td { background: #f8f8f8; font-weight: 700; }
+  .pref-grid tfoot td.low-count { background: #FFE0E0; color: #CC3333; }
+  .pref-grid .corner-cell { position: sticky; left: 0; z-index: 3; background: #1a1a2e; }
+
+  /* Preferences adoption & kanban */
+  .pref-toolbar { display: flex; gap: 12px; padding: 12px 24px; align-items: center; flex-wrap: wrap; background: #fff; margin: 0 24px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .pref-toolbar label { font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .pref-toolbar button { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; background: #4ECDC4; color: #fff; }
+  .pref-toolbar button:hover { background: #3dbdb5; }
+  .pref-toolbar button:disabled { background: #ccc; cursor: not-allowed; }
+  .pref-adopt-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #4ECDC4; }
+  .pref-time-input { width: 90px; padding: 2px 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px; }
+  .pref-time-input:focus { border-color: #4ECDC4; outline: none; }
+  .pref-facility-select { width: 80px; padding: 1px 2px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px; }
+  .pref-facility-select:focus { border-color: #4ECDC4; outline: none; }
+  .pref-progress { flex: 1; min-width: 100px; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+  .pref-progress-bar { height: 100%; background: #4ECDC4; border-radius: 4px; transition: width 0.3s; width: 0%; }
+  .kanban-pool { background: #fff; margin: 16px 24px; border-radius: 12px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .kanban-pool h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #1a1a2e; }
+  .kanban-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+  .kanban-card { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; background: #f0f2f5; color: #333; border: 2px solid transparent; transition: all 0.15s; user-select: none; }
+  .kanban-card:hover { background: #e0f7f5; border-color: #4ECDC4; }
+  .kanban-card.selected { background: #4ECDC4; color: #fff; border-color: #3dbdb5; }
+  .kanban-card .kc-empno { font-size: 10px; color: #888; margin-left: 4px; }
+  .kanban-card.selected .kc-empno { color: rgba(255,255,255,0.7); }
+  .pref-grid thead th.drop-target { background: #4ECDC4 !important; cursor: pointer; }
+  .pref-grid-date-header { cursor: default; }
+  .pref-grid-date-header.clickable { cursor: pointer; }
+  .pref-grid-date-header.clickable:hover { opacity: 0.8; }
+
   /* Responsive */
   @media (max-width: 768px) {
     .header { padding: 12px 16px; }
@@ -331,6 +387,7 @@
   <button class="tab-btn active" data-tab="facility" onclick="switchTab('facility')">施設一覧</button>
   <button class="tab-btn" data-tab="compliance" onclick="switchTab('compliance')">労基チェック</button>
   <button class="tab-btn" data-tab="staffing" onclick="switchTab('staffing')">配置充足率</button>
+  <button class="tab-btn" data-tab="preferences" onclick="switchTab('preferences')">シフト希望</button>
   <button class="tab-btn" data-tab="allocation" onclick="switchTab('allocation')">配置管理</button>
 </div>
 
@@ -400,7 +457,40 @@
   </div>
 </div>
 
-<!-- Tab 4: Allocation Management -->
+<!-- Tab 4: Shift Preferences Overview -->
+<div class="tab-content" id="tab-preferences">
+  <div class="pref-summary" id="prefSummary" style="display:none;">
+    <div class="pref-summary-card">
+      <div class="pref-label">提出済み</div>
+      <div class="pref-value submitted" id="prefSubmitted">-</div>
+    </div>
+    <div class="pref-summary-card">
+      <div class="pref-label">未提出</div>
+      <div class="pref-value not-submitted" id="prefNotSubmitted">-</div>
+    </div>
+    <div class="pref-summary-card">
+      <div class="pref-label">出勤可能日 合計</div>
+      <div class="pref-value total-days" id="prefTotalDays">-</div>
+    </div>
+  </div>
+  <div class="pref-toolbar" id="prefToolbar" style="display:none;">
+    <label><input type="checkbox" id="prefSelectAll" class="pref-adopt-checkbox" onchange="toggleSelectAllPrefs()"> 全選択</label>
+    <button onclick="adoptPreferences()" id="btnAdoptPrefs" disabled>仮配置に反映 (<span id="adoptCount">0</span>件)</button>
+    <div class="pref-progress" id="prefProgress" style="display:none">
+      <div class="pref-progress-bar" id="prefProgressBar"></div>
+    </div>
+  </div>
+  <div id="prefNotSubmittedList"></div>
+  <div class="content" id="prefContent">
+    <div class="loading"><p>タブを選択してデータを読み込みます</p></div>
+  </div>
+  <div class="kanban-pool" id="kanbanPool" style="display:none;">
+    <h4>従業員プール（希望なし日に配置）</h4>
+    <div class="kanban-cards" id="kanbanCards"></div>
+  </div>
+</div>
+
+<!-- Tab 5: Allocation Management -->
 <div class="tab-content" id="tab-allocation">
   <div class="alloc-toolbar">
     <span class="alloc-status-badge badge-none" id="allocStatusBadge">未読込</span>
@@ -456,11 +546,12 @@
     <div class="modal-info" id="modalInfo"></div>
     <label>時間帯</label>
     <select id="modalTimeSlot">
-      <option value="夜勤(17-9時)">夜勤(17-9時)</option>
       <option value="6時～9時">6時～9時</option>
-      <option value="9時～17時">9時～17時</option>
       <option value="17時～22時">17時～22時</option>
-      <option value="22時～">22時～</option>
+      <option value="22時～6時">22時～6時</option>
+      <option value="22時～9時">22時～9時</option>
+      <option value="17時～翌9時">17時～翌9時</option>
+      <option value="その他">その他</option>
     </select>
     <label>職員</label>
     <div class="staff-search-wrap">
@@ -493,7 +584,7 @@
         <ol class="help-steps">
           <li><span class="action">月を切り替える</span><br><span class="detail">ヘッダーの ◀ ▶ ボタンで対象月を前後に移動する</span></li>
           <li><span class="action">データを再読み込みする</span><br><span class="detail">ヘッダー右の「再読み込み」ボタンをクリックする</span></li>
-          <li><span class="action">タブを切り替える</span><br><span class="detail">画面上部の「施設一覧」「労基チェック」「配置充足率」「配置管理」をクリックする</span></li>
+          <li><span class="action">タブを切り替える</span><br><span class="detail">画面上部の「施設一覧」「労基チェック」「配置充足率」「シフト希望」「配置管理」をクリックする</span></li>
         </ol>
       </div>
 
@@ -535,6 +626,22 @@
           <div class="help-legend-item"><span class="swatch" style="background:#E8F5E9;"></span> OK（推奨人数以上）</div>
         </div>
         <div class="help-note">前提: スプレッドシートの「必要配置」シートに施設ID・時間帯・曜日種別ごとの最低/推奨人数が登録されている必要があります</div>
+      </div>
+
+      <!-- ===== シフト希望タブ ===== -->
+      <div class="help-section">
+        <h3>シフト希望タブ</h3>
+        <ol class="help-steps">
+          <li><span class="action">提出状況を確認する</span><br><span class="detail">上部カードに提出済み人数・未提出人数・出勤可能日の合計が表示される。未提出者の名前はカード下に一覧表示される</span></li>
+          <li><span class="action">日付×職員グリッドを確認する</span><br><span class="detail">横軸が日付（1日～末日）、縦軸が提出済み職員名。出勤可能日は緑背景で表示される</span></li>
+          <li><span class="action">希望を採用して仮配置に反映する</span><br><span class="detail">出勤可能セルのチェックボックスをONにして時間帯・施設を編集 →「仮配置に反映」ボタンで一括送信</span></li>
+          <li><span class="action">希望なし日に職員を追加する（カンバン）</span><br><span class="detail">画面下部の「従業員プール」から名前カードをクリック → グリッド上部の日付ヘッダーをクリック → その日に行が追加される</span></li>
+        </ol>
+        <div class="help-legend">
+          <div class="help-legend-item"><span class="swatch" style="background:#e8f8f6;"></span> 出勤可能日</div>
+          <div class="help-legend-item"><span class="swatch" style="background:#FFE0E0;"></span> 合計人数が少ない日</div>
+          <div class="help-legend-item"><span class="swatch" style="background:#fffbeb;"></span> カンバンで追加された行</div>
+        </div>
       </div>
 
       <!-- ===== 配置管理タブ (メイン) ===== -->
@@ -643,11 +750,16 @@
   var modalFacility = null;
   var modalDate = null;
   var activeTab = 'facility';
-  var tabDataLoaded = { facility: false, compliance: false, staffing: false, allocation: false };
+  var tabDataLoaded = { facility: false, compliance: false, staffing: false, preferences: false, allocation: false };
   var allocData = null;         // current allocation data
   var allocRequirements = {};   // staffing requirements
   var pickerContext = null;     // { month, date, timeSlot, facility, facilityId, area }
   var pickerSelected = null;    // { empNo, name }
+  var prefAdoptionState = {};   // { 'empNo|dayNum': { checked, timeSlot, facility, facilityId, area } }
+  var kanbanSelectedEmp = null; // { empNo, name } or null
+  var kanbanAddedRows = [];     // grid に手動追加された行
+  var cachedFacilityList = [];  // facilityOverview から取得
+  var cachedPrefsData = null;   // 最新のprefsデータキャッシュ
 
   // --- Init ---
   function init() {
@@ -673,7 +785,7 @@
     }
 
     var tabParam = params.get('tab') || '';
-    if (['facility','compliance','staffing','allocation'].indexOf(tabParam) >= 0) {
+    if (['facility','compliance','staffing','preferences','allocation'].indexOf(tabParam) >= 0) {
       activeTab = tabParam;
     }
 
@@ -746,6 +858,7 @@
       if (tab === 'facility') loadFacilityData();
       else if (tab === 'compliance') loadComplianceData();
       else if (tab === 'staffing') loadStaffingData();
+      else if (tab === 'preferences') loadPreferencesData();
       else if (tab === 'allocation') loadAllocationData();
     }
   };
@@ -755,6 +868,7 @@
     if (activeTab === 'facility') loadFacilityData();
     else if (activeTab === 'compliance') loadComplianceData();
     else if (activeTab === 'staffing') loadStaffingData();
+    else if (activeTab === 'preferences') loadPreferencesData();
     else if (activeTab === 'allocation') loadAllocationData();
   };
 
@@ -772,10 +886,11 @@
     if (currentMonth > 12) { currentMonth = 1; currentYear++; }
     if (currentMonth < 1) { currentMonth = 12; currentYear--; }
     updateMonthDisplay();
-    tabDataLoaded = { facility: false, compliance: false, staffing: false, allocation: false };
+    tabDataLoaded = { facility: false, compliance: false, staffing: false, preferences: false, allocation: false };
     if (activeTab === 'facility') loadFacilityData();
     else if (activeTab === 'compliance') loadComplianceData();
     else if (activeTab === 'staffing') loadStaffingData();
+    else if (activeTab === 'preferences') loadPreferencesData();
     else if (activeTab === 'allocation') loadAllocationData();
   };
 
@@ -1233,7 +1348,7 @@
         var emp = ev.empNo;
         var lateNight = null;
         for (var j = 0; j < shifts.length; j++) {
-          if (shifts[j].empNo === emp && /^22時～$/.test(shifts[j].timeSlot)) { lateNight = shifts[j]; break; }
+          if (shifts[j].empNo === emp && /^22時～/.test(shifts[j].timeSlot)) { lateNight = shifts[j]; break; }
         }
         var morning = null;
         for (var k = 0; k < nextShifts.length; k++) {
@@ -1298,7 +1413,7 @@
     var dd = ('0' + day).slice(-2);
     modalDate = { year: year, month: month, day: day, yearMonth: year + '-' + mm, dateStr: year + '/' + mm + '/' + dd };
     document.getElementById('modalInfo').textContent = facility.name + ' / ' + year + '年' + month + '月' + day + '日';
-    document.getElementById('modalTimeSlot').value = '夜勤(17-9時)';
+    document.getElementById('modalTimeSlot').value = '6時～9時';
     document.getElementById('staffSearchInput').value = '';
     document.getElementById('selectedEmpNo').value = '';
     document.getElementById('selectedEmpName').value = '';
@@ -1386,14 +1501,23 @@
   function buildShiftRows(fac, dt, timeSlot, empNo, empName) {
     var area = fac.area || '';
     var facName = fac.name || '';
-    if (timeSlot === '夜勤(17-9時)') {
+    if (timeSlot === '17時～翌9時') {
       var nextDate = new Date(dt.year, dt.month - 1, dt.day + 1);
       var nextYM = nextDate.getFullYear() + '-' + ('0' + (nextDate.getMonth() + 1)).slice(-2);
       var nextDateStr = nextDate.getFullYear() + '/' + ('0' + (nextDate.getMonth() + 1)).slice(-2) + '/' + ('0' + nextDate.getDate()).slice(-2);
       return [
         [dt.yearMonth, dt.dateStr, area, facName, '17時～22時', empName, empNo, empName],
-        [dt.yearMonth, dt.dateStr, area, facName, '22時～', empName, empNo, empName],
+        [dt.yearMonth, dt.dateStr, area, facName, '22時～6時', empName, empNo, empName],
         [nextYM, nextDateStr, area, facName, '6時～9時', empName, empNo, empName]
+      ];
+    }
+    if (timeSlot === '22時～9時') {
+      var nextDate2 = new Date(dt.year, dt.month - 1, dt.day + 1);
+      var nextYM2 = nextDate2.getFullYear() + '-' + ('0' + (nextDate2.getMonth() + 1)).slice(-2);
+      var nextDateStr2 = nextDate2.getFullYear() + '/' + ('0' + (nextDate2.getMonth() + 1)).slice(-2) + '/' + ('0' + nextDate2.getDate()).slice(-2);
+      return [
+        [dt.yearMonth, dt.dateStr, area, facName, '22時～6時', empName, empNo, empName],
+        [nextYM2, nextDateStr2, area, facName, '6時～9時', empName, empNo, empName]
       ];
     }
     return [[dt.yearMonth, dt.dateStr, area, facName, timeSlot, empName, empNo, empName]];
@@ -1407,7 +1531,660 @@
   }
 
   // ========================================
-  // Tab 4: Allocation Management
+  // Tab 4: Shift Preferences Overview
+  // ========================================
+
+  function loadPreferencesData() {
+    var content = document.getElementById('prefContent');
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px;">シフト希望を読み込み中...</p></div>';
+    document.getElementById('prefSummary').style.display = 'none';
+    document.getElementById('prefNotSubmittedList').innerHTML = '';
+    document.getElementById('prefToolbar').style.display = 'none';
+    document.getElementById('kanbanPool').style.display = 'none';
+    prefAdoptionState = {};
+    kanbanSelectedEmp = null;
+    kanbanAddedRows = [];
+
+    var mm = ('0' + currentMonth).slice(-2);
+    var targetMonth = currentYear + '-' + mm;
+    var prefUrl = GAS_URL + '?action=allPreferences&key=' + encodeURIComponent(API_KEY) + '&month=' + encodeURIComponent(targetMonth);
+    var facUrl = GAS_URL + '?action=facilityOverview&key=' + encodeURIComponent(API_KEY) + '&month=' + encodeURIComponent(targetMonth);
+
+    Promise.all([
+      fetch(prefUrl, { redirect: 'follow' }).then(function(r) { return r.text(); }).then(function(t) { try { return JSON.parse(t); } catch(e) { throw new Error('JSONパース失敗'); } }),
+      fetch(facUrl, { redirect: 'follow' }).then(function(r) { return r.json(); }).catch(function() { return { facilities: [] }; })
+    ]).then(function(results) {
+      var data = results[0];
+      var facData = results[1];
+
+      if (data.error) {
+        if (data.error === 'Unauthorized') { showAuth(); return; }
+        content.innerHTML = '<div class="error-msg">エラー: ' + escapeHtml(data.error) + '</div>';
+        return;
+      }
+
+      // Build facility list cache
+      cachedFacilityList = [];
+      var facSet = {};
+      if (facData && facData.facilities) {
+        for (var fi = 0; fi < facData.facilities.length; fi++) {
+          var f = facData.facilities[fi];
+          if (!facSet[f.name]) {
+            facSet[f.name] = true;
+            cachedFacilityList.push({ name: f.name, id: f.id, area: f.area });
+          }
+        }
+      }
+
+      cachedPrefsData = data;
+      renderPreferences(data);
+      tabDataLoaded.preferences = true;
+    }).catch(function(err) {
+      content.innerHTML = '<div class="error-msg">通信エラー: ' + escapeHtml(err.message || String(err)) + '</div>';
+    });
+  }
+
+  function renderPreferences(data) {
+    var content = document.getElementById('prefContent');
+    content.innerHTML = '';
+
+    // Submission status summary
+    var subStatus = data.submissionStatus || {};
+    var submitted = subStatus.submitted || [];
+    var notSubmitted = subStatus.notSubmitted || [];
+    var prefs = data.preferences || [];
+
+    // Count unique available dates
+    var totalAvailableDays = 0;
+    var byDate = data.byDate || {};
+    var dateKeys = Object.keys(byDate);
+    for (var dk = 0; dk < dateKeys.length; dk++) {
+      totalAvailableDays += (byDate[dateKeys[dk]] || []).length;
+    }
+    // Fallback: count from preferences array
+    if (totalAvailableDays === 0 && prefs.length > 0) {
+      totalAvailableDays = prefs.length;
+    }
+
+    // Update summary cards
+    var summary = document.getElementById('prefSummary');
+    summary.style.display = 'flex';
+    document.getElementById('prefSubmitted').textContent = submitted.length;
+    document.getElementById('prefNotSubmitted').textContent = notSubmitted.length;
+    document.getElementById('prefTotalDays').textContent = totalAvailableDays;
+
+    // Not-submitted list
+    if (notSubmitted.length > 0) {
+      var nsDiv = document.getElementById('prefNotSubmittedList');
+      var nsHtml = '<div class="pref-not-submitted-list"><h4>未提出者 (' + notSubmitted.length + '人)</h4><div class="names">';
+      for (var ni = 0; ni < notSubmitted.length; ni++) {
+        var nsName = notSubmitted[ni].name || notSubmitted[ni];
+        nsHtml += '<span>' + escapeHtml(nsName) + '</span>';
+      }
+      nsHtml += '</div></div>';
+      nsDiv.innerHTML = nsHtml;
+    }
+
+    // Build preference grid (date × staff)
+    if (submitted.length === 0 && prefs.length === 0) {
+      content.innerHTML = '<div class="loading"><p>この月のシフト希望データはありません</p></div>';
+      return;
+    }
+
+    var daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    var dowLabels = ['日','月','火','水','木','金','土'];
+
+    // Build staff preferences lookup: staffName → { date → [prefs] }
+    var staffPrefs = {};
+    var staffOrder = [];
+    for (var si = 0; si < submitted.length; si++) {
+      var sName = submitted[si].name || submitted[si];
+      var sEmpNo = submitted[si].employeeNo || submitted[si].empNo || '';
+      var sKey = sEmpNo ? sEmpNo + '|' + sName : sName;
+      if (!staffPrefs[sKey]) {
+        staffPrefs[sKey] = { name: sName, empNo: sEmpNo, dates: {} };
+        staffOrder.push(sKey);
+      }
+    }
+
+    for (var pi = 0; pi < prefs.length; pi++) {
+      var p = prefs[pi];
+      var pName = p.name || p.employeeName || '';
+      var pEmpNo = p.employeeNo || p.empNo || '';
+      var pKey = pEmpNo ? pEmpNo + '|' + pName : pName;
+      if (!staffPrefs[pKey]) {
+        staffPrefs[pKey] = { name: pName, empNo: pEmpNo, dates: {} };
+        staffOrder.push(pKey);
+      }
+      var pDate = p.date || '';
+      // Normalize date to day number
+      var dayNum = 0;
+      if (pDate) {
+        var dateParts = pDate.split('/');
+        if (dateParts.length >= 3) {
+          dayNum = parseInt(dateParts[2], 10);
+        } else if (dateParts.length === 1 && /^\d+$/.test(pDate)) {
+          dayNum = parseInt(pDate, 10);
+        } else {
+          // Try yyyy-mm-dd format
+          var dashParts = pDate.split('-');
+          if (dashParts.length >= 3) dayNum = parseInt(dashParts[2], 10);
+        }
+      }
+      if (dayNum > 0 && dayNum <= daysInMonth) {
+        if (!staffPrefs[pKey].dates[dayNum]) staffPrefs[pKey].dates[dayNum] = [];
+        staffPrefs[pKey].dates[dayNum].push(p);
+      }
+    }
+
+    // Also populate from byDate if staffPrefs is sparse
+    for (var bd = 0; bd < dateKeys.length; bd++) {
+      var dKey = dateKeys[bd];
+      var entries = byDate[dKey];
+      var bdDay = 0;
+      var bdParts = dKey.split('/');
+      if (bdParts.length >= 3) bdDay = parseInt(bdParts[2], 10);
+      else { var bdDash = dKey.split('-'); if (bdDash.length >= 3) bdDay = parseInt(bdDash[2], 10); }
+      if (bdDay <= 0 || bdDay > daysInMonth) continue;
+
+      for (var be = 0; be < entries.length; be++) {
+        var bEntry = entries[be];
+        var bName = bEntry.name || bEntry.employeeName || '';
+        var bEmpNo = bEntry.employeeNo || bEntry.empNo || '';
+        var bKey = bEmpNo ? bEmpNo + '|' + bName : bName;
+        if (!staffPrefs[bKey]) {
+          staffPrefs[bKey] = { name: bName, empNo: bEmpNo, dates: {} };
+          staffOrder.push(bKey);
+        }
+        if (!staffPrefs[bKey].dates[bdDay]) staffPrefs[bKey].dates[bdDay] = [];
+        // Avoid duplicates
+        var alreadyHas = false;
+        var existing = staffPrefs[bKey].dates[bdDay];
+        for (var ex = 0; ex < existing.length; ex++) {
+          if (existing[ex].timeSlot === bEntry.timeSlot && existing[ex].facility === bEntry.facility) { alreadyHas = true; break; }
+        }
+        if (!alreadyHas) staffPrefs[bKey].dates[bdDay].push(bEntry);
+      }
+    }
+
+    // Remove duplicates from staffOrder
+    var seen = {};
+    var uniqueOrder = [];
+    for (var uo = 0; uo < staffOrder.length; uo++) {
+      if (!seen[staffOrder[uo]]) { seen[staffOrder[uo]] = true; uniqueOrder.push(staffOrder[uo]); }
+    }
+    staffOrder = uniqueOrder;
+
+    // Sort staff by name
+    staffOrder.sort(function(a, b) {
+      return staffPrefs[a].name.localeCompare(staffPrefs[b].name);
+    });
+
+    // Day totals
+    var dayTotals = {};
+    for (var dt = 1; dt <= daysInMonth; dt++) {
+      var count = 0;
+      for (var so = 0; so < staffOrder.length; so++) {
+        if (staffPrefs[staffOrder[so]].dates[dt] && staffPrefs[staffOrder[so]].dates[dt].length > 0) count++;
+      }
+      dayTotals[dt] = count;
+    }
+
+    // Find threshold for low count (less than average * 0.5)
+    var totalCount = 0;
+    for (var tc = 1; tc <= daysInMonth; tc++) totalCount += dayTotals[tc];
+    var avgCount = staffOrder.length > 0 ? totalCount / daysInMonth : 0;
+    var lowThreshold = Math.max(1, Math.floor(avgCount * 0.5));
+
+    // Build table
+    var table = document.createElement('table');
+    table.className = 'pref-grid';
+
+    // Show toolbar
+    document.getElementById('prefToolbar').style.display = 'flex';
+
+    // Header row
+    var thead = document.createElement('thead');
+    var headerRow = document.createElement('tr');
+    var cornerTh = document.createElement('th');
+    cornerTh.className = 'corner-cell';
+    cornerTh.textContent = '職員名';
+    headerRow.appendChild(cornerTh);
+
+    for (var hd = 1; hd <= daysInMonth; hd++) {
+      var th = document.createElement('th');
+      th.className = 'pref-grid-date-header';
+      var hdDate = new Date(currentYear, currentMonth - 1, hd);
+      var hdDow = hdDate.getDay();
+      if (hdDow === 0) th.className += ' sun';
+      else if (hdDow === 6) th.className += ' sat';
+      th.setAttribute('data-day', hd);
+      th.innerHTML = hd + '<br><span style="font-size:10px;">' + dowLabels[hdDow] + '</span>';
+      th.onclick = (function(day) { return function() { pasteKanbanEmployee(day); }; })(hd);
+      headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Facility select options HTML
+    var facOptionsHtml = '<option value="">--</option>';
+    for (var fo = 0; fo < cachedFacilityList.length; fo++) {
+      facOptionsHtml += '<option value="' + escapeHtml(cachedFacilityList[fo].name) + '" data-id="' + escapeHtml(cachedFacilityList[fo].id || '') + '" data-area="' + escapeHtml(cachedFacilityList[fo].area || '') + '">' + escapeHtml(cachedFacilityList[fo].name) + '</option>';
+    }
+
+    // Body rows
+    var tbody = document.createElement('tbody');
+    tbody.id = 'prefGridBody';
+    for (var ri = 0; ri < staffOrder.length; ri++) {
+      var sInfo = staffPrefs[staffOrder[ri]];
+      var row = document.createElement('tr');
+
+      var nameCell = document.createElement('td');
+      nameCell.className = 'staff-name-cell';
+      nameCell.textContent = sInfo.name;
+      row.appendChild(nameCell);
+
+      for (var cd = 1; cd <= daysInMonth; cd++) {
+        var td = document.createElement('td');
+        var dayPrefs = sInfo.dates[cd] || [];
+        if (dayPrefs.length > 0) {
+          td.className = 'available';
+          var stateKey = sInfo.empNo + '|' + cd;
+          var origTime = '';
+          var origFac = '';
+          for (var dp = 0; dp < dayPrefs.length; dp++) {
+            if (dayPrefs[dp].timeSlot) origTime = dayPrefs[dp].timeSlot;
+            if (dayPrefs[dp].facility || dayPrefs[dp].facilityName) origFac = dayPrefs[dp].facility || dayPrefs[dp].facilityName;
+          }
+
+          // Checkbox
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'pref-adopt-checkbox';
+          cb.setAttribute('data-key', stateKey);
+          cb.setAttribute('data-empno', sInfo.empNo);
+          cb.setAttribute('data-name', sInfo.name);
+          cb.setAttribute('data-day', cd);
+          cb.onchange = (function(key) { return function() { onPrefCheckChange(key, this); }; })(stateKey);
+          td.appendChild(cb);
+
+          // Time input
+          var timeInp = document.createElement('input');
+          timeInp.type = 'text';
+          timeInp.className = 'pref-time-input';
+          timeInp.value = origTime || '17時～翌9時';
+          timeInp.setAttribute('data-key', stateKey);
+          timeInp.onchange = (function(key) { return function() { onPrefTimeChange(key, this.value); }; })(stateKey);
+          td.appendChild(timeInp);
+
+          // Facility select
+          var facSel = document.createElement('select');
+          facSel.className = 'pref-facility-select';
+          facSel.innerHTML = facOptionsHtml;
+          facSel.setAttribute('data-key', stateKey);
+          if (origFac) facSel.value = origFac;
+          facSel.onchange = (function(key) { return function() { onPrefFacilityChange(key, this); }; })(stateKey);
+          td.appendChild(facSel);
+
+          // Initialize state
+          prefAdoptionState[stateKey] = {
+            checked: false,
+            timeSlot: origTime || '17時～翌9時',
+            facility: origFac,
+            facilityId: '',
+            area: '',
+            empNo: sInfo.empNo,
+            name: sInfo.name,
+            dayNum: cd
+          };
+        }
+        row.appendChild(td);
+      }
+      tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+
+    // Footer row (totals)
+    var tfoot = document.createElement('tfoot');
+    var footRow = document.createElement('tr');
+    var footLabel = document.createElement('td');
+    footLabel.className = 'staff-name-cell';
+    footLabel.textContent = '合計';
+    footLabel.style.fontWeight = '700';
+    footRow.appendChild(footLabel);
+
+    for (var fd = 1; fd <= daysInMonth; fd++) {
+      var ftd = document.createElement('td');
+      ftd.textContent = dayTotals[fd];
+      if (dayTotals[fd] <= lowThreshold) ftd.className = 'low-count';
+      footRow.appendChild(ftd);
+    }
+    tfoot.appendChild(footRow);
+    table.appendChild(tfoot);
+
+    var gridWrap = document.createElement('div');
+    gridWrap.className = 'pref-grid-wrap';
+    gridWrap.appendChild(table);
+    content.appendChild(gridWrap);
+
+    // Render kanban pool
+    renderKanbanPool(data);
+    updateKanbanHeaderHighlight();
+  }
+
+  // --- Preference Adoption Helpers ---
+
+  function onPrefCheckChange(key, cb) {
+    if (prefAdoptionState[key]) {
+      prefAdoptionState[key].checked = cb.checked;
+    }
+    updateAdoptCount();
+  }
+
+  function onPrefTimeChange(key, val) {
+    if (prefAdoptionState[key]) {
+      prefAdoptionState[key].timeSlot = val;
+    }
+  }
+
+  function onPrefFacilityChange(key, sel) {
+    if (prefAdoptionState[key]) {
+      prefAdoptionState[key].facility = sel.value;
+      var opt = sel.options[sel.selectedIndex];
+      prefAdoptionState[key].facilityId = opt ? (opt.getAttribute('data-id') || '') : '';
+      prefAdoptionState[key].area = opt ? (opt.getAttribute('data-area') || '') : '';
+    }
+  }
+
+  window.toggleSelectAllPrefs = function() {
+    var selectAll = document.getElementById('prefSelectAll').checked;
+    var checkboxes = document.querySelectorAll('#tab-preferences .pref-adopt-checkbox[data-key]');
+    for (var i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].checked = selectAll;
+      var key = checkboxes[i].getAttribute('data-key');
+      if (prefAdoptionState[key]) {
+        prefAdoptionState[key].checked = selectAll;
+      }
+    }
+    updateAdoptCount();
+  };
+
+  function updateAdoptCount() {
+    var count = 0;
+    var keys = Object.keys(prefAdoptionState);
+    for (var i = 0; i < keys.length; i++) {
+      if (prefAdoptionState[keys[i]].checked) count++;
+    }
+    document.getElementById('adoptCount').textContent = count;
+    document.getElementById('btnAdoptPrefs').disabled = (count === 0);
+  }
+
+  window.adoptPreferences = function() {
+    var keys = Object.keys(prefAdoptionState);
+    var assignments = [];
+    var mm = ('0' + currentMonth).slice(-2);
+    var targetMonth = currentYear + '-' + mm;
+
+    for (var i = 0; i < keys.length; i++) {
+      var st = prefAdoptionState[keys[i]];
+      if (!st.checked) continue;
+      var day = ('0' + st.dayNum).slice(-2);
+      var dateStr = currentYear + '/' + mm + '/' + day;
+      assignments.push({
+        yearMonth: targetMonth,
+        date: dateStr,
+        area: st.area || '',
+        facility: st.facility || '',
+        facilityId: st.facilityId || '',
+        timeSlot: st.timeSlot || '17時～翌9時',
+        empNo: st.empNo,
+        name: st.name,
+        assignedBy: '管理者'
+      });
+    }
+
+    if (assignments.length === 0) {
+      showToast('チェックされた項目がありません');
+      return;
+    }
+
+    var btn = document.getElementById('btnAdoptPrefs');
+    btn.disabled = true;
+    btn.textContent = '反映中...';
+    var progress = document.getElementById('prefProgress');
+    var bar = document.getElementById('prefProgressBar');
+    progress.style.display = 'block';
+    bar.style.width = '30%';
+
+    fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'bulkAddAssignments',
+        key: API_KEY,
+        assignments: assignments
+      })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(result) {
+      bar.style.width = '100%';
+      if (result.error) {
+        showToast('エラー: ' + result.error);
+      } else {
+        showToast('仮配置に ' + (result.count || assignments.length) + ' 件反映しました');
+        // Reset checkboxes
+        var cbs = document.querySelectorAll('#tab-preferences .pref-adopt-checkbox[data-key]');
+        for (var j = 0; j < cbs.length; j++) { cbs[j].checked = false; }
+        document.getElementById('prefSelectAll').checked = false;
+        var stKeys = Object.keys(prefAdoptionState);
+        for (var k = 0; k < stKeys.length; k++) { prefAdoptionState[stKeys[k]].checked = false; }
+        updateAdoptCount();
+        // Invalidate allocation tab
+        tabDataLoaded.allocation = false;
+      }
+      setTimeout(function() { progress.style.display = 'none'; bar.style.width = '0%'; btn.textContent = '仮配置に反映 (' + document.getElementById('adoptCount').textContent + '件)'; btn.disabled = false; }, 1000);
+    })
+    .catch(function(err) {
+      bar.style.width = '0%';
+      progress.style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = '仮配置に反映 (' + document.getElementById('adoptCount').textContent + '件)';
+      showToast('通信エラー: ' + err.message);
+    });
+  };
+
+  function renderKanbanPool(data) {
+    var pool = document.getElementById('kanbanPool');
+    var cardsDiv = document.getElementById('kanbanCards');
+    cardsDiv.innerHTML = '';
+
+    // Collect all staff (submitted + not submitted)
+    var allStaff = [];
+    var sub = (data.submissionStatus || {});
+    var submitted = sub.submitted || [];
+    var notSubmitted = sub.notSubmitted || [];
+    var seen = {};
+
+    for (var i = 0; i < submitted.length; i++) {
+      var s = submitted[i];
+      var key = s.employeeNo || s.empNo || '';
+      if (!seen[key]) {
+        seen[key] = true;
+        allStaff.push({ empNo: key, name: s.name || '' });
+      }
+    }
+    for (var j = 0; j < notSubmitted.length; j++) {
+      var ns = notSubmitted[j];
+      var nsKey = ns.employeeNo || ns.empNo || '';
+      if (!seen[nsKey]) {
+        seen[nsKey] = true;
+        allStaff.push({ empNo: nsKey, name: ns.name || '' });
+      }
+    }
+
+    if (allStaff.length === 0) { pool.style.display = 'none'; return; }
+
+    allStaff.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+    for (var k = 0; k < allStaff.length; k++) {
+      var card = document.createElement('span');
+      card.className = 'kanban-card';
+      card.setAttribute('data-empno', allStaff[k].empNo);
+      card.setAttribute('data-name', allStaff[k].name);
+      card.innerHTML = escapeHtml(allStaff[k].name) + '<span class="kc-empno">' + escapeHtml(allStaff[k].empNo) + '</span>';
+      card.onclick = (function(emp) { return function() { selectKanbanEmployee(emp.empNo, emp.name); }; })(allStaff[k]);
+      cardsDiv.appendChild(card);
+    }
+
+    pool.style.display = 'block';
+  }
+
+  function selectKanbanEmployee(empNo, name) {
+    // Toggle selection
+    if (kanbanSelectedEmp && kanbanSelectedEmp.empNo === empNo) {
+      kanbanSelectedEmp = null;
+    } else {
+      kanbanSelectedEmp = { empNo: empNo, name: name };
+    }
+
+    // Update card highlights
+    var cards = document.querySelectorAll('#kanbanCards .kanban-card');
+    for (var i = 0; i < cards.length; i++) {
+      cards[i].classList.toggle('selected', kanbanSelectedEmp && cards[i].getAttribute('data-empno') === empNo);
+    }
+
+    // Update header highlights
+    updateKanbanHeaderHighlight();
+  }
+
+  function updateKanbanHeaderHighlight() {
+    var headers = document.querySelectorAll('.pref-grid-date-header');
+    for (var i = 0; i < headers.length; i++) {
+      if (kanbanSelectedEmp) {
+        headers[i].classList.add('clickable');
+      } else {
+        headers[i].classList.remove('clickable');
+      }
+    }
+  }
+
+  function pasteKanbanEmployee(dayNum) {
+    if (!kanbanSelectedEmp) return;
+
+    var empNo = kanbanSelectedEmp.empNo;
+    var name = kanbanSelectedEmp.name;
+
+    // Check if already has entry for this emp+day
+    var stateKey = empNo + '|' + dayNum;
+    if (prefAdoptionState[stateKey]) {
+      showToast(name + 'は' + dayNum + '日に既に登録済みです');
+      return;
+    }
+
+    addKanbanRowToGrid(dayNum, empNo, name);
+  }
+
+  function addKanbanRowToGrid(dayNum, empNo, name) {
+    var tbody = document.getElementById('prefGridBody');
+    if (!tbody) return;
+
+    var daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    var stateKey = empNo + '|' + dayNum;
+
+    // Facility options
+    var facOptionsHtml = '<option value="">--</option>';
+    for (var fo = 0; fo < cachedFacilityList.length; fo++) {
+      facOptionsHtml += '<option value="' + escapeHtml(cachedFacilityList[fo].name) + '" data-id="' + escapeHtml(cachedFacilityList[fo].id || '') + '" data-area="' + escapeHtml(cachedFacilityList[fo].area || '') + '">' + escapeHtml(cachedFacilityList[fo].name) + '</option>';
+    }
+
+    // Find or create a row for this employee
+    var existingRow = null;
+    var rows = tbody.querySelectorAll('tr');
+    for (var r = 0; r < rows.length; r++) {
+      var nameCell = rows[r].querySelector('.staff-name-cell');
+      if (nameCell && nameCell.getAttribute('data-empno') === empNo) {
+        existingRow = rows[r];
+        break;
+      }
+    }
+
+    if (existingRow) {
+      // Employee row exists — fill the specific day cell
+      var cells = existingRow.querySelectorAll('td');
+      // cells[0] is name, cells[dayNum] is the day
+      if (dayNum < cells.length) {
+        var td = cells[dayNum];
+        if (td.classList.contains('available')) {
+          showToast(name + 'は' + dayNum + '日に既に登録済みです');
+          return;
+        }
+        td.className = 'available';
+        td.innerHTML = '';
+        appendAdoptControls(td, stateKey, empNo, name, dayNum, facOptionsHtml);
+      }
+    } else {
+      // Create new row
+      var row = document.createElement('tr');
+      row.style.background = '#fffbeb';
+
+      var nc = document.createElement('td');
+      nc.className = 'staff-name-cell';
+      nc.textContent = name;
+      nc.setAttribute('data-empno', empNo);
+      row.appendChild(nc);
+
+      for (var d = 1; d <= daysInMonth; d++) {
+        var td = document.createElement('td');
+        if (d === dayNum) {
+          td.className = 'available';
+          appendAdoptControls(td, empNo + '|' + d, empNo, name, d, facOptionsHtml);
+        }
+        row.appendChild(td);
+      }
+      tbody.appendChild(row);
+    }
+
+    kanbanAddedRows.push({ dayNum: dayNum, empNo: empNo, name: name });
+    showToast(name + 'を' + dayNum + '日に追加しました');
+  }
+
+  function appendAdoptControls(td, stateKey, empNo, name, dayNum, facOptionsHtml) {
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'pref-adopt-checkbox';
+    cb.setAttribute('data-key', stateKey);
+    cb.onchange = (function(key) { return function() { onPrefCheckChange(key, this); }; })(stateKey);
+    td.appendChild(cb);
+
+    var timeInp = document.createElement('input');
+    timeInp.type = 'text';
+    timeInp.className = 'pref-time-input';
+    timeInp.value = '17時～翌9時';
+    timeInp.setAttribute('data-key', stateKey);
+    timeInp.onchange = (function(key) { return function() { onPrefTimeChange(key, this.value); }; })(stateKey);
+    td.appendChild(timeInp);
+
+    var facSel = document.createElement('select');
+    facSel.className = 'pref-facility-select';
+    facSel.innerHTML = facOptionsHtml;
+    facSel.setAttribute('data-key', stateKey);
+    facSel.onchange = (function(key) { return function() { onPrefFacilityChange(key, this); }; })(stateKey);
+    td.appendChild(facSel);
+
+    prefAdoptionState[stateKey] = {
+      checked: false,
+      timeSlot: '17時～翌9時',
+      facility: '',
+      facilityId: '',
+      area: '',
+      empNo: empNo,
+      name: name,
+      dayNum: dayNum
+    };
+  }
+
+  // ========================================
+  // Tab 5: Allocation Management
   // ========================================
 
   function loadAllocationData() {

@@ -353,6 +353,19 @@ function getAvailableStaff(targetMonth, date, timeSlot, facilityId) {
   return candidates;
 }
 
+/**
+ * 仮配置を一括追加
+ * @param {Array<Object>} assignments - 配置データ配列
+ * @return {Object} { success, count, details }
+ */
+function bulkAddTentativeAssignments(assignments) {
+  var results = [];
+  for (var i = 0; i < assignments.length; i++) {
+    results.push(addTentativeAssignment(assignments[i]));
+  }
+  return { success: true, count: results.length, details: results };
+}
+
 // ===== Private helpers =====
 
 /**

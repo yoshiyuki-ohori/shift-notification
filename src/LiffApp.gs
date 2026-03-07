@@ -1002,6 +1002,20 @@ function handleConfirmAllocations_(body) {
 }
 
 /**
+ * 一括仮配置追加 (POST)
+ * body: { action: 'bulkAddAssignments', key, assignments: [...] }
+ */
+function handleBulkAddAssignments_(body) {
+  try {
+    var result = bulkAddTentativeAssignments(body.assignments || []);
+    return jsonResponse_(result);
+  } catch (e) {
+    Logger.log('handleBulkAddAssignments_ error: ' + e.toString());
+    return jsonResponse_({ error: e.toString() }, 500);
+  }
+}
+
+/**
  * 仮配置クリア (POST)
  * body: { action: 'clearAllocations', key, month }
  */
