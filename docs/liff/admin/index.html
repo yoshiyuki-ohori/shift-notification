@@ -298,9 +298,56 @@
   .pref-not-submitted-list .names { font-size: 13px; color: #555; line-height: 1.8; }
   .pref-not-submitted-list .names span { display: inline-block; background: #FFF0F0; padding: 2px 10px; border-radius: 6px; margin: 2px 4px 2px 0; white-space: nowrap; }
 
+  /* Day selector bar */
+  .day-selector-bar { display: flex; gap: 4px; padding: 12px 24px; overflow-x: auto; background: #fff; margin: 0 24px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); -webkit-overflow-scrolling: touch; }
+  .day-chip { display: flex; flex-direction: column; align-items: center; min-width: 44px; padding: 6px 8px; border-radius: 8px; border: 2px solid transparent; cursor: pointer; font-size: 12px; font-weight: 600; background: #f0f2f5; transition: all 0.15s; user-select: none; flex-shrink: 0; }
+  .day-chip:hover { background: #e0f7f5; border-color: #4ECDC4; }
+  .day-chip.active { background: #4ECDC4; color: #fff; border-color: #3dbdb5; }
+  .day-chip.sunday { color: #FF6B6B; }
+  .day-chip.saturday { color: #2980b9; }
+  .day-chip.active.sunday, .day-chip.active.saturday { color: #fff; }
+  .day-chip .day-num { font-size: 16px; font-weight: 700; line-height: 1.2; }
+  .day-chip .day-dow { font-size: 10px; opacity: 0.7; }
+  .day-chip .day-badge { background: rgba(0,0,0,0.1); color: inherit; font-size: 9px; padding: 1px 5px; border-radius: 8px; margin-top: 2px; }
+  .day-chip.active .day-badge { background: rgba(255,255,255,0.3); }
+
+  /* Kanban board */
+  .kanban-toolbar { display: flex; gap: 12px; padding: 12px 24px; align-items: center; flex-wrap: wrap; background: #fff; margin: 0 24px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .kanban-toolbar button { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; background: #4ECDC4; color: #fff; }
+  .kanban-toolbar button:hover { background: #3dbdb5; }
+  .kanban-toolbar button:disabled { background: #ccc; cursor: not-allowed; }
+  .kanban-toolbar .placement-count { font-size: 13px; font-weight: 600; color: #555; }
+  .kanban-progress { flex: 1; min-width: 100px; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+  .kanban-progress-bar { height: 100%; background: #4ECDC4; border-radius: 4px; transition: width 0.3s; width: 0%; }
+
+  .kanban-board { display: flex; gap: 12px; padding: 0 24px 24px; overflow-x: auto; min-height: 300px; -webkit-overflow-scrolling: touch; }
+  .kanban-lane { background: #fff; border-radius: 12px; min-width: 180px; max-width: 240px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); display: flex; flex-direction: column; }
+  .kanban-lane.pool-lane { background: #f0f2f5; border: 2px dashed #ccc; min-width: 200px; }
+  .kanban-lane-header { padding: 12px 14px; border-bottom: 1px solid #eee; font-size: 13px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; justify-content: space-between; }
+  .kanban-lane-header .lane-count { font-size: 11px; font-weight: 600; background: #eee; color: #666; padding: 2px 8px; border-radius: 10px; }
+  .kanban-lane.pool-lane .kanban-lane-header { color: #555; }
+  .kanban-lane-body { flex: 1; padding: 8px; min-height: 60px; display: flex; flex-direction: column; gap: 6px; }
+  .kanban-lane-body.drag-over { background: #e0f7f5; border-radius: 0 0 12px 12px; }
+
+  /* Staff card in kanban */
+  .staff-card { background: #fff; border-radius: 8px; padding: 8px 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); cursor: grab; user-select: none; border-left: 3px solid #4ECDC4; transition: box-shadow 0.15s, opacity 0.15s; }
+  .staff-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .staff-card.dragging { opacity: 0.5; }
+  .staff-card .sc-header { display: flex; align-items: center; justify-content: space-between; }
+  .staff-card .sc-name { font-size: 12px; font-weight: 700; color: #1a1a2e; }
+  .staff-card .sc-empno { font-size: 10px; color: #999; }
+  .staff-card .sc-remove { background: none; border: none; color: #ccc; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+  .staff-card .sc-remove:hover { color: #FF6B6B; }
+  .staff-card .sc-time-wrap { margin-top: 4px; }
+  .staff-card .sc-time-input { width: 100%; padding: 3px 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px; }
+  .staff-card .sc-time-input:focus { border-color: #4ECDC4; outline: none; }
+  .pool-lane .staff-card { border-left-color: #999; cursor: grab; }
+  .staff-card.tap-selected { border-color: #FFD93D; box-shadow: 0 0 0 2px #FFD93D; }
+
+  /* Summary grid (read-only) */
   .pref-grid-wrap { padding: 0 24px 24px; overflow-x: auto; }
   .pref-grid { border-collapse: collapse; width: max-content; min-width: 100%; font-size: 12px; }
-  .pref-grid th, .pref-grid td { border: 1px solid #e0e0e0; padding: 4px 6px; text-align: center; min-width: 44px; vertical-align: top; }
+  .pref-grid th, .pref-grid td { border: 1px solid #e0e0e0; padding: 4px 6px; text-align: center; min-width: 44px; vertical-align: middle; }
   .pref-grid thead th { background: #1a1a2e; color: #fff; font-weight: 600; position: sticky; top: 0; z-index: 2; }
   .pref-grid thead th.sun { background: #c0392b; }
   .pref-grid thead th.sat { background: #2980b9; }
@@ -308,38 +355,12 @@
   .pref-grid tbody tr:nth-child(even) .staff-name-cell { background: #fafafa; }
   .pref-grid tbody tr:nth-child(even) td { background: #fafafa; }
   .pref-grid td.available { background: #e8f8f6; }
+  .pref-grid td.placed { background: #d0f0ec; }
   .pref-grid tbody tr:nth-child(even) td.available { background: #d0f0ec; }
-  .pref-grid .time-chip { display: block; font-size: 10px; color: #2a9d8f; font-weight: 600; white-space: nowrap; }
-  .pref-grid .facility-chip { display: block; font-size: 9px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+  .pref-grid .facility-chip { display: block; font-size: 9px; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
   .pref-grid tfoot td { background: #f8f8f8; font-weight: 700; }
   .pref-grid tfoot td.low-count { background: #FFE0E0; color: #CC3333; }
   .pref-grid .corner-cell { position: sticky; left: 0; z-index: 3; background: #1a1a2e; }
-
-  /* Preferences adoption & kanban */
-  .pref-toolbar { display: flex; gap: 12px; padding: 12px 24px; align-items: center; flex-wrap: wrap; background: #fff; margin: 0 24px 12px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .pref-toolbar label { font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-  .pref-toolbar button { padding: 8px 16px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; background: #4ECDC4; color: #fff; }
-  .pref-toolbar button:hover { background: #3dbdb5; }
-  .pref-toolbar button:disabled { background: #ccc; cursor: not-allowed; }
-  .pref-adopt-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #4ECDC4; }
-  .pref-time-input { width: 90px; padding: 2px 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 10px; }
-  .pref-time-input:focus { border-color: #4ECDC4; outline: none; }
-  .pref-facility-select { width: 80px; padding: 1px 2px; border: 1px solid #ddd; border-radius: 4px; font-size: 9px; }
-  .pref-facility-select:focus { border-color: #4ECDC4; outline: none; }
-  .pref-progress { flex: 1; min-width: 100px; height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
-  .pref-progress-bar { height: 100%; background: #4ECDC4; border-radius: 4px; transition: width 0.3s; width: 0%; }
-  .kanban-pool { background: #fff; margin: 16px 24px; border-radius: 12px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .kanban-pool h4 { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: #1a1a2e; }
-  .kanban-cards { display: flex; flex-wrap: wrap; gap: 6px; }
-  .kanban-card { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; background: #f0f2f5; color: #333; border: 2px solid transparent; transition: all 0.15s; user-select: none; }
-  .kanban-card:hover { background: #e0f7f5; border-color: #4ECDC4; }
-  .kanban-card.selected { background: #4ECDC4; color: #fff; border-color: #3dbdb5; }
-  .kanban-card .kc-empno { font-size: 10px; color: #888; margin-left: 4px; }
-  .kanban-card.selected .kc-empno { color: rgba(255,255,255,0.7); }
-  .pref-grid thead th.drop-target { background: #4ECDC4 !important; cursor: pointer; }
-  .pref-grid-date-header { cursor: default; }
-  .pref-grid-date-header.clickable { cursor: pointer; }
-  .pref-grid-date-header.clickable:hover { opacity: 0.8; }
 
   /* Responsive */
   @media (max-width: 768px) {
@@ -371,7 +392,7 @@
 </div>
 
 <div class="header">
-  <h1>配置状況ダッシュボード <span style="font-size:11px;opacity:0.5">v4.0</span></h1>
+  <h1>配置状況ダッシュボード <span style="font-size:11px;opacity:0.5">v5.0</span></h1>
   <div class="month-nav">
     <button onclick="changeMonth(-1)" title="前月">&#9664;</button>
     <span class="current-month" id="currentMonth"></span>
@@ -457,7 +478,7 @@
   </div>
 </div>
 
-<!-- Tab 4: Shift Preferences Overview -->
+<!-- Tab 4: Shift Preferences Overview (Kanban Board) -->
 <div class="tab-content" id="tab-preferences">
   <div class="pref-summary" id="prefSummary" style="display:none;">
     <div class="pref-summary-card">
@@ -473,21 +494,19 @@
       <div class="pref-value total-days" id="prefTotalDays">-</div>
     </div>
   </div>
-  <div class="pref-toolbar" id="prefToolbar" style="display:none;">
-    <label><input type="checkbox" id="prefSelectAll" class="pref-adopt-checkbox" onchange="toggleSelectAllPrefs()"> 全選択</label>
-    <button onclick="adoptPreferences()" id="btnAdoptPrefs" disabled>仮配置に反映 (<span id="adoptCount">0</span>件)</button>
-    <div class="pref-progress" id="prefProgress" style="display:none">
-      <div class="pref-progress-bar" id="prefProgressBar"></div>
-    </div>
-  </div>
   <div id="prefNotSubmittedList"></div>
-  <div class="content" id="prefContent">
-    <div class="loading"><p>タブを選択してデータを読み込みます</p></div>
+  <div id="daySelectorBar" style="display:none;"></div>
+  <div class="kanban-toolbar" id="kanbanToolbar" style="display:none;">
+    <span class="placement-count">配置数: <b id="placementCount">0</b>件</span>
+    <div class="kanban-progress" id="kanbanProgress" style="display:none">
+      <div class="kanban-progress-bar" id="kanbanProgressBar"></div>
+    </div>
+    <button onclick="adoptKanbanPlacements()" id="btnAdoptKanban" disabled>仮配置に反映</button>
   </div>
-  <div class="kanban-pool" id="kanbanPool" style="display:none;">
-    <h4>従業員プール（希望なし日に配置）</h4>
-    <div class="kanban-cards" id="kanbanCards"></div>
+  <div id="kanbanBoardArea">
+    <div class="loading" id="prefContent"><p>タブを選択してデータを読み込みます</p></div>
   </div>
+  <div id="prefSummaryGridWrap" style="display:none;"></div>
 </div>
 
 <!-- Tab 5: Allocation Management -->
@@ -630,17 +649,21 @@
 
       <!-- ===== シフト希望タブ ===== -->
       <div class="help-section">
-        <h3>シフト希望タブ</h3>
+        <h3>シフト希望タブ（施設別カンバンボード）</h3>
         <ol class="help-steps">
           <li><span class="action">提出状況を確認する</span><br><span class="detail">上部カードに提出済み人数・未提出人数・出勤可能日の合計が表示される。未提出者の名前はカード下に一覧表示される</span></li>
-          <li><span class="action">日付×職員グリッドを確認する</span><br><span class="detail">横軸が日付（1日～末日）、縦軸が提出済み職員名。出勤可能日は緑背景で表示される</span></li>
-          <li><span class="action">希望を採用して仮配置に反映する</span><br><span class="detail">出勤可能セルのチェックボックスをONにして時間帯・施設を編集 →「仮配置に反映」ボタンで一括送信</span></li>
-          <li><span class="action">希望なし日に職員を追加する（カンバン）</span><br><span class="detail">画面下部の「従業員プール」から名前カードをクリック → グリッド上部の日付ヘッダーをクリック → その日に行が追加される</span></li>
+          <li><span class="action">日付を選択する</span><br><span class="detail">日付チップバーから対象日をクリック。各チップに曜日と出勤可能人数が表示される</span></li>
+          <li><span class="action">職員を施設に配置する（PC）</span><br><span class="detail">左の「出勤可能プール」から職員カードをドラッグして、配置先の施設レーンにドロップする</span></li>
+          <li><span class="action">職員を施設に配置する（モバイル）</span><br><span class="detail">プールの職員カードをタップ（黄枠が付く）→ 配置先の施設レーンヘッダーをタップ → カードが移動する</span></li>
+          <li><span class="action">時間帯を編集する</span><br><span class="detail">施設レーン内のカードに時間帯入力欄があるので編集する（デフォルト: 17時～翌9時）</span></li>
+          <li><span class="action">配置を取り消す</span><br><span class="detail">施設レーン内のカードの ×ボタンをクリック → プールに戻る</span></li>
+          <li><span class="action">仮配置に反映する</span><br><span class="detail">全日分の配置をまとめて「仮配置に反映」ボタンで送信。配置管理タブに反映される</span></li>
         </ol>
         <div class="help-legend">
-          <div class="help-legend-item"><span class="swatch" style="background:#e8f8f6;"></span> 出勤可能日</div>
-          <div class="help-legend-item"><span class="swatch" style="background:#FFE0E0;"></span> 合計人数が少ない日</div>
-          <div class="help-legend-item"><span class="swatch" style="background:#fffbeb;"></span> カンバンで追加された行</div>
+          <div class="help-legend-item"><span class="swatch" style="background:#f0f2f5;border:2px dashed #ccc;"></span> 出勤可能プール</div>
+          <div class="help-legend-item"><span class="swatch" style="background:#fff;border-left:3px solid #4ECDC4;"></span> 施設レーン内の職員カード</div>
+          <div class="help-legend-item"><span class="swatch" style="background:#d0f0ec;"></span> サマリーグリッド: 配置済み</div>
+          <div class="help-legend-item"><span class="swatch" style="background:#e8f8f6;"></span> サマリーグリッド: 出勤可能</div>
         </div>
       </div>
 
@@ -755,9 +778,6 @@
   var allocRequirements = {};   // staffing requirements
   var pickerContext = null;     // { month, date, timeSlot, facility, facilityId, area }
   var pickerSelected = null;    // { empNo, name }
-  var prefAdoptionState = {};   // { 'empNo|dayNum': { checked, timeSlot, facility, facilityId, area } }
-  var kanbanSelectedEmp = null; // { empNo, name } or null
-  var kanbanAddedRows = [];     // grid に手動追加された行
   var cachedFacilityList = [];  // facilityOverview から取得
   var cachedPrefsData = null;   // 最新のprefsデータキャッシュ
 
@@ -1531,19 +1551,26 @@
   }
 
   // ========================================
-  // Tab 4: Shift Preferences Overview
+  // Tab 4: Shift Preferences - Facility Kanban Board
   // ========================================
+
+  var selectedDay = 1;
+  var kanbanPlacements = {};       // { dayNum: { facilityName: [{ empNo, name, timeSlot }] } }
+  var kanbanAvailablePool = {};    // { dayNum: [{ empNo, name }] }
+  var currentDragSource = null;    // drag source lane name
+  var mobileTapSelected = null;    // { empNo, name, sourceLane } for mobile tap-to-place
 
   function loadPreferencesData() {
     var content = document.getElementById('prefContent');
     content.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px;">シフト希望を読み込み中...</p></div>';
     document.getElementById('prefSummary').style.display = 'none';
     document.getElementById('prefNotSubmittedList').innerHTML = '';
-    document.getElementById('prefToolbar').style.display = 'none';
-    document.getElementById('kanbanPool').style.display = 'none';
-    prefAdoptionState = {};
-    kanbanSelectedEmp = null;
-    kanbanAddedRows = [];
+    document.getElementById('kanbanToolbar').style.display = 'none';
+    document.getElementById('daySelectorBar').style.display = 'none';
+    document.getElementById('prefSummaryGridWrap').style.display = 'none';
+    kanbanPlacements = {};
+    kanbanAvailablePool = {};
+    mobileTapSelected = null;
 
     var mm = ('0' + currentMonth).slice(-2);
     var targetMonth = currentYear + '-' + mm;
@@ -1577,38 +1604,33 @@
       }
 
       cachedPrefsData = data;
-      renderPreferences(data);
+      renderPreferencesKanban(data);
       tabDataLoaded.preferences = true;
     }).catch(function(err) {
       content.innerHTML = '<div class="error-msg">通信エラー: ' + escapeHtml(err.message || String(err)) + '</div>';
     });
   }
 
-  function renderPreferences(data) {
+  function renderPreferencesKanban(data) {
     var content = document.getElementById('prefContent');
     content.innerHTML = '';
 
-    // Submission status summary
     var subStatus = data.submissionStatus || {};
     var submitted = subStatus.submitted || [];
     var notSubmitted = subStatus.notSubmitted || [];
     var prefs = data.preferences || [];
 
-    // Count unique available dates
+    // Count available dates
     var totalAvailableDays = 0;
     var byDate = data.byDate || {};
     var dateKeys = Object.keys(byDate);
     for (var dk = 0; dk < dateKeys.length; dk++) {
       totalAvailableDays += (byDate[dateKeys[dk]] || []).length;
     }
-    // Fallback: count from preferences array
-    if (totalAvailableDays === 0 && prefs.length > 0) {
-      totalAvailableDays = prefs.length;
-    }
+    if (totalAvailableDays === 0 && prefs.length > 0) totalAvailableDays = prefs.length;
 
     // Update summary cards
-    var summary = document.getElementById('prefSummary');
-    summary.style.display = 'flex';
+    document.getElementById('prefSummary').style.display = 'flex';
     document.getElementById('prefSubmitted').textContent = submitted.length;
     document.getElementById('prefNotSubmitted').textContent = notSubmitted.length;
     document.getElementById('prefTotalDays').textContent = totalAvailableDays;
@@ -1618,23 +1640,20 @@
       var nsDiv = document.getElementById('prefNotSubmittedList');
       var nsHtml = '<div class="pref-not-submitted-list"><h4>未提出者 (' + notSubmitted.length + '人)</h4><div class="names">';
       for (var ni = 0; ni < notSubmitted.length; ni++) {
-        var nsName = notSubmitted[ni].name || notSubmitted[ni];
-        nsHtml += '<span>' + escapeHtml(nsName) + '</span>';
+        nsHtml += '<span>' + escapeHtml(notSubmitted[ni].name || notSubmitted[ni]) + '</span>';
       }
       nsHtml += '</div></div>';
       nsDiv.innerHTML = nsHtml;
     }
 
-    // Build preference grid (date × staff)
     if (submitted.length === 0 && prefs.length === 0) {
       content.innerHTML = '<div class="loading"><p>この月のシフト希望データはありません</p></div>';
       return;
     }
 
     var daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-    var dowLabels = ['日','月','火','水','木','金','土'];
 
-    // Build staff preferences lookup: staffName → { date → [prefs] }
+    // Build staff preferences lookup
     var staffPrefs = {};
     var staffOrder = [];
     for (var si = 0; si < submitted.length; si++) {
@@ -1657,19 +1676,12 @@
         staffOrder.push(pKey);
       }
       var pDate = p.date || '';
-      // Normalize date to day number
       var dayNum = 0;
       if (pDate) {
         var dateParts = pDate.split('/');
-        if (dateParts.length >= 3) {
-          dayNum = parseInt(dateParts[2], 10);
-        } else if (dateParts.length === 1 && /^\d+$/.test(pDate)) {
-          dayNum = parseInt(pDate, 10);
-        } else {
-          // Try yyyy-mm-dd format
-          var dashParts = pDate.split('-');
-          if (dashParts.length >= 3) dayNum = parseInt(dashParts[2], 10);
-        }
+        if (dateParts.length >= 3) dayNum = parseInt(dateParts[2], 10);
+        else if (dateParts.length === 1 && /^\d+$/.test(pDate)) dayNum = parseInt(pDate, 10);
+        else { var dashParts = pDate.split('-'); if (dashParts.length >= 3) dayNum = parseInt(dashParts[2], 10); }
       }
       if (dayNum > 0 && dayNum <= daysInMonth) {
         if (!staffPrefs[pKey].dates[dayNum]) staffPrefs[pKey].dates[dayNum] = [];
@@ -1677,7 +1689,7 @@
       }
     }
 
-    // Also populate from byDate if staffPrefs is sparse
+    // Also from byDate
     for (var bd = 0; bd < dateKeys.length; bd++) {
       var dKey = dateKeys[bd];
       var entries = byDate[dKey];
@@ -1686,7 +1698,6 @@
       if (bdParts.length >= 3) bdDay = parseInt(bdParts[2], 10);
       else { var bdDash = dKey.split('-'); if (bdDash.length >= 3) bdDay = parseInt(bdDash[2], 10); }
       if (bdDay <= 0 || bdDay > daysInMonth) continue;
-
       for (var be = 0; be < entries.length; be++) {
         var bEntry = entries[be];
         var bName = bEntry.name || bEntry.employeeName || '';
@@ -1697,7 +1708,6 @@
           staffOrder.push(bKey);
         }
         if (!staffPrefs[bKey].dates[bdDay]) staffPrefs[bKey].dates[bdDay] = [];
-        // Avoid duplicates
         var alreadyHas = false;
         var existing = staffPrefs[bKey].dates[bdDay];
         for (var ex = 0; ex < existing.length; ex++) {
@@ -1707,18 +1717,14 @@
       }
     }
 
-    // Remove duplicates from staffOrder
+    // Deduplicate staffOrder
     var seen = {};
     var uniqueOrder = [];
     for (var uo = 0; uo < staffOrder.length; uo++) {
       if (!seen[staffOrder[uo]]) { seen[staffOrder[uo]] = true; uniqueOrder.push(staffOrder[uo]); }
     }
     staffOrder = uniqueOrder;
-
-    // Sort staff by name
-    staffOrder.sort(function(a, b) {
-      return staffPrefs[a].name.localeCompare(staffPrefs[b].name);
-    });
+    staffOrder.sort(function(a, b) { return staffPrefs[a].name.localeCompare(staffPrefs[b].name); });
 
     // Day totals
     var dayTotals = {};
@@ -1730,20 +1736,319 @@
       dayTotals[dt] = count;
     }
 
-    // Find threshold for low count (less than average * 0.5)
-    var totalCount = 0;
-    for (var tc = 1; tc <= daysInMonth; tc++) totalCount += dayTotals[tc];
-    var avgCount = staffOrder.length > 0 ? totalCount / daysInMonth : 0;
-    var lowThreshold = Math.max(1, Math.floor(avgCount * 0.5));
+    // Initialize kanban pools for each day
+    kanbanPlacements = {};
+    kanbanAvailablePool = {};
+    for (var day = 1; day <= daysInMonth; day++) {
+      kanbanPlacements[day] = {};
+      kanbanAvailablePool[day] = [];
+      for (var so2 = 0; so2 < staffOrder.length; so2++) {
+        var sp = staffPrefs[staffOrder[so2]];
+        if (sp.dates[day] && sp.dates[day].length > 0) {
+          kanbanAvailablePool[day].push({ empNo: sp.empNo, name: sp.name });
+        }
+      }
+    }
 
-    // Build table
+    // Store staffPrefs and staffOrder for summary grid
+    cachedPrefsData._staffPrefs = staffPrefs;
+    cachedPrefsData._staffOrder = staffOrder;
+    cachedPrefsData._dayTotals = dayTotals;
+    cachedPrefsData._daysInMonth = daysInMonth;
+
+    // Render day selector
+    renderDaySelector(daysInMonth, dayTotals);
+
+    // Show toolbar
+    document.getElementById('kanbanToolbar').style.display = 'flex';
+
+    // Select first day
+    selectDay(1);
+
+    // Render summary grid
+    renderSummaryGrid(staffPrefs, staffOrder, daysInMonth, dayTotals);
+  }
+
+  function renderDaySelector(daysInMonth, dayTotals) {
+    var bar = document.getElementById('daySelectorBar');
+    bar.style.display = 'flex';
+    bar.innerHTML = '';
+    bar.className = 'day-selector-bar';
+    var dowLabels = ['日','月','火','水','木','金','土'];
+
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateObj = new Date(currentYear, currentMonth - 1, d);
+      var dow = dateObj.getDay();
+      var chip = document.createElement('div');
+      chip.className = 'day-chip';
+      if (dow === 0) chip.classList.add('sunday');
+      if (dow === 6) chip.classList.add('saturday');
+      if (d === selectedDay) chip.classList.add('active');
+      chip.setAttribute('data-day', d);
+      chip.innerHTML =
+        '<span class="day-num">' + d + '</span>' +
+        '<span class="day-dow">' + dowLabels[dow] + '</span>' +
+        '<span class="day-badge">' + (dayTotals[d] || 0) + '人</span>';
+      chip.onclick = (function(day) { return function() { selectDay(day); }; })(d);
+      bar.appendChild(chip);
+    }
+  }
+
+  function selectDay(dayNum) {
+    selectedDay = dayNum;
+    // Update chip active state
+    var chips = document.querySelectorAll('.day-chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].classList.toggle('active', parseInt(chips[i].getAttribute('data-day'), 10) === dayNum);
+    }
+    // Scroll active chip into view
+    var activeChip = document.querySelector('.day-chip.active');
+    if (activeChip) activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+    mobileTapSelected = null;
+    renderKanbanBoard(dayNum);
+  }
+  window.selectDay = selectDay;
+
+  function renderKanbanBoard(dayNum) {
+    var area = document.getElementById('kanbanBoardArea');
+    area.innerHTML = '';
+
+    var board = document.createElement('div');
+    board.className = 'kanban-board';
+
+    // Build placed empNos set for this day
+    var placedEmpNos = {};
+    var placements = kanbanPlacements[dayNum] || {};
+    var facNames = Object.keys(placements);
+    for (var fi = 0; fi < facNames.length; fi++) {
+      var cards = placements[facNames[fi]];
+      for (var ci = 0; ci < cards.length; ci++) {
+        placedEmpNos[cards[ci].empNo] = true;
+      }
+    }
+
+    // Pool lane (available staff not yet placed)
+    var poolLane = document.createElement('div');
+    poolLane.className = 'kanban-lane pool-lane';
+    var poolItems = (kanbanAvailablePool[dayNum] || []).filter(function(s) { return !placedEmpNos[s.empNo]; });
+    var poolHeader = document.createElement('div');
+    poolHeader.className = 'kanban-lane-header';
+    poolHeader.innerHTML = '出勤可能プール <span class="lane-count">' + poolItems.length + '</span>';
+    poolLane.appendChild(poolHeader);
+
+    var poolBody = document.createElement('div');
+    poolBody.className = 'kanban-lane-body';
+    poolBody.setAttribute('data-lane', '__pool__');
+    for (var pi = 0; pi < poolItems.length; pi++) {
+      poolBody.appendChild(createStaffCard(poolItems[pi].empNo, poolItems[pi].name, null, { inPool: true }));
+    }
+    setupLaneDropHandlers(poolBody);
+    poolLane.appendChild(poolBody);
+    board.appendChild(poolLane);
+
+    // Facility lanes
+    for (var fli = 0; fli < cachedFacilityList.length; fli++) {
+      var fac = cachedFacilityList[fli];
+      var lane = document.createElement('div');
+      lane.className = 'kanban-lane';
+
+      var facPlacements = (kanbanPlacements[dayNum] && kanbanPlacements[dayNum][fac.name]) || [];
+      var laneHeader = document.createElement('div');
+      laneHeader.className = 'kanban-lane-header';
+      laneHeader.innerHTML = escapeHtml(fac.name) + ' <span class="lane-count">' + facPlacements.length + '</span>';
+      lane.appendChild(laneHeader);
+
+      var laneBody = document.createElement('div');
+      laneBody.className = 'kanban-lane-body';
+      laneBody.setAttribute('data-lane', fac.name);
+
+      for (var fc = 0; fc < facPlacements.length; fc++) {
+        var fp = facPlacements[fc];
+        laneBody.appendChild(createStaffCard(fp.empNo, fp.name, fp.timeSlot, { inPool: false, facilityName: fac.name }));
+      }
+      setupLaneDropHandlers(laneBody);
+      lane.appendChild(laneBody);
+
+      // Mobile: tap lane header to place selected card
+      (function(facName, lBody) {
+        laneHeader.addEventListener('click', function() {
+          if (mobileTapSelected) {
+            moveStaffBetweenLanes(mobileTapSelected.empNo, mobileTapSelected.name, mobileTapSelected.sourceLane, facName);
+            mobileTapSelected = null;
+            renderKanbanBoard(selectedDay);
+          }
+        });
+      })(fac.name, laneBody);
+
+      board.appendChild(lane);
+    }
+
+    area.appendChild(board);
+    updatePlacementCount();
+  }
+
+  function createStaffCard(empNo, name, timeSlot, opts) {
+    var card = document.createElement('div');
+    card.className = 'staff-card';
+    card.setAttribute('draggable', 'true');
+    card.setAttribute('data-empno', empNo);
+    card.setAttribute('data-name', name);
+
+    var headerDiv = document.createElement('div');
+    headerDiv.className = 'sc-header';
+    headerDiv.innerHTML = '<span class="sc-name">' + escapeHtml(name) + '</span><span class="sc-empno">' + escapeHtml(empNo) + '</span>';
+
+    if (!opts.inPool) {
+      var removeBtn = document.createElement('button');
+      removeBtn.className = 'sc-remove';
+      removeBtn.innerHTML = '&times;';
+      removeBtn.title = 'プールに戻す';
+      (function(en, nm) {
+        removeBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          moveCardToPool(en, nm);
+          renderKanbanBoard(selectedDay);
+        });
+      })(empNo, name);
+      headerDiv.appendChild(removeBtn);
+    }
+    card.appendChild(headerDiv);
+
+    // Time slot input (only in facility lanes)
+    if (!opts.inPool) {
+      var timeWrap = document.createElement('div');
+      timeWrap.className = 'sc-time-wrap';
+      var timeInput = document.createElement('input');
+      timeInput.type = 'text';
+      timeInput.className = 'sc-time-input';
+      timeInput.value = timeSlot || '17時～翌9時';
+      timeInput.placeholder = '時間帯';
+      (function(en, facName) {
+        timeInput.addEventListener('change', function() {
+          var placements = kanbanPlacements[selectedDay][facName] || [];
+          for (var i = 0; i < placements.length; i++) {
+            if (placements[i].empNo === en) { placements[i].timeSlot = this.value; break; }
+          }
+        });
+      })(empNo, opts.facilityName);
+      timeWrap.appendChild(timeInput);
+      card.appendChild(timeWrap);
+    }
+
+    // Drag events
+    card.addEventListener('dragstart', function(e) {
+      card.classList.add('dragging');
+      var lane = card.closest('.kanban-lane-body');
+      currentDragSource = lane ? lane.getAttribute('data-lane') : '__pool__';
+      e.dataTransfer.setData('text/plain', JSON.stringify({ empNo: empNo, name: name }));
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    card.addEventListener('dragend', function() {
+      card.classList.remove('dragging');
+      currentDragSource = null;
+    });
+
+    // Mobile tap-to-select
+    handleCardTap(card, empNo, name);
+
+    return card;
+  }
+
+  function setupLaneDropHandlers(laneBody) {
+    laneBody.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      laneBody.classList.add('drag-over');
+    });
+    laneBody.addEventListener('dragleave', function(e) {
+      if (!laneBody.contains(e.relatedTarget)) {
+        laneBody.classList.remove('drag-over');
+      }
+    });
+    laneBody.addEventListener('drop', function(e) {
+      e.preventDefault();
+      laneBody.classList.remove('drag-over');
+      var destLane = laneBody.getAttribute('data-lane');
+      try {
+        var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (currentDragSource && currentDragSource !== destLane) {
+          moveStaffBetweenLanes(data.empNo, data.name, currentDragSource, destLane);
+          renderKanbanBoard(selectedDay);
+        }
+      } catch(err) { /* ignore */ }
+    });
+  }
+
+  function moveStaffBetweenLanes(empNo, name, srcLane, dstLane) {
+    var dayNum = selectedDay;
+    if (!kanbanPlacements[dayNum]) kanbanPlacements[dayNum] = {};
+
+    // Remove from source facility lane
+    if (srcLane && srcLane !== '__pool__') {
+      var srcArr = kanbanPlacements[dayNum][srcLane] || [];
+      kanbanPlacements[dayNum][srcLane] = srcArr.filter(function(c) { return c.empNo !== empNo; });
+    }
+
+    // Add to destination
+    if (dstLane === '__pool__') {
+      // Just remove from source, staff goes back to available pool automatically
+      return;
+    }
+
+    if (!kanbanPlacements[dayNum][dstLane]) kanbanPlacements[dayNum][dstLane] = [];
+    // Check duplicate
+    var dstArr = kanbanPlacements[dayNum][dstLane];
+    for (var i = 0; i < dstArr.length; i++) {
+      if (dstArr[i].empNo === empNo) {
+        showToast(name + 'は既に' + dstLane + 'に配置済みです');
+        return;
+      }
+    }
+    dstArr.push({ empNo: empNo, name: name, timeSlot: '17時～翌9時' });
+  }
+
+  function moveCardToPool(empNo, name) {
+    var dayNum = selectedDay;
+    if (!kanbanPlacements[dayNum]) return;
+    var facNames = Object.keys(kanbanPlacements[dayNum]);
+    for (var i = 0; i < facNames.length; i++) {
+      kanbanPlacements[dayNum][facNames[i]] = kanbanPlacements[dayNum][facNames[i]].filter(function(c) { return c.empNo !== empNo; });
+    }
+  }
+
+  function handleCardTap(card, empNo, name) {
+    card.addEventListener('click', function(e) {
+      if (e.target.classList.contains('sc-remove') || e.target.tagName === 'INPUT') return;
+      var lane = card.closest('.kanban-lane-body');
+      var sourceLane = lane ? lane.getAttribute('data-lane') : '__pool__';
+
+      // If already selected, deselect
+      if (mobileTapSelected && mobileTapSelected.empNo === empNo) {
+        mobileTapSelected = null;
+        var allCards = document.querySelectorAll('.staff-card');
+        for (var i = 0; i < allCards.length; i++) allCards[i].classList.remove('tap-selected');
+        return;
+      }
+
+      mobileTapSelected = { empNo: empNo, name: name, sourceLane: sourceLane };
+      var allCards = document.querySelectorAll('.staff-card');
+      for (var j = 0; j < allCards.length; j++) allCards[j].classList.remove('tap-selected');
+      card.classList.add('tap-selected');
+    });
+  }
+
+  function renderSummaryGrid(staffPrefs, staffOrder, daysInMonth, dayTotals) {
+    var wrap = document.getElementById('prefSummaryGridWrap');
+    wrap.style.display = 'block';
+    wrap.innerHTML = '<h4 style="padding:0 24px 8px;font-size:14px;font-weight:700;color:#555;">サマリー（読み取り専用）</h4>';
+
+    var dowLabels = ['日','月','火','水','木','金','土'];
+
     var table = document.createElement('table');
     table.className = 'pref-grid';
 
-    // Show toolbar
-    document.getElementById('prefToolbar').style.display = 'flex';
-
-    // Header row
+    // Header
     var thead = document.createElement('thead');
     var headerRow = document.createElement('tr');
     var cornerTh = document.createElement('th');
@@ -1753,32 +2058,22 @@
 
     for (var hd = 1; hd <= daysInMonth; hd++) {
       var th = document.createElement('th');
-      th.className = 'pref-grid-date-header';
       var hdDate = new Date(currentYear, currentMonth - 1, hd);
       var hdDow = hdDate.getDay();
-      if (hdDow === 0) th.className += ' sun';
-      else if (hdDow === 6) th.className += ' sat';
-      th.setAttribute('data-day', hd);
+      if (hdDow === 0) th.className = 'sun';
+      else if (hdDow === 6) th.className = 'sat';
       th.innerHTML = hd + '<br><span style="font-size:10px;">' + dowLabels[hdDow] + '</span>';
-      th.onclick = (function(day) { return function() { pasteKanbanEmployee(day); }; })(hd);
       headerRow.appendChild(th);
     }
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // Facility select options HTML
-    var facOptionsHtml = '<option value="">--</option>';
-    for (var fo = 0; fo < cachedFacilityList.length; fo++) {
-      facOptionsHtml += '<option value="' + escapeHtml(cachedFacilityList[fo].name) + '" data-id="' + escapeHtml(cachedFacilityList[fo].id || '') + '" data-area="' + escapeHtml(cachedFacilityList[fo].area || '') + '">' + escapeHtml(cachedFacilityList[fo].name) + '</option>';
-    }
-
-    // Body rows
+    // Body
     var tbody = document.createElement('tbody');
-    tbody.id = 'prefGridBody';
+    tbody.id = 'summaryGridBody';
     for (var ri = 0; ri < staffOrder.length; ri++) {
       var sInfo = staffPrefs[staffOrder[ri]];
       var row = document.createElement('tr');
-
       var nameCell = document.createElement('td');
       nameCell.className = 'staff-name-cell';
       nameCell.textContent = sInfo.name;
@@ -1789,54 +2084,7 @@
         var dayPrefs = sInfo.dates[cd] || [];
         if (dayPrefs.length > 0) {
           td.className = 'available';
-          var stateKey = sInfo.empNo + '|' + cd;
-          var origTime = '';
-          var origFac = '';
-          for (var dp = 0; dp < dayPrefs.length; dp++) {
-            if (dayPrefs[dp].timeSlot) origTime = dayPrefs[dp].timeSlot;
-            if (dayPrefs[dp].facility || dayPrefs[dp].facilityName) origFac = dayPrefs[dp].facility || dayPrefs[dp].facilityName;
-          }
-
-          // Checkbox
-          var cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.className = 'pref-adopt-checkbox';
-          cb.setAttribute('data-key', stateKey);
-          cb.setAttribute('data-empno', sInfo.empNo);
-          cb.setAttribute('data-name', sInfo.name);
-          cb.setAttribute('data-day', cd);
-          cb.onchange = (function(key) { return function() { onPrefCheckChange(key, this); }; })(stateKey);
-          td.appendChild(cb);
-
-          // Time input
-          var timeInp = document.createElement('input');
-          timeInp.type = 'text';
-          timeInp.className = 'pref-time-input';
-          timeInp.value = origTime || '17時～翌9時';
-          timeInp.setAttribute('data-key', stateKey);
-          timeInp.onchange = (function(key) { return function() { onPrefTimeChange(key, this.value); }; })(stateKey);
-          td.appendChild(timeInp);
-
-          // Facility select
-          var facSel = document.createElement('select');
-          facSel.className = 'pref-facility-select';
-          facSel.innerHTML = facOptionsHtml;
-          facSel.setAttribute('data-key', stateKey);
-          if (origFac) facSel.value = origFac;
-          facSel.onchange = (function(key) { return function() { onPrefFacilityChange(key, this); }; })(stateKey);
-          td.appendChild(facSel);
-
-          // Initialize state
-          prefAdoptionState[stateKey] = {
-            checked: false,
-            timeSlot: origTime || '17時～翌9時',
-            facility: origFac,
-            facilityId: '',
-            area: '',
-            empNo: sInfo.empNo,
-            name: sInfo.name,
-            dayNum: cd
-          };
+          td.textContent = '○';
         }
         row.appendChild(td);
       }
@@ -1844,7 +2092,12 @@
     }
     table.appendChild(tbody);
 
-    // Footer row (totals)
+    // Footer totals
+    var totalCount = 0;
+    for (var tc = 1; tc <= daysInMonth; tc++) totalCount += (dayTotals[tc] || 0);
+    var avgCount = staffOrder.length > 0 ? totalCount / daysInMonth : 0;
+    var lowThreshold = Math.max(1, Math.floor(avgCount * 0.5));
+
     var tfoot = document.createElement('tfoot');
     var footRow = document.createElement('tr');
     var footLabel = document.createElement('td');
@@ -1852,11 +2105,10 @@
     footLabel.textContent = '合計';
     footLabel.style.fontWeight = '700';
     footRow.appendChild(footLabel);
-
     for (var fd = 1; fd <= daysInMonth; fd++) {
       var ftd = document.createElement('td');
-      ftd.textContent = dayTotals[fd];
-      if (dayTotals[fd] <= lowThreshold) ftd.className = 'low-count';
+      ftd.textContent = dayTotals[fd] || 0;
+      if ((dayTotals[fd] || 0) <= lowThreshold) ftd.className = 'low-count';
       footRow.appendChild(ftd);
     }
     tfoot.appendChild(footRow);
@@ -1865,94 +2117,106 @@
     var gridWrap = document.createElement('div');
     gridWrap.className = 'pref-grid-wrap';
     gridWrap.appendChild(table);
-    content.appendChild(gridWrap);
-
-    // Render kanban pool
-    renderKanbanPool(data);
-    updateKanbanHeaderHighlight();
+    wrap.appendChild(gridWrap);
   }
 
-  // --- Preference Adoption Helpers ---
+  function updateSummaryGridPlacements() {
+    var tbody = document.getElementById('summaryGridBody');
+    if (!tbody || !cachedPrefsData) return;
+    var staffPrefs = cachedPrefsData._staffPrefs;
+    var staffOrder = cachedPrefsData._staffOrder;
+    var daysInMonth = cachedPrefsData._daysInMonth;
+    if (!staffPrefs || !staffOrder) return;
 
-  function onPrefCheckChange(key, cb) {
-    if (prefAdoptionState[key]) {
-      prefAdoptionState[key].checked = cb.checked;
-    }
-    updateAdoptCount();
-  }
+    var rows = tbody.querySelectorAll('tr');
+    for (var ri = 0; ri < rows.length && ri < staffOrder.length; ri++) {
+      var sInfo = staffPrefs[staffOrder[ri]];
+      var cells = rows[ri].querySelectorAll('td');
+      for (var cd = 1; cd <= daysInMonth && cd < cells.length; cd++) {
+        var td = cells[cd];
+        // Check if placed in any facility
+        var placedFac = null;
+        var placements = kanbanPlacements[cd] || {};
+        var facNames = Object.keys(placements);
+        for (var fi = 0; fi < facNames.length; fi++) {
+          var arr = placements[facNames[fi]];
+          for (var ai = 0; ai < arr.length; ai++) {
+            if (arr[ai].empNo === sInfo.empNo) { placedFac = facNames[fi]; break; }
+          }
+          if (placedFac) break;
+        }
 
-  function onPrefTimeChange(key, val) {
-    if (prefAdoptionState[key]) {
-      prefAdoptionState[key].timeSlot = val;
-    }
-  }
-
-  function onPrefFacilityChange(key, sel) {
-    if (prefAdoptionState[key]) {
-      prefAdoptionState[key].facility = sel.value;
-      var opt = sel.options[sel.selectedIndex];
-      prefAdoptionState[key].facilityId = opt ? (opt.getAttribute('data-id') || '') : '';
-      prefAdoptionState[key].area = opt ? (opt.getAttribute('data-area') || '') : '';
-    }
-  }
-
-  window.toggleSelectAllPrefs = function() {
-    var selectAll = document.getElementById('prefSelectAll').checked;
-    var checkboxes = document.querySelectorAll('#tab-preferences .pref-adopt-checkbox[data-key]');
-    for (var i = 0; i < checkboxes.length; i++) {
-      checkboxes[i].checked = selectAll;
-      var key = checkboxes[i].getAttribute('data-key');
-      if (prefAdoptionState[key]) {
-        prefAdoptionState[key].checked = selectAll;
+        if (placedFac) {
+          td.className = 'placed';
+          td.innerHTML = '<span class="facility-chip" title="' + escapeHtml(placedFac) + '">' + escapeHtml(placedFac) + '</span>';
+        } else {
+          var dayPrefs = sInfo.dates[cd] || [];
+          td.className = dayPrefs.length > 0 ? 'available' : '';
+          td.textContent = dayPrefs.length > 0 ? '○' : '';
+        }
       }
     }
-    updateAdoptCount();
-  };
-
-  function updateAdoptCount() {
-    var count = 0;
-    var keys = Object.keys(prefAdoptionState);
-    for (var i = 0; i < keys.length; i++) {
-      if (prefAdoptionState[keys[i]].checked) count++;
-    }
-    document.getElementById('adoptCount').textContent = count;
-    document.getElementById('btnAdoptPrefs').disabled = (count === 0);
   }
 
-  window.adoptPreferences = function() {
-    var keys = Object.keys(prefAdoptionState);
+  function updatePlacementCount() {
+    var total = 0;
+    var dayNums = Object.keys(kanbanPlacements);
+    for (var di = 0; di < dayNums.length; di++) {
+      var facNames = Object.keys(kanbanPlacements[dayNums[di]]);
+      for (var fi = 0; fi < facNames.length; fi++) {
+        total += kanbanPlacements[dayNums[di]][facNames[fi]].length;
+      }
+    }
+    document.getElementById('placementCount').textContent = total;
+    document.getElementById('btnAdoptKanban').disabled = (total === 0);
+    updateSummaryGridPlacements();
+  }
+
+  window.adoptKanbanPlacements = function() {
     var assignments = [];
     var mm = ('0' + currentMonth).slice(-2);
     var targetMonth = currentYear + '-' + mm;
 
-    for (var i = 0; i < keys.length; i++) {
-      var st = prefAdoptionState[keys[i]];
-      if (!st.checked) continue;
-      var day = ('0' + st.dayNum).slice(-2);
+    var dayNums = Object.keys(kanbanPlacements);
+    for (var di = 0; di < dayNums.length; di++) {
+      var dayNum = parseInt(dayNums[di], 10);
+      var day = ('0' + dayNum).slice(-2);
       var dateStr = currentYear + '/' + mm + '/' + day;
-      assignments.push({
-        yearMonth: targetMonth,
-        date: dateStr,
-        area: st.area || '',
-        facility: st.facility || '',
-        facilityId: st.facilityId || '',
-        timeSlot: st.timeSlot || '17時～翌9時',
-        empNo: st.empNo,
-        name: st.name,
-        assignedBy: '管理者'
-      });
+      var facNames = Object.keys(kanbanPlacements[dayNum]);
+      for (var fi = 0; fi < facNames.length; fi++) {
+        var facName = facNames[fi];
+        var cards = kanbanPlacements[dayNum][facName];
+        // Find facility info
+        var facInfo = null;
+        for (var fli = 0; fli < cachedFacilityList.length; fli++) {
+          if (cachedFacilityList[fli].name === facName) { facInfo = cachedFacilityList[fli]; break; }
+        }
+        for (var ci = 0; ci < cards.length; ci++) {
+          assignments.push({
+            yearMonth: targetMonth,
+            date: dateStr,
+            area: facInfo ? (facInfo.area || '') : '',
+            facility: facName,
+            facilityId: facInfo ? (facInfo.id || '') : '',
+            timeSlot: cards[ci].timeSlot || '17時～翌9時',
+            empNo: cards[ci].empNo,
+            name: cards[ci].name,
+            assignedBy: '管理者'
+          });
+        }
+      }
     }
 
     if (assignments.length === 0) {
-      showToast('チェックされた項目がありません');
+      showToast('配置された職員がいません');
       return;
     }
 
-    var btn = document.getElementById('btnAdoptPrefs');
+    var btn = document.getElementById('btnAdoptKanban');
     btn.disabled = true;
     btn.textContent = '反映中...';
-    var progress = document.getElementById('prefProgress');
-    var bar = document.getElementById('prefProgressBar');
+    var progress = document.getElementById('kanbanProgress');
+    var bar = document.getElementById('kanbanProgressBar');
     progress.style.display = 'block';
     bar.style.width = '30%';
 
@@ -1972,216 +2236,27 @@
         showToast('エラー: ' + result.error);
       } else {
         showToast('仮配置に ' + (result.count || assignments.length) + ' 件反映しました');
-        // Reset checkboxes
-        var cbs = document.querySelectorAll('#tab-preferences .pref-adopt-checkbox[data-key]');
-        for (var j = 0; j < cbs.length; j++) { cbs[j].checked = false; }
-        document.getElementById('prefSelectAll').checked = false;
-        var stKeys = Object.keys(prefAdoptionState);
-        for (var k = 0; k < stKeys.length; k++) { prefAdoptionState[stKeys[k]].checked = false; }
-        updateAdoptCount();
-        // Invalidate allocation tab
+        // Clear placements
+        kanbanPlacements = {};
+        var daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+        for (var d = 1; d <= daysInMonth; d++) kanbanPlacements[d] = {};
+        renderKanbanBoard(selectedDay);
         tabDataLoaded.allocation = false;
       }
-      setTimeout(function() { progress.style.display = 'none'; bar.style.width = '0%'; btn.textContent = '仮配置に反映 (' + document.getElementById('adoptCount').textContent + '件)'; btn.disabled = false; }, 1000);
+      setTimeout(function() {
+        progress.style.display = 'none'; bar.style.width = '0%';
+        btn.textContent = '仮配置に反映'; btn.disabled = false;
+        updatePlacementCount();
+      }, 1000);
     })
     .catch(function(err) {
       bar.style.width = '0%';
       progress.style.display = 'none';
       btn.disabled = false;
-      btn.textContent = '仮配置に反映 (' + document.getElementById('adoptCount').textContent + '件)';
+      btn.textContent = '仮配置に反映';
       showToast('通信エラー: ' + err.message);
     });
   };
-
-  function renderKanbanPool(data) {
-    var pool = document.getElementById('kanbanPool');
-    var cardsDiv = document.getElementById('kanbanCards');
-    cardsDiv.innerHTML = '';
-
-    // Collect all staff (submitted + not submitted)
-    var allStaff = [];
-    var sub = (data.submissionStatus || {});
-    var submitted = sub.submitted || [];
-    var notSubmitted = sub.notSubmitted || [];
-    var seen = {};
-
-    for (var i = 0; i < submitted.length; i++) {
-      var s = submitted[i];
-      var key = s.employeeNo || s.empNo || '';
-      if (!seen[key]) {
-        seen[key] = true;
-        allStaff.push({ empNo: key, name: s.name || '' });
-      }
-    }
-    for (var j = 0; j < notSubmitted.length; j++) {
-      var ns = notSubmitted[j];
-      var nsKey = ns.employeeNo || ns.empNo || '';
-      if (!seen[nsKey]) {
-        seen[nsKey] = true;
-        allStaff.push({ empNo: nsKey, name: ns.name || '' });
-      }
-    }
-
-    if (allStaff.length === 0) { pool.style.display = 'none'; return; }
-
-    allStaff.sort(function(a, b) { return a.name.localeCompare(b.name); });
-
-    for (var k = 0; k < allStaff.length; k++) {
-      var card = document.createElement('span');
-      card.className = 'kanban-card';
-      card.setAttribute('data-empno', allStaff[k].empNo);
-      card.setAttribute('data-name', allStaff[k].name);
-      card.innerHTML = escapeHtml(allStaff[k].name) + '<span class="kc-empno">' + escapeHtml(allStaff[k].empNo) + '</span>';
-      card.onclick = (function(emp) { return function() { selectKanbanEmployee(emp.empNo, emp.name); }; })(allStaff[k]);
-      cardsDiv.appendChild(card);
-    }
-
-    pool.style.display = 'block';
-  }
-
-  function selectKanbanEmployee(empNo, name) {
-    // Toggle selection
-    if (kanbanSelectedEmp && kanbanSelectedEmp.empNo === empNo) {
-      kanbanSelectedEmp = null;
-    } else {
-      kanbanSelectedEmp = { empNo: empNo, name: name };
-    }
-
-    // Update card highlights
-    var cards = document.querySelectorAll('#kanbanCards .kanban-card');
-    for (var i = 0; i < cards.length; i++) {
-      cards[i].classList.toggle('selected', kanbanSelectedEmp && cards[i].getAttribute('data-empno') === empNo);
-    }
-
-    // Update header highlights
-    updateKanbanHeaderHighlight();
-  }
-
-  function updateKanbanHeaderHighlight() {
-    var headers = document.querySelectorAll('.pref-grid-date-header');
-    for (var i = 0; i < headers.length; i++) {
-      if (kanbanSelectedEmp) {
-        headers[i].classList.add('clickable');
-      } else {
-        headers[i].classList.remove('clickable');
-      }
-    }
-  }
-
-  function pasteKanbanEmployee(dayNum) {
-    if (!kanbanSelectedEmp) return;
-
-    var empNo = kanbanSelectedEmp.empNo;
-    var name = kanbanSelectedEmp.name;
-
-    // Check if already has entry for this emp+day
-    var stateKey = empNo + '|' + dayNum;
-    if (prefAdoptionState[stateKey]) {
-      showToast(name + 'は' + dayNum + '日に既に登録済みです');
-      return;
-    }
-
-    addKanbanRowToGrid(dayNum, empNo, name);
-  }
-
-  function addKanbanRowToGrid(dayNum, empNo, name) {
-    var tbody = document.getElementById('prefGridBody');
-    if (!tbody) return;
-
-    var daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-    var stateKey = empNo + '|' + dayNum;
-
-    // Facility options
-    var facOptionsHtml = '<option value="">--</option>';
-    for (var fo = 0; fo < cachedFacilityList.length; fo++) {
-      facOptionsHtml += '<option value="' + escapeHtml(cachedFacilityList[fo].name) + '" data-id="' + escapeHtml(cachedFacilityList[fo].id || '') + '" data-area="' + escapeHtml(cachedFacilityList[fo].area || '') + '">' + escapeHtml(cachedFacilityList[fo].name) + '</option>';
-    }
-
-    // Find or create a row for this employee
-    var existingRow = null;
-    var rows = tbody.querySelectorAll('tr');
-    for (var r = 0; r < rows.length; r++) {
-      var nameCell = rows[r].querySelector('.staff-name-cell');
-      if (nameCell && nameCell.getAttribute('data-empno') === empNo) {
-        existingRow = rows[r];
-        break;
-      }
-    }
-
-    if (existingRow) {
-      // Employee row exists — fill the specific day cell
-      var cells = existingRow.querySelectorAll('td');
-      // cells[0] is name, cells[dayNum] is the day
-      if (dayNum < cells.length) {
-        var td = cells[dayNum];
-        if (td.classList.contains('available')) {
-          showToast(name + 'は' + dayNum + '日に既に登録済みです');
-          return;
-        }
-        td.className = 'available';
-        td.innerHTML = '';
-        appendAdoptControls(td, stateKey, empNo, name, dayNum, facOptionsHtml);
-      }
-    } else {
-      // Create new row
-      var row = document.createElement('tr');
-      row.style.background = '#fffbeb';
-
-      var nc = document.createElement('td');
-      nc.className = 'staff-name-cell';
-      nc.textContent = name;
-      nc.setAttribute('data-empno', empNo);
-      row.appendChild(nc);
-
-      for (var d = 1; d <= daysInMonth; d++) {
-        var td = document.createElement('td');
-        if (d === dayNum) {
-          td.className = 'available';
-          appendAdoptControls(td, empNo + '|' + d, empNo, name, d, facOptionsHtml);
-        }
-        row.appendChild(td);
-      }
-      tbody.appendChild(row);
-    }
-
-    kanbanAddedRows.push({ dayNum: dayNum, empNo: empNo, name: name });
-    showToast(name + 'を' + dayNum + '日に追加しました');
-  }
-
-  function appendAdoptControls(td, stateKey, empNo, name, dayNum, facOptionsHtml) {
-    var cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.className = 'pref-adopt-checkbox';
-    cb.setAttribute('data-key', stateKey);
-    cb.onchange = (function(key) { return function() { onPrefCheckChange(key, this); }; })(stateKey);
-    td.appendChild(cb);
-
-    var timeInp = document.createElement('input');
-    timeInp.type = 'text';
-    timeInp.className = 'pref-time-input';
-    timeInp.value = '17時～翌9時';
-    timeInp.setAttribute('data-key', stateKey);
-    timeInp.onchange = (function(key) { return function() { onPrefTimeChange(key, this.value); }; })(stateKey);
-    td.appendChild(timeInp);
-
-    var facSel = document.createElement('select');
-    facSel.className = 'pref-facility-select';
-    facSel.innerHTML = facOptionsHtml;
-    facSel.setAttribute('data-key', stateKey);
-    facSel.onchange = (function(key) { return function() { onPrefFacilityChange(key, this); }; })(stateKey);
-    td.appendChild(facSel);
-
-    prefAdoptionState[stateKey] = {
-      checked: false,
-      timeSlot: '17時～翌9時',
-      facility: '',
-      facilityId: '',
-      area: '',
-      empNo: empNo,
-      name: name,
-      dayNum: dayNum
-    };
-  }
 
   // ========================================
   // Tab 5: Allocation Management
