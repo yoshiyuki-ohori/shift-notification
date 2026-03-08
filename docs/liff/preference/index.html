@@ -612,9 +612,9 @@ body {
         <div class="timeslot-label">時間帯 <span class="ts-required">※必須</span></div>
         <div class="timeslot-grid">
           <span class="ts-chip" data-slot="6時～9時" onclick="toggleSlot(this)">6時～9時</span>
-          <span class="ts-chip" data-slot="9時～17時" onclick="toggleSlot(this)">9時～17時</span>
           <span class="ts-chip" data-slot="17時～22時" onclick="toggleSlot(this)">17時～22時</span>
-          <span class="ts-chip" data-slot="22時～" onclick="toggleSlot(this)">22時～</span>
+          <span class="ts-chip" data-slot="22時～6時" onclick="toggleSlot(this)">22時～6時</span>
+          <span class="ts-chip" data-slot="22時～9時" onclick="toggleSlot(this)">22時～9時</span>
           <span class="ts-chip" data-slot="17時～翌9時" onclick="toggleSlot(this)">17時～翌9時</span>
           <span class="ts-chip" data-slot="その他" onclick="toggleCustomSlot(this)">その他</span>
         </div>
@@ -685,9 +685,9 @@ var currentArea = null;   // 現在表示中のエリア
 
 var TIME_SLOT_COLORS = {
   '6時～9時': '#4ECDC4',
-  '9時～17時': '#3498DB',
   '17時～22時': '#FF6B6B',
-  '22時～': '#845EC2',
+  '22時～6時': '#845EC2',
+  '22時～9時': '#6C5CE7',
   '17時～翌9時': '#E67E22'
 };
 
@@ -1015,7 +1015,7 @@ function onDateClick(dateStr) {
 
   // Time slots
   var currentSlots = pref && pref.timeSlot ? pref.timeSlot.split(', ') : [];
-  var knownSlots = ['6時～9時', '9時～17時', '17時～22時', '22時～', '17時～翌9時'];
+  var knownSlots = ['6時～9時', '17時～22時', '22時～6時', '22時～9時', '17時～翌9時'];
   var customSlots = currentSlots.filter(function(s) { return s && knownSlots.indexOf(s) === -1; });
   document.querySelectorAll('.ts-chip').forEach(function(chip) {
     if (chip.dataset.slot === 'その他') {
